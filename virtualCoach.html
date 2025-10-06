@@ -32,7 +32,7 @@
       overflow: hidden;
     }
 
-    /* ============ ESTILOS MODERNOS PARA EL TUTORIAL ============ */
+    /* ============ TUTORIAL MOBILE-FIRST ============ */
     .tutorial-overlay {
       position: fixed;
       inset: 0;
@@ -53,36 +53,30 @@
     }
     
     .tutorial-container {
-      display: flex;
-      max-width: 1200px;
       width: 100%;
-      height: 90vh;
+      max-width: 500px;
+      height: 85vh;
       background: linear-gradient(145deg, #0f1a25, #0a121b);
       border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .tutorial-sidebar {
-      width: 300px;
-      min-width: 280px;
-      background: rgba(15, 26, 37, 0.9);
-      padding: 32px 20px;
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
     }
     
-    .tutorial-logo {
-      text-align: center;
-      margin-bottom: 32px;
-      padding: 0 8px;
+    /* Header Mobile */
+    .tutorial-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 26, 37, 0.9);
     }
     
     .tutorial-logo h1 {
-      font-size: clamp(18px, 2.5vw, 24px);
+      font-size: 20px;
       margin: 0;
       background: linear-gradient(90deg, var(--blue), var(--green));
       -webkit-background-clip: text;
@@ -90,224 +84,191 @@
       background-clip: text;
       color: transparent;
       font-weight: 700;
-      line-height: 1.2;
-    }
-    
-    .tutorial-progress {
-      margin-bottom: 32px;
-      padding: 0 8px;
-    }
-    
-    .tutorial-progress-bar {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    
-    .tutorial-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--blue), var(--green));
-      border-radius: 3px;
-      transition: width 0.5s ease;
-      width: 0%;
-    }
-    
-    .tutorial-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
-    }
-    
-    .tutorial-step-item {
-      padding: 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-      opacity: 0.6;
-      min-height: 80px;
-    }
-    
-    .tutorial-step-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      opacity: 0.8;
-    }
-    
-    .tutorial-step-item.active {
-      background: rgba(13, 110, 253, 0.15);
-      border-color: rgba(13, 110, 253, 0.3);
-      opacity: 1;
-    }
-    
-    .tutorial-step-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-      font-size: 18px;
-      background: rgba(255, 255, 255, 0.1);
-      flex-shrink: 0;
-    }
-    
-    .tutorial-step-item.active .tutorial-step-icon {
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-    }
-    
-    .tutorial-step-title {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 6px;
-      line-height: 1.3;
-    }
-    
-    .tutorial-step-desc {
-      font-size: 12px;
-      opacity: 0.8;
-      line-height: 1.4;
-    }
-    
-    .tutorial-content {
-      flex: 1;
-      padding: clamp(20px, 4vw, 40px);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      min-width: 0;
-    }
-    
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: clamp(20px, 4vw, 32px);
-      gap: 16px;
-    }
-    
-    .tutorial-title {
-      font-size: clamp(24px, 4vw, 32px);
-      font-weight: 700;
-      margin: 0;
-      background: linear-gradient(90deg, var(--ink), var(--green));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      color: transparent;
-      line-height: 1.2;
-      flex: 1;
     }
     
     .tutorial-close {
       background: rgba(255, 255, 255, 0.1);
       border: none;
       color: var(--ink);
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.3s ease;
-      font-size: 20px;
-      flex-shrink: 0;
+      font-size: 18px;
     }
     
-    .tutorial-close:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: rotate(90deg);
+    /* Progress Mobile */
+    .tutorial-progress {
+      padding: 0 24px;
+      background: rgba(15, 26, 37, 0.9);
     }
     
-    .tutorial-step-content {
+    .tutorial-progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    
+    .tutorial-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      border-radius: 2px;
+      transition: width 0.5s ease;
+      width: 14.28%;
+    }
+    
+    .tutorial-progress-text {
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 16px;
+    }
+    
+    /* Slides Container */
+    .tutorial-slides-container {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tutorial-slides {
+      display: flex;
+      height: 100%;
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .tutorial-slide {
+      min-width: 100%;
+      height: 100%;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: clamp(20px, 3vw, 32px);
-      min-width: 0;
+      overflow-y: auto;
     }
     
-    .tutorial-feature {
-      display: flex;
-      align-items: flex-start;
-      gap: clamp(16px, 3vw, 24px);
-      padding: clamp(16px, 3vw, 24px);
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
+    /* Slide Content */
+    .slide-header {
+      text-align: center;
+      margin-bottom: 24px;
     }
     
-    .tutorial-feature:hover {
-      background: rgba(255, 255, 255, 0.08);
-      transform: translateY(-2px);
-    }
-    
-    .tutorial-feature-icon {
-      width: clamp(44px, 6vw, 56px);
-      height: clamp(44px, 6vw, 56px);
-      border-radius: 12px;
+    .slide-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(18px, 2.5vw, 22px);
+      font-size: 32px;
       background: linear-gradient(135deg, var(--blue), var(--purple));
+      margin: 0 auto 16px;
+    }
+    
+    .slide-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, var(--ink), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .slide-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+    
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .slide-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.1);
       flex-shrink: 0;
     }
     
-    .tutorial-feature-content {
+    .feature-content {
       flex: 1;
-      min-width: 0;
     }
     
-    .tutorial-feature-title {
+    .feature-title {
       font-weight: 600;
-      font-size: clamp(16px, 2vw, 20px);
-      margin-bottom: 8px;
+      font-size: 16px;
+      margin-bottom: 6px;
       color: var(--green);
-      line-height: 1.3;
     }
     
-    .tutorial-feature-desc {
-      line-height: 1.6;
+    .feature-desc {
+      font-size: 14px;
+      line-height: 1.5;
       opacity: 0.9;
-      font-size: clamp(14px, 1.6vw, 16px);
     }
     
-    .tutorial-tip {
+    .slide-tip {
       background: rgba(53, 208, 127, 0.1);
       border: 1px solid rgba(53, 208, 127, 0.3);
       border-radius: 12px;
-      padding: clamp(16px, 3vw, 24px);
+      padding: 16px;
       margin-top: 8px;
     }
     
-    .tutorial-tip-title {
+    .tip-title {
       font-weight: 600;
       color: var(--green);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: clamp(14px, 1.6vw, 16px);
+      font-size: 14px;
     }
     
+    .tip-content {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    /* Navigation Mobile */
     .tutorial-navigation {
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: clamp(24px, 4vw, 32px);
-      padding-top: clamp(16px, 3vw, 24px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
       gap: 12px;
+      background: rgba(15, 26, 37, 0.9);
     }
     
     .tutorial-nav-btn {
-      padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+      padding: 12px 20px;
       border-radius: 10px;
       border: none;
       font-weight: 600;
@@ -316,8 +277,9 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: clamp(14px, 1.6vw, 16px);
-      white-space: nowrap;
+      font-size: 14px;
+      flex: 1;
+      justify-content: center;
     }
     
     .tutorial-nav-btn.prev {
@@ -335,26 +297,16 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
     
-    .tutorial-demo {
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
-      padding: clamp(16px, 3vw, 24px);
-      margin-top: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .tutorial-nav-btn:active {
+      transform: translateY(0);
     }
     
-    .tutorial-demo-title {
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--yellow);
-      font-size: clamp(14px, 1.8vw, 18px);
-    }
-    
+    /* Skip Button */
     .skip-tutorial-btn {
       position: fixed;
-      top: clamp(16px, 4vw, 24px);
-      right: clamp(16px, 4vw, 24px);
-      padding: clamp(8px, 1.5vw, 12px) clamp(16px, 2.5vw, 20px);
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: var(--ink);
@@ -363,7 +315,7 @@
       font-weight: 600;
       transition: all 0.3s ease;
       z-index: 2001;
-      font-size: clamp(12px, 1.4vw, 14px);
+      font-size: 12px;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
@@ -373,269 +325,299 @@
       transform: translateY(-2px);
     }
     
-    /* ============ RESPONSIVE BREAKPOINTS ============ */
-    
-    /* Tablets grandes y laptops pequeñas */
-    @media (max-width: 1024px) {
-      .tutorial-container {
-        height: 92vh;
-        max-width: 95%;
-      }
-      
-      .tutorial-sidebar {
-        width: 260px;
-        min-width: 240px;
-        padding: 24px 16px;
-      }
-      
-      .tutorial-content {
-        padding: 28px;
-      }
+    /* Dots Indicator */
+    .tutorial-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
     }
     
-    /* Tablets */
-    @media (max-width: 900px) {
+    .tutorial-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .tutorial-dot.active {
+      background: var(--blue);
+      transform: scale(1.2);
+    }
+    
+    /* Swipe Hint */
+    .swipe-hint {
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.6;
+      margin-top: 12px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.3; }
+    }
+    
+    /* ============ DESKTOP VERSION ============ */
+    @media (min-width: 901px) {
       .tutorial-container {
-        flex-direction: column;
-        height: 94vh;
-        max-width: 98%;
-      }
-      
-      .tutorial-sidebar {
-        width: 100%;
-        min-width: auto;
-        padding: 20px;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        max-height: 40vh;
-      }
-      
-      .tutorial-steps {
+        max-width: 900px;
+        height: 80vh;
         flex-direction: row;
-        overflow-x: auto;
-        padding-bottom: 12px;
-        gap: 8px;
-      }
-      
-      .tutorial-step-item {
-        min-width: 200px;
-        min-height: auto;
-        padding: 12px;
-      }
-      
-      .tutorial-step-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-        margin-bottom: 8px;
-      }
-      
-      .tutorial-content {
-        padding: 24px;
-        min-height: 50vh;
       }
       
       .tutorial-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
+        display: none;
       }
       
-      .tutorial-title {
-        text-align: center;
-      }
-      
-      .tutorial-close {
-        align-self: flex-end;
-        position: absolute;
-        top: 20px;
-        right: 20px;
-      }
-    }
-    
-    /* Tablets pequeñas y móviles grandes */
-    @media (max-width: 768px) {
-      .tutorial-overlay {
-        padding: 12px;
-      }
-      
-      .tutorial-container {
-        height: 96vh;
-        border-radius: 20px;
+      .tutorial-progress {
+        display: none;
       }
       
       .tutorial-sidebar {
-        padding: 16px;
-        max-height: 35vh;
-      }
-      
-      .tutorial-step-item {
-        min-width: 180px;
-        padding: 10px;
-      }
-      
-      .tutorial-step-title {
-        font-size: 13px;
-      }
-      
-      .tutorial-step-desc {
-        font-size: 11px;
-      }
-      
-      .tutorial-content {
-        padding: 20px;
-      }
-      
-      .tutorial-feature {
+        width: 300px;
+        background: rgba(15, 26, 37, 0.9);
+        padding: 32px 20px;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
         flex-direction: column;
+        overflow-y: auto;
+      }
+      
+      .tutorial-logo {
         text-align: center;
-        gap: 12px;
+        margin-bottom: 32px;
       }
       
-      .tutorial-feature-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-        align-self: center;
-      }
-      
-      .tutorial-navigation {
-        flex-direction: column;
-        gap: 12px;
-      }
-      
-      .tutorial-nav-btn {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-    
-    /* Móviles */
-    @media (max-width: 480px) {
-      .tutorial-overlay {
-        padding: 8px;
-      }
-      
-      .tutorial-container {
-        height: 98vh;
-        border-radius: 16px;
-      }
-      
-      .tutorial-sidebar {
-        padding: 12px;
-        max-height: 30vh;
+      .tutorial-logo h1 {
+        font-size: 22px;
       }
       
       .tutorial-steps {
-        gap: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
       }
       
       .tutorial-step-item {
-        min-width: 160px;
-        padding: 8px;
+        padding: 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+        opacity: 0.6;
+      }
+      
+      .tutorial-step-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        opacity: 0.8;
+      }
+      
+      .tutorial-step-item.active {
+        background: rgba(13, 110, 253, 0.15);
+        border-color: rgba(13, 110, 253, 0.3);
+        opacity: 1;
       }
       
       .tutorial-step-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-        margin-bottom: 6px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 18px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      .tutorial-step-item.active .tutorial-step-icon {
+        background: linear-gradient(135deg, var(--blue), var(--purple));
       }
       
       .tutorial-step-title {
-        font-size: 12px;
-      }
-      
-      .tutorial-step-desc {
-        font-size: 10px;
-      }
-      
-      .tutorial-content {
-        padding: 16px;
-      }
-      
-      .tutorial-feature {
-        padding: 12px;
-      }
-      
-      .tutorial-feature-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-      }
-      
-      .tutorial-feature-title {
-        font-size: 16px;
-      }
-      
-      .tutorial-feature-desc {
-        font-size: 14px;
-      }
-      
-      .skip-tutorial-btn {
-        top: 12px;
-        right: 12px;
-        padding: 6px 12px;
-        font-size: 12px;
-      }
-      
-      .tutorial-close {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        top: 16px;
-        right: 16px;
-      }
-    }
-    
-    /* Móviles muy pequeños */
-    @media (max-width: 360px) {
-      .tutorial-step-item {
-        min-width: 140px;
-      }
-      
-      .tutorial-content {
-        padding: 12px;
-      }
-      
-      .tutorial-feature {
-        padding: 10px;
-      }
-      
-      .tutorial-navigation {
-        gap: 8px;
-      }
-      
-      .tutorial-nav-btn {
-        padding: 8px 16px;
-        font-size: 13px;
-      }
-    }
-    
-    /* Alturas pequeñas */
-    @media (max-height: 600px) {
-      .tutorial-container {
-        height: 98vh;
-      }
-      
-      .tutorial-sidebar {
-        max-height: 45vh;
-      }
-      
-      .tutorial-step-item {
-        min-height: 70px;
-        padding: 10px;
-      }
-      
-      .tutorial-step-icon {
-        width: 32px;
-        height: 32px;
+        font-weight: 600;
         font-size: 14px;
         margin-bottom: 6px;
       }
       
+      .tutorial-step-desc {
+        font-size: 12px;
+        opacity: 0.8;
+        line-height: 1.4;
+      }
+      
       .tutorial-content {
-        padding: 16px;
+        flex: 1;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      
+      .tutorial-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 32px;
+        background: linear-gradient(90deg, var(--ink), var(--green));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+      }
+      
+      .tutorial-step-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      
+      .tutorial-feature {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .tutorial-feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+      }
+      
+      .tutorial-feature-title {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: var(--green);
+      }
+      
+      .tutorial-feature-desc {
+        line-height: 1.6;
+        opacity: 0.9;
+      }
+      
+      .tutorial-tip {
+        background: rgba(53, 208, 127, 0.1);
+        border: 1px solid rgba(53, 208, 127, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 10px;
+      }
+      
+      .tutorial-slides-container {
+        display: none;
+      }
+      
+      .tutorial-navigation {
+        padding: 24px 40px;
+      }
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 500px) {
+      .tutorial-overlay {
+        padding: 12px;
+      }
+      
+      .tutorial-container {
+        height: 90vh;
+        border-radius: 20px;
+      }
+      
+      .slide-header {
+        margin-bottom: 20px;
+      }
+      
+      .slide-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+      }
+      
+      .slide-title {
+        font-size: 22px;
+      }
+      
+      .slide-content {
+        gap: 12px;
+      }
+      
+      .slide-feature {
+        padding: 14px;
+        gap: 12px;
+      }
+      
+      .feature-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+      }
+      
+      .feature-title {
+        font-size: 15px;
+      }
+      
+      .feature-desc {
+        font-size: 13px;
+      }
+      
+      .tutorial-navigation {
+        padding: 16px 20px;
+      }
+      
+      .tutorial-nav-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+      
+      .skip-tutorial-btn {
+        top: 16px;
+        right: 16px;
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      .tutorial-container {
+        height: 92vh;
+      }
+      
+      .slide-header {
+        margin-bottom: 16px;
+      }
+      
+      .slide-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
+      
+      .slide-title {
+        font-size: 20px;
+      }
+      
+      .slide-feature {
+        padding: 12px;
+        gap: 10px;
+      }
+      
+      .tutorial-navigation {
+        padding: 14px 16px;
       }
     }
   </style>
@@ -646,92 +628,82 @@
     ⏭️ Saltar Tutorial
   </button>
 
-  <!-- Tutorial Overlay Moderno -->
+  <!-- Tutorial Overlay -->
   <div class="tutorial-overlay">
     <div class="tutorial-container">
+      <!-- Mobile Header -->
+      <div class="tutorial-header">
+        <div class="tutorial-logo">
+          <h1>Lavagna di Rugby</h1>
+        </div>
+        <button id="tutorialClose" class="tutorial-close">×</button>
+      </div>
+
+      <!-- Mobile Progress -->
+      <div class="tutorial-progress">
+        <div class="tutorial-progress-bar">
+          <div id="tutorialProgressFill" class="tutorial-progress-fill"></div>
+        </div>
+        <div id="tutorialProgressText" class="tutorial-progress-text">Passo 1 di 7</div>
+      </div>
+
+      <!-- Desktop Sidebar (hidden on mobile) -->
       <div class="tutorial-sidebar">
         <div class="tutorial-logo">
           <h1>Lavagna di Rugby</h1>
         </div>
         
-        <div class="tutorial-progress">
-          <div class="tutorial-progress-bar">
-            <div id="tutorialProgressFill" class="tutorial-progress-fill"></div>
-          </div>
-          <div id="tutorialProgressText" class="tutorial-step-desc">Passo 1 di 7</div>
-        </div>
-        
         <div class="tutorial-steps">
-          <div class="tutorial-step-item active" data-step="1">
-            <div class="tutorial-step-icon">🎯</div>
-            <div class="tutorial-step-title">Introduzione</div>
-            <div class="tutorial-step-desc">Benvenuto nella Lavagna di Rugby</div>
-          </div>
-          <div class="tutorial-step-item" data-step="2">
-            <div class="tutorial-step-icon">👥</div>
-            <div class="tutorial-step-title">Movimento Giocatori</div>
-            <div class="tutorial-step-desc">Trascina e posiziona giocatori e pallone</div>
-          </div>
-          <div class="tutorial-step-item" data-step="3">
-            <div class="tutorial-step-icon">✏️</div>
-            <div class="tutorial-step-title">Strumenti Disegno</div>
-            <div class="tutorial-step-desc">Frecce, matita e personalizzazione</div>
-          </div>
-          <div class="tutorial-step-item" data-step="4">
-            <div class="tutorial-step-icon">🎬</div>
-            <div class="tutorial-step-title">Animazione</div>
-            <div class="tutorial-step-desc">Crea e riproduci sequenze animate</div>
-          </div>
-          <div class="tutorial-step-item" data-step="5">
-            <div class="tutorial-step-icon">💾</div>
-            <div class="tutorial-step-title">Salvataggio</div>
-            <div class="tutorial-step-desc">Salva e carica le tue giocate</div>
-          </div>
-          <div class="tutorial-step-item" data-step="6">
-            <div class="tutorial-step-icon">📤</div>
-            <div class="tutorial-step-title">Esportazione</div>
-            <div class="tutorial-step-desc">Esporta immagini e video</div>
-          </div>
-          <div class="tutorial-step-item" data-step="7">
-            <div class="tutorial-step-icon">🚀</div>
-            <div class="tutorial-step-title">Pronto a Iniziare</div>
-            <div class="tutorial-step-desc">Metti in pratica ciò che hai imparato</div>
-          </div>
+          <!-- Steps will be populated by JavaScript -->
         </div>
       </div>
-      
+
+      <!-- Mobile Slides -->
+      <div class="tutorial-slides-container">
+        <div class="tutorial-slides" id="tutorialSlides">
+          <!-- Slides will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Desktop Content (hidden on mobile) -->
       <div class="tutorial-content">
-        <div class="tutorial-header">
-          <h2 id="tutorialTitle" class="tutorial-title">Benvenuto nella Lavagna di Rugby</h2>
-          <button id="tutorialClose" class="tutorial-close">×</button>
-        </div>
-        
+        <h2 id="tutorialTitle" class="tutorial-title">Benvenuto nella Lavagna di Rugby</h2>
         <div id="tutorialStepContent" class="tutorial-step-content">
-          <!-- Il contenuto dei passi verrà inserito qui dinamicamente -->
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="tutorial-navigation">
+        <button id="tutorialPrev" class="tutorial-nav-btn prev">
+          <span>←</span> Precedente
+        </button>
+        
+        <!-- Mobile Dots -->
+        <div class="tutorial-dots" id="tutorialDots">
+          <!-- Dots will be populated by JavaScript -->
         </div>
         
-        <div class="tutorial-navigation">
-          <button id="tutorialPrev" class="tutorial-nav-btn prev">
-            <span>←</span> Precedente
-          </button>
-          <button id="tutorialNext" class="tutorial-nav-btn next">
-            Successivo <span>→</span>
-          </button>
-          <button id="tutorialFinish" class="tutorial-nav-btn next" style="display:none;">
-            Inizia a Creare! <span>🚀</span>
-          </button>
-        </div>
+        <button id="tutorialNext" class="tutorial-nav-btn next">
+          Successivo <span>→</span>
+        </button>
+        <button id="tutorialFinish" class="tutorial-nav-btn next" style="display:none;">
+          Inizia! <span>🚀</span>
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    // Tutorial Manager - Gestione completa del tutorial
+    // Tutorial Manager - Mobile First con Slides
     class TutorialManager {
         constructor() {
             this.currentStep = 1;
             this.totalSteps = 7;
             this.stepContents = this.getStepContents();
+            this.isMobile = window.innerWidth <= 900;
+            this.touchStartX = 0;
+            this.touchEndX = 0;
             this.init();
         }
 
@@ -739,11 +711,13 @@
             return {
                 1: {
                     title: "Benvenuto nella Lavagna di Rugby",
+                    subtitle: "Scopri come creare schemi di gioco professionali",
+                    icon: "🎯",
                     features: [
                         {
                             icon: "🎯",
-                            title: "Crea Schemi di Gioco Avanzati",
-                            desc: "Progetta e visualizza strategie di rugby con uno strumento professionale e intuitivo."
+                            title: "Schemi Avanzati",
+                            desc: "Progetta strategie di rugby con uno strumento professionale e intuitivo."
                         },
                         {
                             icon: "⚡",
@@ -752,194 +726,338 @@
                         },
                         {
                             icon: "🎨",
-                            title: "Personalizzazione Totale",
-                            desc: "Colori, stili e strumenti di disegno per esprimere al meglio le tue idee."
+                            title: "Personalizzazione",
+                            desc: "Colori, stili e strumenti per esprimere al meglio le tue idee."
                         }
                     ],
-                    tip: "Questa guida ti mostrerà tutte le funzionalità in pochi minuti. Puoi saltarla in qualsiasi momento."
+                    tip: "Scorri verso sinistra per continuare il tutorial!"
                 },
                 2: {
-                    title: "Movimento Giocatori e Pallone",
+                    title: "Movimento Giocatori",
+                    subtitle: "Trascina e posiziona giocatori e pallone",
+                    icon: "👥",
                     features: [
                         {
                             icon: "👥",
-                            title: "Trascina i Giocatori",
-                            desc: "Clicca e trascina qualsiasi giocatore per posizionarlo sul campo. I giocatori blu e rossi rappresentano le due squadre."
+                            title: "Trascina Giocatori",
+                            desc: "Clicca e trascina qualsiasi giocatore per posizionarlo sul campo."
                         },
                         {
                             icon: "🏉",
                             title: "Controlla il Pallone",
-                            desc: "Muovi il pallone ovunque sul campo. Quando lo trascini da un giocatore, viene visualizzata una linea di passaggio."
+                            desc: "Muovi il pallone ovunque sul campo con un semplice trascinamento."
                         },
                         {
                             icon: "🔲",
-                            title: "Aggancio alla Griglia",
-                            desc: "Attiva 'Aggancia alla griglia' per un posizionamento preciso e allineato."
+                            title: "Griglia di Precisione",
+                            desc: "Attiva l'aggancio alla griglia per un posizionamento preciso."
                         }
                     ],
-                    tip: "Prova a trascinare un giocatore tenendo premuto il pallone per vedere la linea di passaggio in tempo reale!"
+                    tip: "Trascina il pallone da un giocatore per vedere la linea di passaggio!"
                 },
                 3: {
-                    title: "Strumenti di Disegno",
+                    title: "Strumenti Disegno",
+                    subtitle: "Frecce, matita e personalizzazione",
+                    icon: "✏️",
                     features: [
                         {
                             icon: "➡️",
                             title: "Frecce Direzionali",
-                            desc: "Disegna frecce per indicare movimenti e direzioni di gioco. Clicca e trascina per creare frecce di qualsiasi dimensione."
+                            desc: "Disegna frecce per indicare movimenti e direzioni di gioco."
                         },
                         {
                             icon: "✏️",
                             title: "Matita Libera",
-                            desc: "Usa la matita per disegnare traiettorie, cerchi o annotazioni personalizzate."
+                            desc: "Usa la matita per disegnare traiettorie e annotazioni."
                         },
                         {
                             icon: "🎨",
                             title: "Personalizzazione",
-                            desc: "Scegli tra diversi colori, spessori e stili di linea (continua o tratteggiata)."
+                            desc: "Scegli colori, spessori e stili di linea."
                         }
                     ],
-                    tip: "Usa il tasto 'Annulla' per correggere rapidamente gli errori, o 'Cancella tutto' per ricominciare."
+                    tip: "Usa 'Annulla' per correggere errori rapidamente."
                 },
                 4: {
-                    title: "Animazione delle Giocate",
+                    title: "Animazione",
+                    subtitle: "Crea e riproduci sequenze animate",
+                    icon: "🎬",
                     features: [
                         {
                             icon: "📸",
                             title: "Crea Fotogrammi",
-                            desc: "Clicca 'Graba paso' per salvare la posizione corrente come fotogramma dell'animazione."
+                            desc: "Salva le posizioni come fotogrammi dell'animazione."
                         },
                         {
                             icon: "⏯️",
                             title: "Controlli di Riproduzione",
-                            desc: "Usa Play, Pause e Stop per controllare l'animazione. Regola la velocità con il campo di input."
+                            desc: "Play, Pause e Stop per controllare l'animazione."
                         },
                         {
                             icon: "🎚️",
                             title: "Navigazione Frame",
-                            desc: "Usa lo scrubber o i pulsanti 'Anterior/Siguiente' per navigare tra i fotogrammi."
+                            desc: "Scorri tra i fotogrammi con lo scrubber."
                         }
                     ],
-                    tip: "Attiva 'Auto al soltar' per registrare automaticamente un fotogramma ogni volta che muovi un giocatore o il pallone."
+                    tip: "Attiva 'Auto al soltar' per registrare automaticamente."
                 },
                 5: {
-                    title: "Salvataggio e Caricamento",
+                    title: "Salvataggio",
+                    subtitle: "Salva e carica le tue giocate",
+                    icon: "💾",
                     features: [
                         {
                             icon: "💾",
-                            title: "Salva le Giocate",
-                            desc: "Assegna un nome alla tua giocata e clicca 'Salva' per conservare tutto: posizioni, animazione e disegni."
+                            title: "Salva Giocate",
+                            desc: "Conserva tutto: posizioni, animazione e disegni."
                         },
                         {
                             icon: "📂",
-                            title: "Carica Giocate Esistenti",
-                            desc: "Usa il menu a tendina per selezionare e caricare qualsiasi giocata salvata in precedenza."
+                            title: "Carica Giocate",
+                            desc: "Seleziona e carica giocate salvate in precedenza."
                         },
                         {
                             icon: "🔄",
                             title: "Duplica e Gestisci",
-                            desc: "Duplica le giocate per creare varianti, o elimina quelle che non ti servono più."
+                            desc: "Crea varianti e gestisci le tue giocate."
                         }
                     ],
-                    tip: "Organizza le tue giocate con nomi descrittivi per ritrovarle facilmente in seguito."
+                    tip: "Usa nomi descrittivi per ritrovare facilmente le giocate."
                 },
                 6: {
-                    title: "Esportazione Condivisibile",
+                    title: "Esportazione",
+                    subtitle: "Esporta immagini e video",
+                    icon: "📤",
                     features: [
                         {
                             icon: "🖼️",
                             title: "Immagine JPG",
-                            desc: "Esporta il campo corrente come immagine JPG di alta qualità, perfetta per presentazioni o condivisioni rapide."
+                            desc: "Esporta il campo come immagine di alta qualità."
                         },
                         {
                             icon: "🎥",
                             title: "Video Animato",
-                            desc: "Crea video WebM o MP4 delle tue animazioni, ideali per tutorial o analisi tecniche."
+                            desc: "Crea video WebM o MP4 delle tue animazioni."
                         },
                         {
                             icon: "📊",
                             title: "Dati JSON",
-                            desc: "Esporta i dati dell'animazione in formato JSON per backup o utilizzo in otros strumenti."
+                            desc: "Esporta i dati per backup o altri strumenti."
                         }
                     ],
-                    tip: "L'esportazione MP4 richiede ffmpeg.wasm e potrebbe essere più lenta la prima volta."
+                    tip: "Il video MP4 potrebbe essere lento la prima volta."
                 },
                 7: {
-                    title: "Pronto a Creare!",
+                    title: "Pronto a Iniziare!",
+                    subtitle: "Metti in pratica ciò che hai imparato",
+                    icon: "🚀",
                     features: [
                         {
                             icon: "🚀",
                             title: "Metti in Pratica",
-                            desc: "Ora hai tutti gli strumenti per creare schemi di gioco professionali. Inizia con una giocata semplice!"
+                            desc: "Inizia con una giocata semplice e sperimenta."
                         },
                         {
                             icon: "💡",
                             title: "Esplora e Sperimenta",
-                            desc: "Non aver paura di provare tutte le funzionalità. Puoi sempre resettare o annullare le azioni."
+                            desc: "Prova tutte le funzionalità senza paura."
                         },
                         {
                             icon: "❓",
-                            title: "Aiuto sempre Disponibile",
-                            desc: "Clicca 'Guida Interattiva' in qualsiasi momento per rivedere questa tutorial."
+                            title: "Aiuto Disponibile",
+                            desc: "Rivedi questo tutorial in qualsiasi momento."
                         }
                     ],
-                    tip: "La pratica rende perfetti! Più utilizzi lo strumento, più diventerai veloce nel creare schemi efficaci."
+                    tip: "La pratica rende perfetti! Diventerai più veloce col tempo."
                 }
             };
         }
 
         init() {
-            // Configurar eventos del tutorial
+            this.setupEventListeners();
+            this.renderTutorial();
+            this.show();
+            
+            // Añadir listener para cambios de tamaño
+            window.addEventListener('resize', () => this.handleResize());
+        }
+
+        setupEventListeners() {
+            // Botones de navegación
             document.getElementById('tutorialClose').addEventListener('click', () => this.hide());
             document.getElementById('tutorialPrev').addEventListener('click', () => this.previousStep());
             document.getElementById('tutorialNext').addEventListener('click', () => this.nextStep());
             document.getElementById('tutorialFinish').addEventListener('click', () => this.complete());
             document.getElementById('skipTutorial').addEventListener('click', () => this.skipTutorial());
             
-            // Configurar eventos de los pasos en la barra lateral
-            document.querySelectorAll('.tutorial-step-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    const step = parseInt(e.currentTarget.dataset.step);
-                    this.goToStep(step);
+            // Touch events para swipe en móviles
+            if (this.isMobile) {
+                const slidesContainer = document.getElementById('tutorialSlides');
+                slidesContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+                slidesContainer.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+            } else {
+                // Eventos para desktop
+                document.querySelectorAll('.tutorial-step-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const step = parseInt(e.currentTarget.dataset.step);
+                        this.goToStep(step);
+                    });
                 });
-            });
+            }
+        }
 
-            // Mostrar tutorial automáticamente
-            this.show();
+        handleResize() {
+            const wasMobile = this.isMobile;
+            this.isMobile = window.innerWidth <= 900;
             
-            // Añadir listener para cambios de tamaño de ventana
-            window.addEventListener('resize', () => this.handleResize());
+            if (wasMobile !== this.isMobile) {
+                // Recargar el tutorial si cambia el modo
+                this.renderTutorial();
+            }
+        }
+
+        handleTouchStart(e) {
+            this.touchStartX = e.changedTouches[0].screenX;
+        }
+
+        handleTouchEnd(e) {
+            this.touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe();
+        }
+
+        handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = this.touchStartX - this.touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe izquierda - siguiente
+                    this.nextStep();
+                } else {
+                    // Swipe derecha - anterior
+                    this.previousStep();
+                }
+            }
+        }
+
+        renderTutorial() {
+            if (this.isMobile) {
+                this.renderMobileTutorial();
+            } else {
+                this.renderDesktopTutorial();
+            }
+            this.goToStep(this.currentStep);
+        }
+
+        renderMobileTutorial() {
+            const slidesContainer = document.getElementById('tutorialSlides');
+            const dotsContainer = document.getElementById('tutorialDots');
+            
+            slidesContainer.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            for (let i = 1; i <= this.totalSteps; i++) {
+                const content = this.stepContents[i];
+                
+                // Crear slide
+                const slide = document.createElement('div');
+                slide.className = 'tutorial-slide';
+                slide.innerHTML = this.getMobileSlideHTML(content, i);
+                slidesContainer.appendChild(slide);
+
+                // Crear dot
+                const dot = document.createElement('div');
+                dot.className = `tutorial-dot ${i === 1 ? 'active' : ''}`;
+                dot.dataset.step = i;
+                dot.addEventListener('click', () => this.goToStep(i));
+                dotsContainer.appendChild(dot);
+            }
+
+            // Mostrar elementos móviles, ocultar desktop
+            document.querySelector('.tutorial-header').style.display = 'flex';
+            document.querySelector('.tutorial-progress').style.display = 'block';
+            document.querySelector('.tutorial-slides-container').style.display = 'block';
+            document.querySelector('.tutorial-sidebar').style.display = 'none';
+            document.querySelector('.tutorial-content').style.display = 'none';
+        }
+
+        getMobileSlideHTML(content, stepNumber) {
+            return `
+                <div class="slide-header">
+                    <div class="slide-icon">${content.icon}</div>
+                    <h2 class="slide-title">${content.title}</h2>
+                    <p class="slide-subtitle">${content.subtitle}</p>
+                </div>
+                
+                <div class="slide-content">
+                    ${content.features.map(feature => `
+                        <div class="slide-feature">
+                            <div class="feature-icon">${feature.icon}</div>
+                            <div class="feature-content">
+                                <div class="feature-title">${feature.title}</div>
+                                <div class="feature-desc">${feature.desc}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    ${content.tip ? `
+                        <div class="slide-tip">
+                            <div class="tip-title">
+                                <span>💡</span> Consiglio Pratico
+                            </div>
+                            <div class="tip-content">${content.tip}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stepNumber === 1 ? `
+                        <div class="swipe-hint">
+                            👆 Scorri per continuare
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        renderDesktopTutorial() {
+            const stepsContainer = document.querySelector('.tutorial-steps');
+            stepsContainer.innerHTML = '';
+
+            for (let i = 1; i <= this.totalSteps; i++) {
+                const content = this.stepContents[i];
+                const step = document.createElement('div');
+                step.className = `tutorial-step-item ${i === 1 ? 'active' : ''}`;
+                step.dataset.step = i;
+                step.innerHTML = `
+                    <div class="tutorial-step-icon">${content.icon}</div>
+                    <div class="tutorial-step-title">${content.title}</div>
+                    <div class="tutorial-step-desc">${content.subtitle}</div>
+                `;
+                stepsContainer.appendChild(step);
+            }
+
+            // Mostrar elementos desktop, ocultar móviles
+            document.querySelector('.tutorial-header').style.display = 'none';
+            document.querySelector('.tutorial-progress').style.display = 'none';
+            document.querySelector('.tutorial-slides-container').style.display = 'none';
+            document.querySelector('.tutorial-sidebar').style.display = 'flex';
+            document.querySelector('.tutorial-content').style.display = 'flex';
         }
 
         show() {
-            // El tutorial ya está visible por defecto en este archivo separado
             document.body.style.overflow = 'hidden';
         }
 
         hide() {
-            // Ocultar el tutorial y redirigir a la aplicación principal
             this.redirectToApp();
         }
 
         skipTutorial() {
-            // Marcar como completado y redirigir
             localStorage.setItem('rugby-tutorial-completed', 'true');
             this.redirectToApp();
         }
 
         redirectToApp() {
-            // Redirigir a la aplicación principal
             window.location.href = 'https://josechico94.github.io/rugbyCoach/rugbyCoach33.html';
-        }
-
-        handleResize() {
-            // Ajustes específicos para diferentes tamaños de pantalla
-            const width = window.innerWidth;
-            const stepsContainer = document.querySelector('.tutorial-steps');
-            
-            if (width <= 900 && stepsContainer) {
-                // En móviles, asegurar que el scroll horizontal esté visible
-                stepsContainer.style.paddingBottom = '12px';
-            }
         }
 
         goToStep(step) {
@@ -948,49 +1066,45 @@
             
             this.currentStep = step;
             
-            // Actualizar la barra lateral
+            if (this.isMobile) {
+                this.updateMobileStep(step);
+            } else {
+                this.updateDesktopStep(step);
+            }
+            
+            this.updateNavigation();
+        }
+
+        updateMobileStep(step) {
+            // Mover slides
+            const slidesContainer = document.getElementById('tutorialSlides');
+            slidesContainer.style.transform = `translateX(-${(step - 1) * 100}%)`;
+            
+            // Actualizar dots
+            document.querySelectorAll('.tutorial-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === step - 1);
+            });
+            
+            // Actualizar progreso
+            const progress = ((step - 1) / (this.totalSteps - 1)) * 100;
+            document.getElementById('tutorialProgressFill').style.width = `${progress}%`;
+            document.getElementById('tutorialProgressText').textContent = `Passo ${step} di ${this.totalSteps}`;
+        }
+
+        updateDesktopStep(step) {
+            // Actualizar steps activos
             document.querySelectorAll('.tutorial-step-item').forEach(item => {
                 item.classList.remove('active');
                 if (parseInt(item.dataset.step) === step) {
                     item.classList.add('active');
-                    
-                    // En móviles, hacer scroll al paso activo
-                    if (window.innerWidth <= 900) {
-                        item.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'nearest',
-                            inline: 'center'
-                        });
-                    }
                 }
             });
             
-            // Actualizar el progreso
-            const progress = ((step - 1) / (this.totalSteps - 1)) * 100;
-            document.getElementById('tutorialProgressFill').style.width = `${progress}%`;
-            document.getElementById('tutorialProgressText').textContent = `Passo ${step} di ${this.totalSteps}`;
-            
-            // Actualizar el contenido
-            this.renderStepContent(step);
-            
-            // Actualizar los botones de navegación
-            const prevBtn = document.getElementById('tutorialPrev');
-            const nextBtn = document.getElementById('tutorialNext');
-            const finishBtn = document.getElementById('tutorialFinish');
-            
-            prevBtn.style.display = step === 1 ? 'none' : 'flex';
-            nextBtn.style.display = step === this.totalSteps ? 'none' : 'flex';
-            finishBtn.style.display = step === this.totalSteps ? 'flex' : 'none';
-        }
-
-        renderStepContent(step) {
+            // Actualizar contenido
             const content = this.stepContents[step];
-            if (!content) return;
-            
             document.getElementById('tutorialTitle').textContent = content.title;
             
             let html = '';
-            
             content.features.forEach(feature => {
                 html += `
                 <div class="tutorial-feature">
@@ -1014,16 +1128,26 @@
                 `;
             }
             
-            if (step === 2 || step === 3) {
-                html += `
-                <div class="tutorial-demo">
-                    <div class="tutorial-demo-title">Provalo Subito!</div>
-                    <div>Quando inizierai ad usare l'applicazione, potrai mettere in pratica tutto ciò che hai imparato in questo tutorial!</div>
-                </div>
-                `;
-            }
-            
             document.getElementById('tutorialStepContent').innerHTML = html;
+        }
+
+        updateNavigation() {
+            const prevBtn = document.getElementById('tutorialPrev');
+            const nextBtn = document.getElementById('tutorialNext');
+            const finishBtn = document.getElementById('tutorialFinish');
+            
+            prevBtn.style.display = this.currentStep === 1 ? 'none' : 'flex';
+            nextBtn.style.display = this.currentStep === this.totalSteps ? 'none' : 'flex';
+            finishBtn.style.display = this.currentStep === this.totalSteps ? 'flex' : 'none';
+            
+            // En móviles, ajustar el ancho de los botones
+            if (this.isMobile) {
+                if (this.currentStep === 1) {
+                    nextBtn.style.flex = '1';
+                } else if (this.currentStep === this.totalSteps) {
+                    prevBtn.style.flex = '1';
+                }
+            }
         }
 
         previousStep() {
@@ -1035,17 +1159,15 @@
         }
 
         complete() {
-            // Marcar tutorial como completado y redirigir
             localStorage.setItem('rugby-tutorial-completed', 'true');
             
-            // Mostrar mensaje de confirmación
             if (window.confirm("🎉 Tutorial completato! Vuoi iniziare a usare l'applicazione?")) {
                 this.redirectToApp();
             }
         }
     }
 
-    // Inicializar el tutorial cuando el DOM esté listo
+    // Inicializar el tutorial
     document.addEventListener('DOMContentLoaded', () => {
         new TutorialManager();
     });
