@@ -44,6 +44,7 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       animation: fadeIn 0.3s ease-out;
+      padding: 16px;
     }
     
     @keyframes fadeIn {
@@ -53,32 +54,35 @@
     
     .tutorial-container {
       display: flex;
-      max-width: 1000px;
-      width: 95%;
-      height: 85vh;
+      max-width: 1200px;
+      width: 100%;
+      height: 90vh;
       background: linear-gradient(145deg, #0f1a25, #0a121b);
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .tutorial-sidebar {
-      width: 280px;
+      width: 300px;
+      min-width: 280px;
       background: rgba(15, 26, 37, 0.9);
-      padding: 30px 20px;
+      padding: 32px 20px;
       border-right: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
     }
     
     .tutorial-logo {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 32px;
+      padding: 0 8px;
     }
     
     .tutorial-logo h1 {
-      font-size: 22px;
+      font-size: clamp(18px, 2.5vw, 24px);
       margin: 0;
       background: linear-gradient(90deg, var(--blue), var(--green));
       -webkit-background-clip: text;
@@ -86,24 +90,26 @@
       background-clip: text;
       color: transparent;
       font-weight: 700;
+      line-height: 1.2;
     }
     
     .tutorial-progress {
-      margin-bottom: 30px;
+      margin-bottom: 32px;
+      padding: 0 8px;
     }
     
     .tutorial-progress-bar {
-      height: 4px;
+      height: 6px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
+      border-radius: 3px;
       overflow: hidden;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
     }
     
     .tutorial-progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--blue), var(--green));
-      border-radius: 2px;
+      border-radius: 3px;
       transition: width 0.5s ease;
       width: 0%;
     }
@@ -116,12 +122,13 @@
     }
     
     .tutorial-step-item {
-      padding: 15px;
+      padding: 16px;
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.3s ease;
       border: 1px solid transparent;
       opacity: 0.6;
+      min-height: 80px;
     }
     
     .tutorial-step-item:hover {
@@ -142,9 +149,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       font-size: 18px;
       background: rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
     }
     
     .tutorial-step-item.active .tutorial-step-icon {
@@ -154,7 +162,8 @@
     .tutorial-step-title {
       font-weight: 600;
       font-size: 14px;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
+      line-height: 1.3;
     }
     
     .tutorial-step-desc {
@@ -165,21 +174,23 @@
     
     .tutorial-content {
       flex: 1;
-      padding: 40px;
+      padding: clamp(20px, 4vw, 40px);
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      min-width: 0;
     }
     
     .tutorial-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
+      align-items: flex-start;
+      margin-bottom: clamp(20px, 4vw, 32px);
+      gap: 16px;
     }
     
     .tutorial-title {
-      font-size: 28px;
+      font-size: clamp(24px, 4vw, 32px);
       font-weight: 700;
       margin: 0;
       background: linear-gradient(90deg, var(--ink), var(--green));
@@ -187,14 +198,16 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       color: transparent;
+      line-height: 1.2;
+      flex: 1;
     }
     
     .tutorial-close {
       background: rgba(255, 255, 255, 0.1);
       border: none;
       color: var(--ink);
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -202,6 +215,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       font-size: 20px;
+      flex-shrink: 0;
     }
     
     .tutorial-close:hover {
@@ -213,14 +227,15 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 30px;
+      gap: clamp(20px, 3vw, 32px);
+      min-width: 0;
     }
     
     .tutorial-feature {
       display: flex;
       align-items: flex-start;
-      gap: 20px;
-      padding: 20px;
+      gap: clamp(16px, 3vw, 24px);
+      padding: clamp(16px, 3vw, 24px);
       background: rgba(255, 255, 255, 0.05);
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -233,39 +248,42 @@
     }
     
     .tutorial-feature-icon {
-      width: 50px;
-      height: 50px;
+      width: clamp(44px, 6vw, 56px);
+      height: clamp(44px, 6vw, 56px);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: clamp(18px, 2.5vw, 22px);
       background: linear-gradient(135deg, var(--blue), var(--purple));
       flex-shrink: 0;
     }
     
     .tutorial-feature-content {
       flex: 1;
+      min-width: 0;
     }
     
     .tutorial-feature-title {
       font-weight: 600;
-      font-size: 18px;
+      font-size: clamp(16px, 2vw, 20px);
       margin-bottom: 8px;
       color: var(--green);
+      line-height: 1.3;
     }
     
     .tutorial-feature-desc {
       line-height: 1.6;
       opacity: 0.9;
+      font-size: clamp(14px, 1.6vw, 16px);
     }
     
     .tutorial-tip {
       background: rgba(53, 208, 127, 0.1);
       border: 1px solid rgba(53, 208, 127, 0.3);
       border-radius: 12px;
-      padding: 20px;
-      margin-top: 10px;
+      padding: clamp(16px, 3vw, 24px);
+      margin-top: 8px;
     }
     
     .tutorial-tip-title {
@@ -275,19 +293,21 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      font-size: clamp(14px, 1.6vw, 16px);
     }
     
     .tutorial-navigation {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 30px;
-      padding-top: 20px;
+      margin-top: clamp(24px, 4vw, 32px);
+      padding-top: clamp(16px, 3vw, 24px);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 12px;
     }
     
     .tutorial-nav-btn {
-      padding: 12px 24px;
+      padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
       border-radius: 10px;
       border: none;
       font-weight: 600;
@@ -296,6 +316,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      font-size: clamp(14px, 1.6vw, 16px);
+      white-space: nowrap;
     }
     
     .tutorial-nav-btn.prev {
@@ -316,22 +338,23 @@
     .tutorial-demo {
       background: rgba(0, 0, 0, 0.3);
       border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
+      padding: clamp(16px, 3vw, 24px);
+      margin-top: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .tutorial-demo-title {
       font-weight: 600;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: var(--yellow);
+      font-size: clamp(14px, 1.8vw, 18px);
     }
     
     .skip-tutorial-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
+      position: fixed;
+      top: clamp(16px, 4vw, 24px);
+      right: clamp(16px, 4vw, 24px);
+      padding: clamp(8px, 1.5vw, 12px) clamp(16px, 2.5vw, 20px);
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: var(--ink);
@@ -340,6 +363,9 @@
       font-weight: 600;
       transition: all 0.3s ease;
       z-index: 2001;
+      font-size: clamp(12px, 1.4vw, 14px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     
     .skip-tutorial-btn:hover {
@@ -347,53 +373,269 @@
       transform: translateY(-2px);
     }
     
-    /* Responsive */
+    /* ============ RESPONSIVE BREAKPOINTS ============ */
+    
+    /* Tablets grandes y laptops pequeñas */
+    @media (max-width: 1024px) {
+      .tutorial-container {
+        height: 92vh;
+        max-width: 95%;
+      }
+      
+      .tutorial-sidebar {
+        width: 260px;
+        min-width: 240px;
+        padding: 24px 16px;
+      }
+      
+      .tutorial-content {
+        padding: 28px;
+      }
+    }
+    
+    /* Tablets */
     @media (max-width: 900px) {
       .tutorial-container {
         flex-direction: column;
-        height: 95vh;
-        width: 98%;
+        height: 94vh;
+        max-width: 98%;
       }
       
       .tutorial-sidebar {
         width: 100%;
+        min-width: auto;
         padding: 20px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        max-height: 40vh;
       }
       
       .tutorial-steps {
         flex-direction: row;
         overflow-x: auto;
-        padding-bottom: 10px;
+        padding-bottom: 12px;
+        gap: 8px;
       }
       
       .tutorial-step-item {
         min-width: 200px;
+        min-height: auto;
+        padding: 12px;
+      }
+      
+      .tutorial-step-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+      
+      .tutorial-content {
+        padding: 24px;
+        min-height: 50vh;
+      }
+      
+      .tutorial-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      
+      .tutorial-title {
+        text-align: center;
+      }
+      
+      .tutorial-close {
+        align-self: flex-end;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+    }
+    
+    /* Tablets pequeñas y móviles grandes */
+    @media (max-width: 768px) {
+      .tutorial-overlay {
+        padding: 12px;
+      }
+      
+      .tutorial-container {
+        height: 96vh;
+        border-radius: 20px;
+      }
+      
+      .tutorial-sidebar {
+        padding: 16px;
+        max-height: 35vh;
+      }
+      
+      .tutorial-step-item {
+        min-width: 180px;
+        padding: 10px;
+      }
+      
+      .tutorial-step-title {
+        font-size: 13px;
+      }
+      
+      .tutorial-step-desc {
+        font-size: 11px;
       }
       
       .tutorial-content {
         padding: 20px;
       }
       
-      .tutorial-title {
-        font-size: 24px;
-      }
-      
-      .skip-tutorial-btn {
-        top: 10px;
-        right: 10px;
-        padding: 8px 16px;
-        font-size: 14px;
-      }
-    }
-
-    @media (max-width: 600px) {
       .tutorial-feature {
         flex-direction: column;
         text-align: center;
+        gap: 12px;
+      }
+      
+      .tutorial-feature-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+        align-self: center;
+      }
+      
+      .tutorial-navigation {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .tutorial-nav-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
+    /* Móviles */
+    @media (max-width: 480px) {
+      .tutorial-overlay {
+        padding: 8px;
+      }
+      
+      .tutorial-container {
+        height: 98vh;
+        border-radius: 16px;
+      }
+      
+      .tutorial-sidebar {
+        padding: 12px;
+        max-height: 30vh;
+      }
+      
+      .tutorial-steps {
+        gap: 6px;
       }
       
       .tutorial-step-item {
         min-width: 160px;
+        padding: 8px;
+      }
+      
+      .tutorial-step-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      
+      .tutorial-step-title {
+        font-size: 12px;
+      }
+      
+      .tutorial-step-desc {
+        font-size: 10px;
+      }
+      
+      .tutorial-content {
+        padding: 16px;
+      }
+      
+      .tutorial-feature {
+        padding: 12px;
+      }
+      
+      .tutorial-feature-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .tutorial-feature-title {
+        font-size: 16px;
+      }
+      
+      .tutorial-feature-desc {
+        font-size: 14px;
+      }
+      
+      .skip-tutorial-btn {
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      
+      .tutorial-close {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        top: 16px;
+        right: 16px;
+      }
+    }
+    
+    /* Móviles muy pequeños */
+    @media (max-width: 360px) {
+      .tutorial-step-item {
+        min-width: 140px;
+      }
+      
+      .tutorial-content {
+        padding: 12px;
+      }
+      
+      .tutorial-feature {
+        padding: 10px;
+      }
+      
+      .tutorial-navigation {
+        gap: 8px;
+      }
+      
+      .tutorial-nav-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+    }
+    
+    /* Alturas pequeñas */
+    @media (max-height: 600px) {
+      .tutorial-container {
+        height: 98vh;
+      }
+      
+      .tutorial-sidebar {
+        max-height: 45vh;
+      }
+      
+      .tutorial-step-item {
+        min-height: 70px;
+        padding: 10px;
+      }
+      
+      .tutorial-step-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      
+      .tutorial-content {
+        padding: 16px;
       }
     }
   </style>
@@ -616,7 +858,7 @@
                         {
                             icon: "📊",
                             title: "Dati JSON",
-                            desc: "Esporta i dati dell'animazione in formato JSON per backup o utilizzo in altri strumenti."
+                            desc: "Esporta i dati dell'animazione in formato JSON per backup o utilizzo in otros strumenti."
                         }
                     ],
                     tip: "L'esportazione MP4 richiede ffmpeg.wasm e potrebbe essere più lenta la prima volta."
@@ -663,6 +905,9 @@
 
             // Mostrar tutorial automáticamente
             this.show();
+            
+            // Añadir listener para cambios de tamaño de ventana
+            window.addEventListener('resize', () => this.handleResize());
         }
 
         show() {
@@ -686,6 +931,17 @@
             window.location.href = 'https://josechico94.github.io/rugbyCoach/rugbyCoach33.html';
         }
 
+        handleResize() {
+            // Ajustes específicos para diferentes tamaños de pantalla
+            const width = window.innerWidth;
+            const stepsContainer = document.querySelector('.tutorial-steps');
+            
+            if (width <= 900 && stepsContainer) {
+                // En móviles, asegurar que el scroll horizontal esté visible
+                stepsContainer.style.paddingBottom = '12px';
+            }
+        }
+
         goToStep(step) {
             if (step < 1) step = 1;
             if (step > this.totalSteps) step = this.totalSteps;
@@ -697,6 +953,15 @@
                 item.classList.remove('active');
                 if (parseInt(item.dataset.step) === step) {
                     item.classList.add('active');
+                    
+                    // En móviles, hacer scroll al paso activo
+                    if (window.innerWidth <= 900) {
+                        item.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'nearest',
+                            inline: 'center'
+                        });
+                    }
                 }
             });
             
