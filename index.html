@@ -1305,82 +1305,570 @@ function gotoFrame(i){
     // Implementación básica
 }
 
-function reInitializePlayerInteractions(){
-    // Implementación básica
+// ==================== FUNCIONES DE INTERACCIÓN COMPLETAS ====================
+
+function enableDragPlayer(playerEl, onDrop) {
+    if (!isAuthorized || userRole !== 'coach') return;
+    
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
+    
+    const down = e => {
+        if (!isAuthorized || userRole !== 'coach') return;
+        
+        pid = e.pointerId; 
+        playerEl.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = parseFloat(playerEl.style.left) || 0;
+        oy = parseFloat(playerEl.style.top) || 0;
+
+        // Seleccionar jugador
+        clearPlayerSelection();
+        playerEl.classList.add('selected');
+        selectedPlayers.add(playerEl);
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            const nx = clamp(ox + dx, 0, WIDTH);
+            const ny = clamp(oy + dy, 0, HEIGHT);
+            playerEl.style.left = nx + 'px';
+            playerEl.style.top = ny + 'px';
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { playerEl.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            onDrop && onDrop(false);
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    playerEl.addEventListener('pointerdown', down, {passive: false});
+    playerEl.ondragstart = () => false;
 }
 
-// ==================== INICIALIZACIÓN ====================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM cargado, inicializando...");
-    assignDOMElements();
+function enableDragBall(onDrop) {
+    if (!isAuthorized || userRole !== 'coach') return;
     
-    // Configurar event listeners
-    if (btnAuthAction) {
-        btnAuthAction.addEventListener('click', function() {
-            if (isAuthorized) {
-                handleLogout();
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
+    
+    const down = e => {
+        if (!isAuthorized || userRole !== 'coach') return;
+        
+        pid = e.pointerId; 
+        ball.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = currentBallPos.x;
+        oy = currentBallPos.y;
+
+        // Limpiar selección al tocar el balón
+        clearPlayerSelection();
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            const nx = clamp(ox + dx, 0, WIDTH);
+            const ny = clamp(oy + dy, 0, HEIGHT);
+            placeBall(nx, ny);
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { ball.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            onDrop && onDrop();
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    if (ball) ball.addEventListener('pointerdown', down, {passive: false});
+    if (ball) ball.ondragstart = () => false;
+}
+
+function enableSelectionBox() {
+    if (!isAuthorized || userRole !== 'coach') return;
+    
+    let pid = null, startBoard = null;
+    
+    const down = e => {
+        if (!isAuthorized || userRole !== 'coach') return;
+        if (e.target.closest('.player') || e.target.closest('#ball')) return;
+        
+        pid = e.pointerId; 
+        board.setPointerCapture(pid);
+        e.preventDefault();
+        startBoard = clientToBoard(e);
+        
+        if (selectionBox) {
+            selectionBox.style.left = startBoard.x + 'px';
+            selectionBox.style.top = startBoard.y + 'px';
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
+            selectionBox.style.display = 'block';
+        }
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const currentBoard = clientToBoard(ev);
+            const left = Math.min(startBoard.x, currentBoard.x);
+            const top = Math.min(startBoard.y, currentBoard.y);
+            const width = Math.abs(currentBoard.x - startBoard.x);
+            const height = Math.abs(currentBoard.y - startBoard.y);
+            
+            if (selectionBox) {
+                selectionBox.style.left = left + 'px';
+                selectionBox.style.top = top + 'px';
+                selectionBox.style.width = width + 'px';
+                selectionBox.style.height = height + 'px';
+            }
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { board.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            if (selectionBox) selectionBox.style.display = 'none';
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    if (board) board.addEventListener('pointerdown', down);
+}
+
+function initDrawingTools() {
+    if (!board) return;
+    
+    let drawingArrow = false, startPt = null, drawingStroke = false, currentStroke = null;
+    let tool = 'arrows'; // herramienta por defecto
+    
+    // Configurar eventos de herramientas
+    if (toolArrows) {
+        toolArrows.addEventListener('click', () => {
+            tool = 'arrows';
+            setToolActive(toolArrows, [toolPen, toolText]);
+        });
+    }
+    
+    if (toolPen) {
+        toolPen.addEventListener('click', () => {
+            tool = 'pen';
+            setToolActive(toolPen, [toolArrows, toolText]);
+        });
+    }
+    
+    if (toolText) {
+        toolText.addEventListener('click', () => {
+            tool = 'text';
+            setToolActive(toolText, [toolArrows, toolPen]);
+        });
+    }
+    
+    // Evento de dibujo en el tablero
+    board.addEventListener('pointerdown', e => {
+        if (!isAuthorized || userRole !== 'coach') return;
+        if (e.target.closest('.player') || e.target.closest('#ball')) return;
+        
+        let p = clientToBoard(e);
+        
+        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
+        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
+
+        if (tool === 'arrows') {
+            drawingArrow = true; 
+            startPt = {x: p.x, y: p.y}; 
+        } else if (tool === 'pen') {
+            drawingStroke = true;
+            currentStroke = { 
+                points: [`${p.x},${p.y}`], 
+                color: currentStrokeColor, 
+                width: currentStrokeWidth, 
+                dashed: dashed ? dashed.checked : false 
+            };
+            strokes.push(currentStroke); 
+            renderDraw();
+        } else if (tool === 'text') {
+            const text = prompt("Ingresa el texto para la nota:");
+            if (text && text.trim()) {
+                notes.push({ 
+                    x: p.x, 
+                    y: p.y, 
+                    text: text.trim().substring(0, 30), 
+                    color: currentStrokeColor 
+                });
+                renderDraw();
+            }
+            // Volver a flechas después de agregar texto
+            tool = 'arrows';
+            setToolActive(toolArrows, [toolPen, toolText]);
+        }
+    }, {passive: false});
+
+    board.addEventListener('pointermove', e => {
+        if (!isAuthorized || !drawingStroke || !currentStroke) return;
+        
+        let p = clientToBoard(e);
+        const last = currentStroke.points[currentStroke.points.length - 1];
+        const [lx, ly] = last.split(',').map(Number);
+        
+        if (Math.abs(p.x - lx) + Math.abs(p.y - ly) > 0.5) {
+            currentStroke.points.push(`${p.x},${p.y}`); 
+            renderDraw();
+        }
+    }, {passive: false});
+
+    board.addEventListener('pointerup', e => {
+        if (!isAuthorized) return;
+        
+        let p = clientToBoard(e);
+        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
+        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
+
+        if (drawingArrow && startPt) {
+            arrows.push({ 
+                x1: startPt.x, 
+                y1: startPt.y, 
+                x2: p.x, 
+                y2: p.y, 
+                color: currentStrokeColor, 
+                width: currentStrokeWidth, 
+                dashed: dashed ? dashed.checked : false 
+            });
+            drawingArrow = false; 
+            startPt = null; 
+            renderDraw();
+        } else if (drawingStroke && currentStroke) {
+            drawingStroke = false; 
+            renderDraw();
+        }
+    }, {passive: false});
+    
+    // Eventos para botones de dibujo
+    if (btnUndo) {
+        btnUndo.addEventListener('click', () => {
+            if (!isAuthorized || userRole !== 'coach') return;
+            
+            if (tool === 'arrows') {
+                arrows.pop();
+            } else if (tool === 'pen') {
+                strokes.pop();
+            } else if (tool === 'text') {
+                notes.pop();
+            }
+            renderDraw();
+        });
+    }
+    
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            if (!isAuthorized || userRole !== 'coach') return;
+            
+            if (confirm('¿Borrar todos los dibujos?')) {
+                arrows = [];
+                strokes = [];
+                notes = [];
+                renderDraw();
+            }
+        });
+    }
+}
+
+function setToolActive(activeTool, otherTools) {
+    activeTool.classList.add('active');
+    otherTools.forEach(tool => tool.classList.remove('active'));
+}
+
+function clearPlayerSelection() {
+    selectedPlayers.forEach(el => el.classList.remove('selected'));
+    selectedPlayers.clear();
+}
+
+// Función para renderizar dibujos en el SVG
+function renderDraw() {
+    if (!draw) return;
+    
+    // Limpiar dibujos anteriores (mantener las líneas del campo)
+    const existingElements = draw.querySelectorAll('line, polyline, text');
+    existingElements.forEach(el => el.remove());
+    
+    // Renderizar flechas
+    arrows.forEach(arrow => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', arrow.x1);
+        line.setAttribute('y1', arrow.y1);
+        line.setAttribute('x2', arrow.x2);
+        line.setAttribute('y2', arrow.y2);
+        line.setAttribute('stroke', arrow.color || '#ffd400');
+        line.setAttribute('stroke-width', arrow.width || 5);
+        line.setAttribute('stroke-linecap', 'round');
+        if (arrow.dashed) {
+            line.setAttribute('stroke-dasharray', '8 8');
+        }
+        draw.appendChild(line);
+    });
+    
+    // Renderizar trazos
+    strokes.forEach(stroke => {
+        if (stroke.points.length < 2) return;
+        
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', stroke.points.join(' '));
+        polyline.setAttribute('fill', 'none');
+        polyline.setAttribute('stroke', stroke.color || '#ffd400');
+        polyline.setAttribute('stroke-width', stroke.width || 5);
+        polyline.setAttribute('stroke-linecap', 'round');
+        polyline.setAttribute('stroke-linejoin', 'round');
+        if (stroke.dashed) {
+            polyline.setAttribute('stroke-dasharray', '8 8');
+        }
+        draw.appendChild(polyline);
+    });
+    
+    // Renderizar notas de texto
+    notes.forEach(note => {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', note.x);
+        text.setAttribute('y', note.y);
+        text.setAttribute('fill', note.color || '#ffffff');
+        text.setAttribute('font-size', '18');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.textContent = note.text;
+        draw.appendChild(text);
+    });
+}
+
+// Función para re-inicializar interacciones
+function reInitializePlayerInteractions() {
+    if (!playersLayer || !ball) return;
+    
+    // Habilitar arrastre de jugadores
+    [...playersLayer.children].forEach(el => {
+        enableDragPlayer(el, () => { 
+            if (autoRec && autoRec.checked) recordFrame(); 
+        });
+    });
+    
+    // Habilitar arrastre de balón
+    enableDragBall(() => { 
+        if (autoRec && autoRec.checked) recordFrame(); 
+    });
+    
+    // Habilitar selección masiva
+    enableSelectionBox();
+    
+    // Habilitar herramientas de dibujo
+    initDrawingTools();
+}
+
+// Función para la línea de pase
+function showPassPreview(x1, y1, x2, y2) {
+    if (!draw) return;
+    let line = draw.querySelector('#passPreview');
+    if (!line) {
+        line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', 'passPreview');
+        line.setAttribute('stroke', '#fff');
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('stroke-dasharray', '10 8');
+        draw.appendChild(line);
+    }
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+}
+
+function hidePassPreview() {
+    const l = draw.querySelector('#passPreview');
+    if (l) l.remove();
+}
+
+// Función para la grilla
+function renderGrid() {
+    if (!gridSvg) return;
+    gridSvg.innerHTML = '';
+    if (!showGrid.checked) {
+        gridSvg.classList.remove('on');
+        return;
+    }
+    gridSvg.classList.add('on');
+    
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    
+    // Líneas verticales
+    for (let x = GRID; x < WIDTH; x += GRID) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', '0');
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', HEIGHT);
+        line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+        line.setAttribute('stroke-width', '1');
+        g.appendChild(line);
+    }
+    
+    // Líneas horizontales
+    for (let y = GRID; y < HEIGHT; y += GRID) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', WIDTH);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+        line.setAttribute('stroke-width', '1');
+        g.appendChild(line);
+    }
+    
+    gridSvg.appendChild(g);
+}
+
+// Actualizar la función initBoardApp para incluir las interacciones
+// BUSCÁ esta línea en initBoardApp y AGREGALO:
+function initBoardApp(){
+    console.log("Inicializando aplicación...");
+    
+    // Crear jugadores y balón
+    createPlayers();
+    placeBall();
+    
+    // Timeline inicial
+    if (!timeline.length) { recordFrame(); }
+    updateScrub();
+
+    // Configurar Firebase Auth State Listener
+    if (window.firebaseOnAuthStateChanged) {
+        // Primero verificar el estado actual inmediatamente
+        const currentAuthUser = window.firebaseAuth.currentUser;
+        if (currentAuthUser) {
+            console.log('✅ Usuario ya autenticado al cargar:', currentAuthUser.email);
+            currentUser = currentAuthUser;
+            isAuthorized = true;
+            (async () => {
+                await determineUserRole();
+                refreshPlayList();
+                updateAuthUI();
+                
+                // INICIALIZAR INTERACCIONES SI ES COACH
+                if (userRole === 'coach') {
+                    reInitializePlayerInteractions();
+                }
+            })();
+        }
+
+        // Luego configurar el listener para cambios futuros
+        window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user) => {
+            console.log('🔄 Auth state changed:', user ? user.email : 'No user');
+            
+            if (user) {
+                currentUser = user;
+                isAuthorized = true;
+                console.log('✅ Usuario autenticado via listener:', user.email);
+                
+                await determineUserRole();
+                refreshPlayList();
+                
+                // INICIALIZAR INTERACCIONES SI ES COACH
+                if (userRole === 'coach') {
+                    reInitializePlayerInteractions();
+                }
             } else {
-                openLoginModal();
+                currentUser = null;
+                isAuthorized = false;
+                userRole = 'spectator';
+                currentCoachId = null;
+                console.log('🚪 Usuario cerró sesión');
+                
+                if (unsubscribePlays) {
+                    unsubscribePlays();
+                    unsubscribePlays = null;
+                }
             }
+            updateAuthUI();
         });
+    } else {
+        console.log('⚠️ Firebase Auth no disponible - Modo local');
     }
+
+    // INICIALIZAR INTERACCIONES BÁSICAS
+    reInitializePlayerInteractions();
+
+    // UI inicial
+    if (showGrid) {
+        showGrid.addEventListener('change', renderGrid);
+        showGrid.checked = false;
+    }
+  // Agregá esto en la sección de event listeners:
+if (showGrid) {
+    showGrid.addEventListener('change', renderGrid);
+}
+
+if (btnRecord) {
+    btnRecord.addEventListener('click', recordFrame);
+}
+
+if (btnPlayPause) {
+    btnPlayPause.addEventListener('click', () => {
+        if (!playing) {
+            playing = true;
+            btnPlayPause.textContent = 'Pausa';
+            // Aquí iría la lógica de reproducción
+        } else {
+            playing = false;
+            btnPlayPause.textContent = 'Reproducir';
+        }
+    });
+}
+
+if (btnStop) {
+    btnStop.addEventListener('click', () => {
+        playing = false;
+        btnPlayPause.textContent = 'Reproducir';
+        gotoFrame(0);
+    });
+}
+
+if (btnReset) {
+    btnReset.addEventListener('click', () => {
+        if (confirm('¿Reiniciar tablero? Se perderán los cambios no guardados.')) {
+            createPlayers();
+            placeBall();
+            arrows = [];
+            strokes = [];
+            notes = [];
+            timeline = [];
+            recordFrame();
+            renderDraw();
+            showStatus('Tablero reiniciado', 'var(--accent)');
+        }
+    });
+}
+    renderGrid();
+    renderDraw();
+    fitBoard();
     
-    if (btnLogin) {
-        btnLogin.addEventListener('click', handleLogin);
-    }
+    // Forzar recálculo del layout
+    setTimeout(fitBoard, 50);
     
-    if (btnCloseLogin) {
-        btnCloseLogin.addEventListener('click', closeLoginModal);
-    }
-
-    if (btnInvitePlayer && playerEmail) {
-        btnInvitePlayer.addEventListener('click', () => {
-            invitePlayer(playerEmail.value);
-        });
-    }
-
-    if (btnSavePlay) {
-        btnSavePlay.addEventListener('click', () => {
-            const name = (playName.value || '').trim();
-            if (!name) {
-                showStatus('Ingresa un nombre para la jugada', 'var(--warn)');
-                return;
-            }
-            savePlay(name);
-        });
-    }
-
-    if (btnLoadPlay) {
-        btnLoadPlay.addEventListener('click', () => {
-            if (!playList.value) {
-                showStatus('Selecciona una jugada', 'var(--warn)');
-                return;
-            }
-            loadPlay(playList.value);
-        });
-    }
-
-    if (btnDelete) {
-        btnDelete.addEventListener('click', async () => {
-            if (!playList.value) {
-                showStatus('Selecciona una jugada para eliminar', 'var(--warn)');
-                return;
-            }
-            
-            if (!confirm('¿Estás seguro de eliminar esta jugada?')) return;
-            
-            try {
-                await window.firestore.deleteDoc(
-                    window.firestore.doc(getCoachPlaysCollectionRef(), playList.value)
-                );
-                showStatus('Jugada eliminada', 'var(--accent)');
-            } catch (error) {
-                console.error('Error eliminando jugada:', error);
-                showStatus('Error al eliminar jugada', 'var(--red)');
-            }
-        });
-    }
+    showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
+}
     
     // Eventos de menú móvil
     if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
