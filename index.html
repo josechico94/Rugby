@@ -58,8 +58,9 @@
   .team-1{background:var(--blue);} .team-2{background:var(--red);}
   
   #ball{position:absolute;z-index:4; pointer-events: auto;}
-  .ball{width:50px;height:30px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
-  .ball::after{content:"";position:absolute;inset:6px 18px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
+  /* --- Pelota más pequeña --- */
+  .ball{width:40px;height:24px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
+  .ball::after{content:"";position:absolute;inset:5px 14px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
   
   /* Selection Box */
   #selectionBox{
@@ -247,30 +248,13 @@
 <body>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI",
-      authDomain: "bologna-rugby-club.firebaseapp.com",
-      projectId: "bologna-rugby-club",
-      storageBucket: "bologna-rugby-club.appspot.com",
-      messagingSenderId: "641438144435",
-      appId: "1:641438144435:web:e2a243bacd522fd1615dc6",
-      measurementId: "G-9C66KXJ561"
-    };
-
-    // Initialize Firebase
+    const firebaseConfig = {"apiKey":"AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI","authDomain":"bologna-rugby-club.firebaseapp.com","projectId":"bologna-rugby-club","storageBucket":"bologna-rugby-club.appspot.com","messagingSenderId":"641438144435","appId":"1:641438144435:web:e2a243bacd522fd1615dc6","measurementId":"G-9C66KXJ561"};
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Exponer Firebase al ámbito global
-    window.firebaseAuth = auth;
-    window.firebaseDb = db;
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDb = getFirestore(app);
     window.firebaseSignIn = signInWithEmailAndPassword;
     window.firebaseSignOut = signOut;
     window.firebaseOnAuthStateChanged = onAuthStateChanged;
@@ -400,24 +384,20 @@
 (function() {
     "use strict";
 
-    // --- CONSTANTES ---
     const WIDTH = 1200, HEIGHT = 700, PLAYER_SIZE = 40, GRID_SIZE = 24;
     const initialPositions = [];
     for(let i=1;i<=15;i++) initialPositions.push({team:'team-1', number:i, x:WIDTH*0.18,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
     for(let i=1;i<=15;i++) initialPositions.push({team:'team-2', number:i, x:WIDTH*0.82,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
 
-    // --- ESTADO DE LA APLICACIÓN ---
     const AppState = {
-        ffmpeg: null, isAuthorized: false, currentUser: null, userRole: 'spectator',
-        currentCoachId: null, unsubscribePlays: null, timeline: [],
+        isAuthorized: false, userRole: 'spectator', timeline: [],
         drawings: { arrows: [], strokes: [], notes: [] },
         currentBallPos: { x: WIDTH / 2, y: HEIGHT / 2 },
-        selectedPlayers: new Set(), playing: false, rafId: null, playIdx: 0,
+        selectedPlayers: new Set(), playing: false,
         layout: { mode: 'landscape', scale: 1 }, forcePortrait: false,
         currentTool: 'arrows', ballCarrier: null,
     };
 
-    // --- MÓDULO DE INTERFAZ DE USUARIO (UI) ---
     const UI = {
         els: {},
         assignDOMElements() {
@@ -430,28 +410,26 @@
             el.style.cssText = `position: fixed; top: 70px; right: 20px; background: ${color}; color: var(--bg); padding: 10px 15px; border-radius: 8px; z-index: 9999; opacity: 0; transition: all 0.5s ease;`;
             document.body.appendChild(el);
             setTimeout(() => el.style.opacity = '1', 10);
-            setTimeout(() => { el.style.opacity = '0'; el.remove(); }, 3500);
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 3500);
         },
         updateAuthUI() {
-            const { isAuthorized, userRole } = AppState;
-            this.els.btnAuthAction.textContent = isAuthorized ? 'Cerrar Sesión' : 'Iniciar Sesión';
-            const display = (isAuthorized && userRole === 'coach') ? 'flex' : 'none';
+            this.els.btnAuthAction.textContent = AppState.isAuthorized ? 'Cerrar Sesión' : 'Iniciar Sesión';
+            const display = (AppState.isAuthorized && AppState.userRole === 'coach') ? 'flex' : 'none';
             ['playManagementSection', 'playerManagementSection', 'timelineSection', 'drawingControlsSection'].forEach(id => document.getElementById(id).style.display = display);
-            if (isAuthorized) DB.refreshPlayList();
+            if (AppState.isAuthorized) DB.refreshPlayList();
             else this.els.playList.innerHTML = '<option value="">Inicia sesión para ver jugadas</option>';
         },
         populatePlayList(plays) {
             const { playList } = this.els;
             playList.innerHTML = `<option value="" disabled selected>${plays.length > 0 ? '--- Seleccionar Jugada ---' : 'No hay jugadas'}</option>`;
-            plays.forEach(p => playList.innerHTML += `<option value="${p.id}" data-payload='${p.payload}'>${p.name}</option>`);
+            plays.forEach(p => playList.insertAdjacentHTML('beforeend', `<option value="${p.id}" data-payload='${JSON.stringify(p.payload)}'>${p.name}</option>`));
         },
         openMobileMenu() { this.els.desktopSidepanel.classList.add('open'); this.els.menuOverlay.classList.add('open'); },
         closeMobileMenu() { this.els.desktopSidepanel.classList.remove('open'); this.els.menuOverlay.classList.remove('open'); }
     };
 
-    // --- MÓDULOS DE LÓGICA (Auth, DB, Export, etc.) ---
     const Auth = {
-        init() { window.firebaseOnAuthStateChanged(window.firebaseAuth, u => { this.handleAuthStateChange(u); }); },
+        init() { window.firebaseOnAuthStateChanged(window.firebaseAuth, u => this.handleAuthStateChange(u)); },
         handleAuthStateChange(user) {
             if (user) Object.assign(AppState, { currentUser: user, isAuthorized: true, userRole: 'coach', currentCoachId: user.uid });
             else Object.assign(AppState, { currentUser: null, isAuthorized: false, userRole: 'spectator', currentCoachId: null });
@@ -461,45 +439,25 @@
         async login(email, password) { try { await window.firebaseSignIn(window.firebaseAuth, email, password); UI.showStatus('¡Sesión iniciada!', 'var(--accent2)'); UI.els.loginModal.style.display = 'none'; } catch (e) { UI.els.loginMessage.textContent = e.message; }},
         async logout() { await window.firebaseSignOut(window.firebaseAuth); UI.showStatus('Sesión cerrada', 'var(--accent)'); }
     };
+
     const DB = {
         getPlaysCollection() { return window.firestore.collection(window.firebaseDb, `coaches/${AppState.currentCoachId}/plays`); },
         async savePlay(name) { if (AppState.userRole !== 'coach' || !name) return UI.showStatus('Ingresa un nombre', 'var(--warn)'); if (AppState.timeline.length === 0) Timeline.recordFrame(); const id = name.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase(); const payload = { name, timeline: AppState.timeline, drawings: AppState.drawings, updatedAt: new Date().toISOString() }; try { await window.firestore.setDoc(window.firestore.doc(this.getPlaysCollection(), id), payload, { merge: true }); UI.showStatus('Jugada guardada', 'var(--accent2)'); } catch (e) { UI.showStatus('Error al guardar', 'var(--red)'); } },
-        refreshPlayList() { if (!AppState.currentCoachId) return; if (AppState.unsubscribePlays) AppState.unsubscribePlays(); AppState.unsubscribePlays = window.firestore.onSnapshot(window.firestore.query(this.getPlaysCollection()), s => UI.populatePlayList(s.docs.map(d => ({ id: d.id, name: d.data().name || d.id, payload: JSON.stringify(d.data()) }))), e => UI.showStatus('Error de conexión', 'var(--red)')); },
+        refreshPlayList() { if (!AppState.currentCoachId) return; if (AppState.unsubscribePlays) AppState.unsubscribePlays(); AppState.unsubscribePlays = window.firestore.onSnapshot(window.firestore.query(this.getPlaysCollection()), s => UI.populatePlayList(s.docs.map(d => ({ id: d.id, name: d.data().name || d.id, payload: d.data() }))), e => UI.showStatus('Error de conexión', 'var(--red)')); },
         loadPlay(id) { const opt = UI.els.playList.querySelector(`[value="${id}"]`); if (!opt) return; try { const data = JSON.parse(opt.dataset.payload); Timeline.stopAnimation(); UI.els.playName.value = data.name || id; AppState.drawings = data.drawings || { arrows: [], strokes: [], notes: [] }; AppState.timeline = Array.isArray(data.timeline) ? data.timeline : []; Board.renderDraw(); Timeline.updateScrub(); if (AppState.timeline.length) Timeline.gotoFrame(0); UI.showStatus(`'${data.name}' cargada`, 'var(--accent)'); } catch (e) { UI.showStatus('Error al cargar', 'var(--red)'); } },
         async deletePlay(id) { if (confirm('¿Eliminar esta jugada?')) { try { await window.firestore.deleteDoc(window.firestore.doc(this.getPlaysCollection(), id)); UI.showStatus('Jugada eliminada', 'var(--accent)'); UI.els.playName.value = ''; } catch (e) { UI.showStatus('Error al eliminar', 'var(--red)'); } } }
     };
-    const Export = { /* Lógica de exportación sin cambios... */ };
 
-    // --- MÓDULO DEL TABLERO (BOARD) ---
     const Board = {
         init() {
-            this.createPlayers();
-            this.placeBall(WIDTH / 2, HEIGHT / 2);
-            this.renderGrid();
-            Timeline.recordFrame();
-            this.fitBoard();
-            this.initInteractions();
-            this.renderDraw();
+            this.createPlayers(); this.placeBall(WIDTH / 2, HEIGHT / 2); this.renderGrid();
+            Timeline.recordFrame(); this.fitBoard(); this.initInteractions(); this.renderDraw();
         },
         createPlayers() {
-            UI.els.players.innerHTML = '';
-            AppState.selectedPlayers.clear();
-            initialPositions.forEach(p => {
-                const el = document.createElement('div');
-                el.className = `player team-${p.team === 'team-1' ? 1 : 2}`;
-                el.textContent = p.number;
-                el.dataset.team = p.team;
-                el.dataset.number = p.number;
-                el.style.left = `${p.x}px`;
-                el.style.top = `${p.y}px`;
-                UI.els.players.appendChild(el);
-            });
+            UI.els.players.innerHTML = ''; AppState.selectedPlayers.clear();
+            initialPositions.forEach(p => UI.els.players.insertAdjacentHTML('beforeend', `<div class="player team-${p.team === 'team-1' ? 1 : 2}" data-team="${p.team}" data-number="${p.number}" style="left: ${p.x}px; top: ${p.y}px;">${p.number}</div>`));
         },
-        placeBall(x, y) {
-            AppState.currentBallPos = { x, y };
-            UI.els.ball.style.left = `${x}px`;
-            UI.els.ball.style.top = `${y}px`;
-        },
+        placeBall(x, y) { AppState.currentBallPos = { x, y }; UI.els.ball.style.left = `${x}px`; UI.els.ball.style.top = `${y}px`; },
         applyFrame(frame) {
             frame.players.forEach(p => {
                 const el = UI.els.players.querySelector(`[data-team="${p.team}"][data-number="${p.number}"]`);
@@ -507,187 +465,137 @@
             });
             this.placeBall(frame.ball.x, frame.ball.y);
             if(AppState.ballCarrier) {
-                const carrierPos = { x: parseFloat(AppState.ballCarrier.style.left), y: parseFloat(AppState.ballCarrier.style.top) };
-                this.placeBall(carrierPos.x, carrierPos.y);
+                const { left, top } = AppState.ballCarrier.style;
+                this.placeBall(parseFloat(left), parseFloat(top));
             }
         },
         fitBoard() {
             const vp = UI.els.boardViewport.getBoundingClientRect();
             const isMobile = window.innerWidth <= 999;
-            if (AppState.forcePortrait || isMobile) {
-                AppState.layout.mode = 'portrait';
-                AppState.layout.scale = Math.min(vp.width / HEIGHT, vp.height / WIDTH);
-                UI.els.boardWrap.style.transform = `rotate(90deg) scale(${AppState.layout.scale})`;
-            } else {
-                AppState.layout.mode = 'landscape';
-                AppState.layout.scale = Math.min(vp.width / WIDTH, vp.height / HEIGHT);
-                UI.els.boardWrap.style.transform = `scale(${AppState.layout.scale})`;
-            }
+            AppState.layout.mode = (AppState.forcePortrait || isMobile) ? 'portrait' : 'landscape';
+            AppState.layout.scale = AppState.layout.mode === 'portrait' ? Math.min(vp.width / HEIGHT, vp.height / WIDTH) : Math.min(vp.width / WIDTH, vp.height / HEIGHT);
+            UI.els.boardWrap.style.transform = `rotate(${AppState.layout.mode === 'portrait' ? 90 : 0}deg) scale(${AppState.layout.scale})`;
             this.applyUprightTransforms();
         },
         applyUprightTransforms() {
             const rotate = AppState.layout.mode === 'portrait';
             UI.els.players.childNodes.forEach(el => el.style.transform = `translate(-50%,-50%) rotate(${rotate ? -90 : 0}deg)`);
         },
-        clientToBoard(e) { /* Sin cambios */ const vp = UI.els.boardViewport.getBoundingClientRect(); const cx=e.clientX-vp.left, cy=e.clientY-vp.top; if(AppState.layout.mode==='portrait'){const px=cx-vp.width/2, py=cy-vp.height/2; const x_=(WIDTH/2)+(py/AppState.layout.scale); const y_=(HEIGHT/2)+(-px/AppState.layout.scale); return{x:Math.max(0,Math.min(WIDTH,x_)),y:Math.max(0,Math.min(HEIGHT,y_))};} const sW=WIDTH*AppState.layout.scale, sH=HEIGHT*AppState.layout.scale; const x=(cx-(vp.width-sW)/2)/AppState.layout.scale; const y=(cy-(vp.height-sH)/2)/AppState.layout.scale; return{x:Math.max(0,Math.min(WIDTH,x)),y:Math.max(0,Math.min(HEIGHT,y))}; },
-        deltaToBoard(dx, dy) { /* Sin cambios */ if (AppState.layout.mode==='portrait') return {dx: dy/AppState.layout.scale, dy: -dx/AppState.layout.scale}; return {dx: dx/AppState.layout.scale, dy: dy/AppState.layout.scale}; },
+        clientToBoard(e) { const vp = UI.els.boardViewport.getBoundingClientRect(); const cx=e.clientX-vp.left, cy=e.clientY-vp.top; if(AppState.layout.mode==='portrait'){const px=cx-vp.width/2, py=cy-vp.height/2; return{x:Math.max(0,Math.min(WIDTH,(WIDTH/2)+(py/AppState.layout.scale))),y:Math.max(0,Math.min(HEIGHT,(HEIGHT/2)+(-px/AppState.layout.scale)))};} const sW=WIDTH*AppState.layout.scale, sH=HEIGHT*AppState.layout.scale; return{x:Math.max(0,Math.min(WIDTH,(cx-(vp.width-sW)/2)/AppState.layout.scale)),y:Math.max(0,Math.min(HEIGHT,(cy-(vp.height-sH)/2)/AppState.layout.scale))}; },
+        deltaToBoard(dx, dy) { if (AppState.layout.mode==='portrait') return {dx: dy/AppState.layout.scale, dy: -dx/AppState.layout.scale}; return {dx: dx/AppState.layout.scale, dy: dy/AppState.layout.scale}; },
         renderDraw() {
             UI.els.draw.innerHTML = '';
-            const { arrows, strokes, notes } = AppState.drawings;
             const createEl = (tag, attrs) => { const el = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; };
+            const { arrows, strokes, notes } = AppState.drawings;
             arrows.forEach(a => UI.els.draw.appendChild(createEl('line', { x1: a.x1, y1: a.y1, x2: a.x2, y2: a.y2, stroke: a.color, 'stroke-width': a.width, 'stroke-dasharray': a.dashed ? '8 8' : 'none', 'stroke-linecap': 'round' })));
             strokes.forEach(s => UI.els.draw.appendChild(createEl('polyline', { points: s.points.join(' '), fill: 'none', stroke: s.color, 'stroke-width': s.width, 'stroke-dasharray': s.dashed ? '8 8' : 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })));
-            notes.forEach(n => { const text = createEl('text', { x: n.x, y: n.y, fill: n.color, 'font-size': '18', 'font-weight': 'bold', 'text-anchor': 'middle' }); text.textContent = n.text; UI.els.draw.appendChild(text); });
+            notes.forEach(n => { const text = createEl('text', { x: n.x, y: n.y, fill: n.color, 'font-size': '24', 'font-weight': 'bold', 'text-anchor': 'middle', 'paint-order': 'stroke', 'stroke': '#000', 'stroke-width': '4px' }); text.textContent = n.text; UI.els.draw.appendChild(text); });
         },
-        renderGrid() {
-            let gridHTML = '';
-            for (let x = GRID_SIZE; x < WIDTH; x += GRID_SIZE) gridHTML += `<line x1="${x}" y1="0" x2="${x}" y2="${HEIGHT}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
-            for (let y = GRID_SIZE; y < HEIGHT; y += GRID_SIZE) gridHTML += `<line x1="0" y1="${y}" x2="${WIDTH}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
-            UI.els.grid.innerHTML = gridHTML;
-        },
+        renderGrid() { UI.els.grid.innerHTML = Array.from({length: Math.floor(WIDTH/GRID_SIZE)}, (_,i) => `<line x1="${(i+1)*GRID_SIZE}" y1="0" x2="${(i+1)*GRID_SIZE}" y2="${HEIGHT}"/>`).join('') + Array.from({length: Math.floor(HEIGHT/GRID_SIZE)}, (_,i) => `<line x1="0" y1="${(i+1)*GRID_SIZE}" x2="${WIDTH}" y2="${(i+1)*GRID_SIZE}"/>`).join(''); },
         initInteractions() {
             let activeDrag = null;
             const down = e => {
                 if (AppState.userRole !== 'coach' || e.button !== 0) return;
-                const target = e.target;
-                const playerEl = target.closest('.player');
-                const ballEl = target.closest('#ball');
+                const target = e.target, playerEl = target.closest('.player'), ballEl = target.closest('#ball');
                 activeDrag = { type: null, start: this.clientToBoard(e), clientStart: { x: e.clientX, y: e.clientY } };
-
                 if (playerEl) {
                     e.preventDefault();
-                    if (!e.ctrlKey && !playerEl.classList.contains('selected')) {
-                        AppState.selectedPlayers.forEach(p => p.classList.remove('selected'));
-                        AppState.selectedPlayers.clear();
-                    }
+                    if (!e.ctrlKey && !playerEl.classList.contains('selected')) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); }
                     playerEl.classList.toggle('selected', !e.ctrlKey || !playerEl.classList.contains('selected'));
-                    if(playerEl.classList.contains('selected')) AppState.selectedPlayers.add(playerEl);
-                    else AppState.selectedPlayers.delete(playerEl);
-                    
+                    if (playerEl.classList.contains('selected')) AppState.selectedPlayers.add(playerEl); else AppState.selectedPlayers.delete(playerEl);
                     activeDrag.type = 'player';
                     activeDrag.offsets = new Map([...AppState.selectedPlayers].map(p => [p, { x: parseFloat(p.style.left), y: parseFloat(p.style.top) }]));
-                } else if (ballEl) {
-                    e.preventDefault();
-                    activeDrag.type = 'ball';
-                } else {
-                    activeDrag.type = 'board';
-                    if (AppState.currentTool === 'text') {
-                        const text = prompt("Ingresa el texto para la nota:");
-                        if (text) { AppState.drawings.notes.push({ x: activeDrag.start.x, y: activeDrag.start.y, text, color: UI.els.strokeColor.value }); this.renderDraw(); }
-                    } else if (AppState.currentTool === 'arrows' || AppState.currentTool === 'pen') {
+                } else if (ballEl) { e.preventDefault(); activeDrag.type = 'ball'; } 
+                else { activeDrag.type = 'board'; if (!e.ctrlKey) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); } }
+                document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+            };
+            const move = e => {
+                if (!activeDrag) return; e.preventDefault();
+                const currentPos = this.clientToBoard(e);
+                const { dx, dy } = this.deltaToBoard(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y);
+                if (activeDrag.type === 'player') {
+                    activeDrag.offsets.forEach((pos, p) => {
+                        const newX = pos.x + dx, newY = pos.y + dy;
+                        p.style.left = `${newX}px`; p.style.top = `${newY}px`;
+                        if (AppState.ballCarrier === p) this.placeBall(newX, newY);
+                    });
+                } else if (activeDrag.type === 'ball') { this.placeBall(currentPos.x, currentPos.y); AppState.ballCarrier = null; } 
+                else if (activeDrag.type === 'board') {
+                    if (['arrows', 'pen'].includes(AppState.currentTool) && !activeDrag.drawing) {
                         const common = { color: UI.els.strokeColor.value, width: UI.els.strokeWidth.value, dashed: UI.els.dashed.checked };
                         if (AppState.currentTool === 'arrows') activeDrag.drawing = { ...common, x1: activeDrag.start.x, y1: activeDrag.start.y, x2: activeDrag.start.x, y2: activeDrag.start.y };
                         else activeDrag.drawing = { ...common, points: [`${activeDrag.start.x},${activeDrag.start.y}`] };
                         AppState.drawings[AppState.currentTool === 'arrows' ? 'arrows' : 'strokes'].push(activeDrag.drawing);
-                    } else { // Selection box
-                        UI.els.selectionBox.style.left = `${activeDrag.start.x}px`;
-                        UI.els.selectionBox.style.top = `${activeDrag.start.y}px`;
-                        UI.els.selectionBox.style.display = 'block';
-                        if (!e.ctrlKey) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); }
                     }
-                }
-                document.addEventListener('pointermove', move);
-                document.addEventListener('pointerup', up);
-            };
-
-            const move = e => {
-                if (!activeDrag) return;
-                e.preventDefault();
-                const currentPos = this.clientToBoard(e);
-                const { dx, dy } = this.deltaToBoard(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y);
-
-                if (activeDrag.type === 'player') {
-                    activeDrag.offsets.forEach((startPos, p) => {
-                        const newX = startPos.x + dx, newY = startPos.y + dy;
-                        p.style.left = `${newX}px`; p.style.top = `${newY}px`;
-                        if (AppState.ballCarrier === p) this.placeBall(newX, newY);
-                    });
-                } else if (activeDrag.type === 'ball') {
-                    this.placeBall(currentPos.x, currentPos.y); AppState.ballCarrier = null;
-                } else if (activeDrag.type === 'board') {
-                    if (activeDrag.drawing) { // Drawing
+                    if (activeDrag.drawing) {
                         if (AppState.currentTool === 'arrows') { activeDrag.drawing.x2 = currentPos.x; activeDrag.drawing.y2 = currentPos.y; }
                         else if (AppState.currentTool === 'pen') activeDrag.drawing.points.push(`${currentPos.x},${currentPos.y}`);
                         this.renderDraw();
-                    } else { // Selection box
-                        const {x, y} = activeDrag.start;
-                        const w = currentPos.x - x, h = currentPos.y - y;
-                        UI.els.selectionBox.style.transform = `scale(${w < 0 ? -1 : 1}, ${h < 0 ? -1 : 1})`;
-                        UI.els.selectionBox.style.width = `${Math.abs(w)}px`; UI.els.selectionBox.style.height = `${Math.abs(h)}px`;
-                        const selRect = UI.els.selectionBox.getBoundingClientRect();
-                        UI.els.players.childNodes.forEach(p => p.classList.toggle('selected', AppState.selectedPlayers.has(p) || p.getBoundingClientRect().left < selRect.right && p.getBoundingClientRect().right > selRect.left && p.getBoundingClientRect().top < selRect.bottom && p.getBoundingClientRect().bottom > selRect.top));
+                    } else {
+                        const { x, y } = activeDrag.start, w = currentPos.x - x, h = currentPos.y - y, { selectionBox } = UI.els;
+                        selectionBox.style.display = 'block'; selectionBox.style.left = `${x}px`; selectionBox.style.top = `${y}px`;
+                        selectionBox.style.transform = `scale(${w < 0 ? -1 : 1}, ${h < 0 ? -1 : 1})`; selectionBox.style.width = `${Math.abs(w)}px`; selectionBox.style.height = `${Math.abs(h)}px`;
                     }
                 }
             };
-            
             const up = e => {
                 if (!activeDrag) return;
                 if (activeDrag.type === 'board' && !activeDrag.drawing) {
-                    UI.els.players.childNodes.forEach(p => { if (p.classList.contains('selected')) AppState.selectedPlayers.add(p); else AppState.selectedPlayers.delete(p); });
+                    const selRect = UI.els.selectionBox.getBoundingClientRect();
+                    UI.els.players.childNodes.forEach(p => {
+                        const pRect = p.getBoundingClientRect();
+                        if (pRect.left < selRect.right && pRect.right > selRect.left && pRect.top < selRect.bottom && pRect.bottom > selRect.top) {
+                            p.classList.add('selected'); AppState.selectedPlayers.add(p);
+                        }
+                    });
                     UI.els.selectionBox.style.display = 'none'; UI.els.selectionBox.style.width = '0'; UI.els.selectionBox.style.height = '0';
                 }
+                if (AppState.currentTool === 'text' && activeDrag.type === 'board' && Math.hypot(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y) < 10) {
+                    const text = prompt("Ingresa el texto:");
+                    if (text) { AppState.drawings.notes.push({ x: activeDrag.start.x, y: activeDrag.start.y, text, color: UI.els.strokeColor.value }); this.renderDraw(); }
+                }
                 if ((activeDrag.type === 'player' || activeDrag.type === 'ball') && UI.els.autoRec.checked) Timeline.recordFrame();
-                document.removeEventListener('pointermove', move);
-                document.removeEventListener('pointerup', up);
-                activeDrag = null;
+                document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); activeDrag = null;
             };
-
             const dblClick = e => {
                 const playerEl = e.target.closest('.player');
-                if (playerEl) {
-                    if (AppState.ballCarrier === playerEl) AppState.ballCarrier = null;
-                    else { AppState.ballCarrier = playerEl; Board.placeBall(parseFloat(playerEl.style.left), parseFloat(playerEl.style.top)); }
-                }
+                if (playerEl) { AppState.ballCarrier = (AppState.ballCarrier === playerEl) ? null : playerEl; if(AppState.ballCarrier) this.placeBall(parseFloat(playerEl.style.left), parseFloat(playerEl.style.top)); }
             };
-
             UI.els.board.addEventListener('pointerdown', down);
             UI.els.players.addEventListener('dblclick', dblClick);
         }
     };
 
-    // --- MÓDULO DE LÍNEA DE TIEMPO (TIMELINE) ---
     const Timeline = {
-        recordFrame() { /* Sin cambios */ this.stopAnimation();if(AppState.playIdx<AppState.timeline.length-1)AppState.timeline.splice(AppState.playIdx+1);AppState.timeline.push({players:[...UI.els.players.children].map(el=>({team:el.dataset.team,number:+el.dataset.number,x:parseFloat(el.style.left),y:parseFloat(el.style.top)})),ball:{...AppState.currentBallPos}});AppState.playIdx=AppState.timeline.length-1;this.updateScrub(); },
-        updateScrub() { /* Sin cambios */ UI.els.scrubber.max = Math.max(0, AppState.timeline.length - 1); UI.els.scrubber.value = AppState.playIdx; UI.els.scrubLbl.textContent = `${AppState.playIdx}/${UI.els.scrubber.max}`; },
-        gotoFrame(i) { /* Sin cambios */ if(!AppState.timeline.length)return;AppState.playIdx=Math.max(0,Math.min(AppState.timeline.length-1,i));this.updateScrub();Board.applyFrame(AppState.timeline[AppState.playIdx]); },
-        startAnimation() { /* Sin cambios */ if(AppState.timeline.length<2||AppState.playing)return;AppState.playIdx=parseInt(UI.els.scrubber.value)>=AppState.timeline.length-1?0:parseInt(UI.els.scrubber.value);this.gotoFrame(AppState.playIdx);AppState.playing=!0;UI.els.btnPlayPause.textContent='Pausa';let segStart=0;const animate=t=>{if(!AppState.playing)return;if(segStart===0)segStart=t;const time=Math.min((t-segStart)/(parseInt(UI.els.speed.value)||800),1);const curr=AppState.timeline[AppState.playIdx],next=AppState.timeline[AppState.playIdx+1];if(curr&&next)Board.applyFrame(this.getInterpolatedFrame(curr,next,time));if(time>=1){AppState.playIdx++;segStart=t;if(AppState.playIdx>=AppState.timeline.length-1){this.stopAnimation();this.gotoFrame(AppState.playIdx);return;}} AppState.rafId=requestAnimationFrame(animate);};AppState.rafId=requestAnimationFrame(animate);},
-        stopAnimation() { /* Sin cambios */ if (AppState.rafId)cancelAnimationFrame(AppState.rafId);AppState.playing=!1;AppState.rafId=null;UI.els.btnPlayPause.textContent='Reproducir';},
-        getInterpolatedFrame(from, to, t) { /* Sin cambios */ return{players:from.players.map(p=>{const target=to.players.find(tp=>tp.team===p.team&&tp.number===p.number)||p;return{...p,x:p.x+(target.x-p.x)*t,y:p.y+(target.y-p.y)*t}}),ball:{x:from.ball.x+(to.ball.x-from.ball.x)*t,y:from.ball.y+(to.ball.y-from.ball.y)*t}}; }
+        recordFrame() { this.stopAnimation();if(AppState.playIdx<AppState.timeline.length-1)AppState.timeline.splice(AppState.playIdx+1);AppState.timeline.push({players:[...UI.els.players.children].map(el=>({team:el.dataset.team,number:+el.dataset.number,x:parseFloat(el.style.left),y:parseFloat(el.style.top)})),ball:{...AppState.currentBallPos}});AppState.playIdx=AppState.timeline.length-1;this.updateScrub(); },
+        updateScrub() { UI.els.scrubber.max = Math.max(0, AppState.timeline.length - 1); UI.els.scrubber.value = AppState.playIdx; UI.els.scrubLbl.textContent = `${AppState.playIdx}/${UI.els.scrubber.max}`; },
+        gotoFrame(i) { if(!AppState.timeline.length)return;AppState.playIdx=Math.max(0,Math.min(AppState.timeline.length-1,i));this.updateScrub();Board.applyFrame(AppState.timeline[AppState.playIdx]); },
+        startAnimation() { if(AppState.timeline.length<2||AppState.playing)return;AppState.playIdx=parseInt(UI.els.scrubber.value)>=AppState.timeline.length-1?0:parseInt(UI.els.scrubber.value);this.gotoFrame(AppState.playIdx);AppState.playing=!0;UI.els.btnPlayPause.textContent='Pausa';let segStart=0;const animate=t=>{if(!AppState.playing)return;if(segStart===0)segStart=t;const time=Math.min((t-segStart)/(parseInt(UI.els.speed.value)||800),1);const curr=AppState.timeline[AppState.playIdx],next=AppState.timeline[AppState.playIdx+1];if(curr&&next)Board.applyFrame(this.getInterpolatedFrame(curr,next,time));if(time>=1){AppState.playIdx++;segStart=t;if(AppState.playIdx>=AppState.timeline.length-1){this.stopAnimation();this.gotoFrame(AppState.playIdx);return;}} AppState.rafId=requestAnimationFrame(animate);};AppState.rafId=requestAnimationFrame(animate);},
+        stopAnimation() { if (AppState.rafId)cancelAnimationFrame(AppState.rafId);AppState.playing=!1;AppState.rafId=null;UI.els.btnPlayPause.textContent='Reproducir';},
+        getInterpolatedFrame(from, to, t) { return{players:from.players.map(p=>{const target=to.players.find(tp=>tp.team===p.team&&tp.number===p.number)||p;return{...p,x:p.x+(target.x-p.x)*t,y:p.y+(target.y-p.y)*t}}),ball:{x:from.ball.x+(to.ball.x-from.ball.x)*t,y:from.ball.y+(to.ball.y-from.ball.y)*t}}; }
     };
 
-    // --- INICIALIZACIÓN DE LA APLICACIÓN ---
     document.addEventListener('DOMContentLoaded', () => {
-        UI.assignDOMElements();
-        Auth.init();
-        Board.init();
-        const { els } = UI;
-        // Eventos de Autenticación y DB
+        UI.assignDOMElements(); Auth.init(); Board.init(); const { els } = UI;
         els.btnAuthAction.addEventListener('click', () => AppState.isAuthorized ? Auth.logout() : els.loginModal.style.display = 'grid');
         els.btnLogin.addEventListener('click', () => Auth.login(els.loginEmail.value, els.loginPassword.value));
         els.btnCloseLogin.addEventListener('click', () => els.loginModal.style.display = 'none');
         els.btnSavePlay.addEventListener('click', () => DB.savePlay(els.playName.value));
         els.btnLoadPlay.addEventListener('click', () => els.playList.value && DB.loadPlay(els.playList.value));
         els.btnDelete.addEventListener('click', () => els.playList.value && DB.deletePlay(els.playList.value));
-        
-        // Eventos de Tablero y Animación
         els.btnReset.addEventListener('click', () => { if (confirm('¿Reiniciar?')) { Timeline.stopAnimation(); Board.createPlayers(); Board.placeBall(WIDTH/2, HEIGHT/2); AppState.drawings = { arrows: [], strokes: [], notes: [] }; AppState.timeline = []; Timeline.recordFrame(); Board.renderDraw(); UI.showStatus('Tablero reiniciado', 'var(--accent)'); }});
         els.btnRecord.addEventListener('click', () => { Timeline.recordFrame(); UI.showStatus('Paso grabado', 'var(--accent2)'); });
         els.scrubber.addEventListener('input', e => { Timeline.stopAnimation(); Timeline.gotoFrame(parseInt(e.target.value)); });
         els.btnPlayPause.addEventListener('click', () => AppState.playing ? Timeline.stopAnimation() : Timeline.startAnimation());
         els.btnStop.addEventListener('click', () => { Timeline.stopAnimation(); Timeline.gotoFrame(0); });
         els.btnClrTl.addEventListener('click', () => { if (confirm('¿Limpiar animación?')) { Timeline.stopAnimation(); AppState.timeline = []; Timeline.recordFrame(); UI.showStatus('Animación limpiada', 'var(--accent)'); }});
-        
-        // Eventos de UI y Herramientas
-        els.btnMenuOpen.addEventListener('click', () => UI.openMobileMenu());
-        els.btnCloseMenu.addEventListener('click', () => UI.closeMobileMenu());
-        els.menuOverlay.addEventListener('click', () => UI.closeMobileMenu());
+        els.btnMenuOpen.addEventListener('click', () => UI.openMobileMenu()); els.btnCloseMenu.addEventListener('click', () => UI.closeMobileMenu()); els.menuOverlay.addEventListener('click', () => UI.closeMobileMenu());
         els.btnLandscape.addEventListener('click', () => { AppState.forcePortrait = false; Board.fitBoard(); UI.closeMobileMenu(); });
         els.btnPortrait.addEventListener('click', () => { AppState.forcePortrait = true; Board.fitBoard(); UI.closeMobileMenu(); });
         ['toolArrows', 'toolPen', 'toolText'].forEach(id => els[id].addEventListener('click', () => { AppState.currentTool = id.replace('tool', '').toLowerCase(); document.querySelectorAll('#toolSeg button').forEach(b => b.classList.remove('active')); els[id].classList.add('active'); }));
         els.showGrid.addEventListener('change', () => els.grid.classList.toggle('on', els.showGrid.checked));
-        els.btnClear.addEventListener('click', () => { AppState.drawings = { arrows: [], strokes: [], notes: [] }; Board.renderDraw(); });
-        els.btnUndo.addEventListener('click', () => { const lastDrawing = Object.keys(AppState.drawings).filter(k => AppState.drawings[k].length > 0).pop(); if(lastDrawing) AppState.drawings[lastDrawing].pop(); Board.renderDraw(); });
-        
+        els.btnClear.addEventListener('click', () => { if (confirm('¿Borrar todos los dibujos?')) { AppState.drawings = { arrows: [], strokes: [], notes: [] }; Board.renderDraw(); } });
+        els.btnUndo.addEventListener('click', () => { const lastKey = Object.keys(AppState.drawings).reverse().find(key => AppState.drawings[key].length > 0); if (lastKey) { AppState.drawings[lastKey].pop(); Board.renderDraw(); } });
         window.addEventListener('resize', () => Board.fitBoard());
     });
 })();
