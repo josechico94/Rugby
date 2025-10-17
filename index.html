@@ -283,6 +283,358 @@
   };
 
   console.log("Firebase inicializado correctamente");
+  
+// ... (código anterior permanece igual) ...
+
+// CORRECCIÓN: Función para habilitar/deshabilitar controles
+function setControlsDisabled(disabled) {
+    const controls = [
+        btnSavePlay, btnDelete, btnRecord, btnDuplicate, btnClrTl, autoRec,
+        toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, 
+        showGrid, btnUndo, btnClear, btnReset
+    ];
+    
+    controls.forEach(btn => { 
+        if(btn) btn.disabled = disabled; 
+    });
+    
+    // Siempre habilitar controles de lectura (cargar, play, etc.)
+    const readOnlyControls = [btnLoadPlay, playList, btnPlayPause, btnStop, scrubber];
+    readOnlyControls.forEach(el => { 
+        if(el) el.disabled = false; 
+    });
+    
+    // El campo de nombre solo para editores
+    if (playName) playName.disabled = disabled;
+    
+    // Habilitar interacciones del tablero si está autorizado
+    if (board) board.style.pointerEvents = disabled ? 'none' : 'auto';
+    if (playersLayer) playersLayer.style.pointerEvents = disabled ? 'none' : 'auto';
+    if (ball) ball.style.pointerEvents = disabled ? 'none' : 'auto';
+}
+
+// CORRECCIÓN: Actualizar función updateAuthUI
+function updateAuthUI() {
+    if (!btnAuthAction) return;
+    
+    if (isAuthorized && currentUser) {
+        btnAuthAction.textContent = 'Cerrar Sesión';
+        btnAuthAction.classList.remove('primary');
+        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club - Modo Entrenador`;
+        
+        // HABILITAR CONTROLES DE EDICIÓN
+        setControlsDisabled(false);
+        
+        // Re-inicializar interacciones de arrastre
+        reInitializePlayerInteractions();
+        
+        showStatus(`¡Bienvenido ${currentUser.email}! Modo edición activado`, 'var(--accent2)');
+    } else {
+        btnAuthAction.textContent = 'Iniciar Sesión';
+        btnAuthAction.classList.add('primary');
+        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club - Modo Espectador`;
+        
+        // DESHABILITAR CONTROLES DE EDICIÓN
+        setControlsDisabled(true);
+        
+        showStatus('Modo espectador - Solo lectura', 'var(--muted)');
+    }
+}
+
+// CORRECCIÓN: Función para re-inicializar interacciones de arrastre
+function reInitializePlayerInteractions() {
+    if (!playersLayer || !ball) return;
+    
+    // Habilitar arrastre de jugadores
+    [...playersLayer.children].forEach(el => {
+        enableDragPlayer(el, () => { 
+            if (autoRec && autoRec.checked) recordFrame(); 
+        });
+    });
+    
+    // Habilitar arrastre de balón
+    enableDragBall(() => { 
+        if (autoRec && autoRec.checked) recordFrame(); 
+    });
+    
+    // Habilitar selección masiva
+    enableSelectionBox();
+}
+
+// CORRECCIÓN: Función enableDragPlayer
+function enableDragPlayer(playerEl, onDrop) {
+    if (!isAuthorized) return; // Solo si está autorizado
+    
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
+    
+    const down = e => {
+        if (!isAuthorized) return;
+        
+        pid = e.pointerId; 
+        playerEl.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = parseFloat(playerEl.style.left) || 0;
+        oy = parseFloat(playerEl.style.top) || 0;
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            const nx = clamp(ox + dx, 0, WIDTH);
+            const ny = clamp(oy + dy, 0, HEIGHT);
+            playerEl.style.left = nx + 'px';
+            playerEl.style.top = ny + 'px';
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { playerEl.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            onDrop && onDrop(false);
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    playerEl.addEventListener('pointerdown', down, {passive: false});
+    playerEl.ondragstart = () => false;
+}
+
+// CORRECCIÓN: Función enableDragBall actualizada
+function enableDragBall(onDrop) {
+    if (!isAuthorized) return;
+    
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
+    
+    const down = e => {
+        if (!isAuthorized) return;
+        
+        pid = e.pointerId; 
+        ball.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = currentBallPos.x;
+        oy = currentBallPos.y;
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            const nx = clamp(ox + dx, 0, WIDTH);
+            const ny = clamp(oy + dy, 0, HEIGHT);
+            placeBall(nx, ny);
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { ball.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            onDrop && onDrop();
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    if (ball) ball.addEventListener('pointerdown', down, {passive: false});
+    if (ball) ball.ondragstart = () => false;
+}
+
+// CORRECCIÓN: Función enableSelectionBox actualizada
+function enableSelectionBox() {
+    if (!isAuthorized) return;
+    
+    let pid = null, startBoard = null;
+    
+    const down = e => {
+        if (!isAuthorized || e.target.closest('.player') || e.target.closest('#ball')) return;
+        
+        pid = e.pointerId; 
+        board.setPointerCapture(pid);
+        e.preventDefault();
+        startBoard = clientToBoard(e);
+        
+        if (selectionBox) {
+            selectionBox.style.left = startBoard.x + 'px';
+            selectionBox.style.top = startBoard.y + 'px';
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
+            selectionBox.style.display = 'block';
+        }
+
+        const move = ev => {
+            if (ev.pointerId !== pid || !isAuthorized) return;
+            ev.preventDefault();
+            const currentBoard = clientToBoard(ev);
+            const left = Math.min(startBoard.x, currentBoard.x);
+            const top = Math.min(startBoard.y, currentBoard.y);
+            const width = Math.abs(currentBoard.x - startBoard.x);
+            const height = Math.abs(currentBoard.y - startBoard.y);
+            
+            if (selectionBox) {
+                selectionBox.style.left = left + 'px';
+                selectionBox.style.top = top + 'px';
+                selectionBox.style.width = width + 'px';
+                selectionBox.style.height = height + 'px';
+            }
+        };
+
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { board.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            if (selectionBox) selectionBox.style.display = 'none';
+        };
+
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
+
+    if (board) board.addEventListener('pointerdown', down);
+}
+
+// CORRECCIÓN: Funciones de dibujo actualizadas
+function initDrawingTools() {
+    if (!board) return;
+    
+    let drawingArrow = false, startPt = null, drawingStroke = false, currentStroke = null;
+    
+    board.addEventListener('pointerdown', e => {
+        if (!isAuthorized || e.target.closest('.player') || e.target.closest('#ball')) return;
+        
+        let p = clientToBoard(e);
+        
+        // Usar el valor de color/grosor del selector activo
+        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
+        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
+
+        if (toolArrows && toolArrows.classList.contains('active')) {
+            drawingArrow = true; 
+            startPt = {x: p.x, y: p.y}; 
+        } else if (toolPen && toolPen.classList.contains('active')) {
+            drawingStroke = true;
+            currentStroke = { 
+                points: [`${p.x},${p.y}`], 
+                color: currentStrokeColor, 
+                width: currentStrokeWidth, 
+                dashed: dashed ? dashed.checked : false 
+            };
+            strokes.push(currentStroke); 
+            renderDraw();
+        } else if (toolText && toolText.classList.contains('active')) {
+            const text = prompt("Ingresa el texto para la nota:");
+            if (text && text.trim()) {
+                notes.push({ 
+                    x: p.x, 
+                    y: p.y, 
+                    text: text.trim().substring(0, 30), 
+                    color: currentStrokeColor 
+                });
+                renderDraw();
+            }
+        }
+    }, {passive: false});
+
+    board.addEventListener('pointermove', e => {
+        if (!isAuthorized || !drawingStroke || !currentStroke) return;
+        
+        let p = clientToBoard(e);
+        const last = currentStroke.points[currentStroke.points.length - 1];
+        const [lx, ly] = last.split(',').map(Number);
+        
+        if (Math.abs(p.x - lx) + Math.abs(p.y - ly) > 0.5) {
+            currentStroke.points.push(`${p.x},${p.y}`); 
+            renderDraw();
+        }
+    }, {passive: false});
+
+    board.addEventListener('pointerup', e => {
+        if (!isAuthorized) return;
+        
+        let p = clientToBoard(e);
+        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
+        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
+
+        if (drawingArrow && startPt) {
+            arrows.push({ 
+                x1: startPt.x, 
+                y1: startPt.y, 
+                x2: p.x, 
+                y2: p.y, 
+                color: currentStrokeColor, 
+                width: currentStrokeWidth, 
+                dashed: dashed ? dashed.checked : false 
+            });
+            drawingArrow = false; 
+            startPt = null; 
+            renderDraw();
+        } else if (drawingStroke && currentStroke) {
+            drawingStroke = false; 
+            renderDraw();
+        }
+    }, {passive: false});
+}
+
+// CORRECCIÓN: Inicializar herramientas de dibujo en initBoardApp
+function initBoardApp(){
+    console.log("Inicializando aplicación...");
+    
+    // Crear jugadores y balón
+    createPlayers();
+    placeBall();
+    
+    // Timeline inicial
+    if (!timeline.length) { recordFrame(); }
+    updateScrub();
+
+    // Configurar Firebase Auth State Listener
+    if (window.firebaseOnAuthStateChanged) {
+        window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthorized = true;
+                console.log('Usuario autenticado:', user.email);
+            } else {
+                currentUser = null;
+                isAuthorized = false;
+                console.log('Usuario no autenticado');
+            }
+            updateAuthUI();
+        });
+    }
+
+    // INICIALMENTE DESHABILITAR CONTROLES
+    setControlsDisabled(true);
+
+    // Eventos de drag (solo se activarán si está autorizado)
+    enableDragBall(() => { if (autoRec && autoRec.checked) recordFrame(); });
+    
+    // Selección masiva
+    enableSelectionBox();
+
+    // INICIALIZAR HERRAMIENTAS DE DIBUJO
+    initDrawingTools();
+
+    // UI inicial
+    if (showGrid) showGrid.checked = false;
+    renderGrid();
+    renderDraw();
+    fitBoard();
+    
+    // Forzar recálculo del layout
+    setTimeout(fitBoard, 50);
+    
+    showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
+}
+
+// ... (el resto del código permanece igual) ..
 </script>
 </head>
 <body>
