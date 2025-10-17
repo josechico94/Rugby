@@ -5,583 +5,602 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>RugbyBoard Pro — Bologna Rugby Club</title>
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQODhPcO4/S/IpicFiGWcI4eXhF1G6h/ulD81Yj0L+O0BFCJAEInInKpTXy/x/YpB9PjS/fZy8f/K7t6h/a==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
-  :root{
-    --bg:#0b1520; --panel:#0e1c2a; --panel2:#122235; --ink:#e8eef5; --muted:#9fb3c8;
-    --border:#1b3147; --accent:#00c2ff; --accent2:#7ef29a; --warn:#ffd400; --red:#ff5a6b; --blue:#2f80ff;
-    --shadow:0 8px 28px rgba(0,0,0,.35);
-    --r:12px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .app{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
+  :root{
+    --bg:#0b1520; --panel:#0e1c2a; --panel2:#122235; --ink:#e8eef5; --muted:#9fb3c8;
+    --border:#1b3147; --accent:#00c2ff; --accent2:#7ef29a; --warn:#ffd400; --red:#ff5a6b; --blue:#2f80ff;
+    --shadow:0 8px 28px rgba(0,0,0,.35);
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .app{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
 
-  /* Top bar */
-  .topbar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(180deg,#0f2235,#0c1a29);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
-  .toolbar{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
-  .btn{appearance:none;border:1px solid var(--border);background:#122538;color:var(--ink);padding:.55rem .8rem;border-radius:10px;cursor:pointer}
-  .btn:disabled{opacity:.6;cursor:not-allowed}
-  .btn.primary{background:#0f2a3f;border-color:#22445f}
-  .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  .seg button{border:none;background:#13293d;padding:.45rem .7rem;color:var(--ink);cursor:pointer}
-  .seg button.active{background:#15354f;color:#7fe7ff}
+  /* Top bar */
+  .topbar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(180deg,#0f2235,#0c1a29);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+  .toolbar{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--border);background:#122538;color:var(--ink);padding:.55rem .8rem;border-radius:10px;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .btn.primary{background:#0f2a3f;border-color:#22445f}
+  .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .seg button{border:none;background:#13293d;padding:.45rem .7rem;color:var(--ink);cursor:pointer}
+  .seg button.active{background:#15354f;color:#7fe7ff}
 
-  /* Stage */
-  .stage{position:relative;display:grid;grid-template-columns: 1fr;grid-template-rows:1fr;min-height:100%; padding: 0;}
-  
-  .board-viewport{
-    position:relative;
-    inset:0;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    overflow:hidden;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .board-wrap{position:relative; width:1200px; height:700px; transform-origin:center center;} 
-  .board{position:absolute;inset:0;background:#137a46;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-  .lines, .draw{position:absolute;inset:0;pointer-events:none}
-  svg{width:100%;height:100%;display:block}
-  .grid{position:absolute;inset:0;pointer-events:none;opacity:.55;display:none}
-  .grid.on{display:block}
+  /* Stage */
+  .stage{position:relative;display:grid;grid-template-columns: 1fr;grid-template-rows:1fr;min-height:100%; padding: 0;}
+  
+  .board-viewport{
+    position:relative;
+    inset:0;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    overflow:hidden;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .board-wrap{position:relative; width:1200px; height:700px; transform-origin:center center;} 
+  .board{position:absolute;inset:0;background:#137a46;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .lines, .draw{position:absolute;inset:0;pointer-events:none}
+  svg{width:100%;height:100%;display:block}
+  .grid{position:absolute;inset:0;pointer-events:none;opacity:.55;display:none}
+  .grid.on{display:block}
 
-  /* Players & ball */
-  #players{position:absolute;inset:0;z-index:3;pointer-events:none}
-  .player{pointer-events:auto;position:absolute;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:grab}
-  .player.selected{border: 3px solid var(--accent); box-shadow: 0 0 10px var(--accent);}
-  .blue{background:var(--blue)} .red{background:var(--red)}
-  .team-1{background:var(--blue);}
-  .team-2{background:var(--red);}
-  
-  #ball{position:absolute;z-index:4}
-  .ball{width:50px;height:30px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
-  .ball::after{content:"";position:absolute;inset:6px 18px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
-  
-  /* Selection Box */
-  #selectionBox{
-      position: absolute;
-      pointer-events: none;
-      border: 1px dashed var(--accent);
-      background: rgba(0, 194, 255, 0.1);
-      z-index: 5;
-      display: none;
-  }
+  /* Players & ball */
+  #players{position:absolute;inset:0;z-index:3;pointer-events:none}
+  .player{pointer-events:auto;position:absolute;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:grab}
+  .player.selected{border: 3px solid var(--accent); box-shadow: 0 0 10px var(--accent);}
+  .blue{background:var(--blue)} .red{background:var(--red)}
+  .team-1{background:var(--blue);}
+  .team-2{background:var(--red);}
+  
+  #ball{position:absolute;z-index:4}
+  .ball{width:50px;height:30px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
+  .ball::after{content:"";position:absolute;inset:6px 18px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
+  
+  /* Selection Box */
+  #selectionBox{
+      position: absolute;
+      pointer-events: none;
+      border: 1px dashed var(--accent);
+      background: rgba(0, 194, 255, 0.1);
+      z-index: 5;
+      display: none;
+  }
 
-  /* Modal Login */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: none;
-    place-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background-color: var(--panel);
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    width: 90%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    border: 1px solid var(--border);
-  }
-  .modal-content input {
-    width: 100%;
-    padding: 10px;
-    background: var(--bg);
-    color: var(--ink);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-  .modal-content button {
-    margin-top: 10px;
-  }
+  /* Modal Login */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    place-items: center;
+    z-index: 1000;
+  }
+  .modal-content {
+    background-color: var(--panel);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid var(--border);
+  }
+  .modal-content input {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .modal-content button {
+    margin-top: 10px;
+  }
 
-  /* Desktop Styles */
-  @media (min-width: 1000px){
-    .app{grid-template-rows:auto 1fr}
-    .stage{
-        grid-template-columns: 320px 1fr;
-        gap:14px; 
-        padding:12px; 
-        display: grid; 
-        min-height: calc(100dvh - 70px); 
-    }
-    
-    .sidepanel{
-        position: relative;
-        background:var(--panel);
-        border:1px solid var(--border);
-        border-radius:12px;
-        padding:12px;
-        display:flex; 
-        flex-direction:column;
-        gap:12px; 
-        min-height: 100%; 
-        overflow-y: auto; 
-        transform: translateX(0) !important;
-    }
-    
-    .dock, #btnMenuOpen { display: none !important; }
-    
-    .sidepanel-section { padding-top: 0 !important; border-top: none !important; }
-    .sidepanel-section + .sidepanel-section { border-top: 1px solid var(--border) !important; padding-top: 12px !important; }
-  }
+  /* Desktop Styles */
+  @media (min-width: 1000px){
+    .app{grid-template-rows:auto 1fr}
+    .stage{
+        grid-template-columns: 320px 1fr;
+        gap:14px; 
+        padding:12px; 
+        display: grid; 
+        min-height: calc(100dvh - 70px); 
+    }
+    
+    .sidepanel{
+        position: relative;
+        background:var(--panel);
+        border:1px solid var(--border);
+        border-radius:12px;
+        padding:12px;
+        display:flex; 
+        flex-direction:column;
+        gap:12px; 
+        min-height: 100%; 
+        overflow-y: auto; 
+        transform: translateX(0) !important;
+    }
+    
+    .dock, #btnMenuOpen { display: none !important; }
+    
+    .sidepanel-section { padding-top: 0 !important; border-top: none !important; }
+    .sidepanel-section + .sidepanel-section { border-top: 1px solid var(--border) !important; padding-top: 12px !important; }
+  }
 
-  /* Mobile Styles */
-  @media (max-width: 999px) {
-    .app { 
-        min-height: 100dvh; 
-        grid-template-rows: auto 1fr; 
-    }
-    
-    .stage {
-        padding: 0; 
-        min-height: auto;
-        height: 100%; 
-    }
-    .board-viewport {
-        width: 100%;
-        height: 100%;
-    }
-    
-    .topbar .seg, .topbar .toolbar > .btn { display: none; }
-    .topbar #btnAuthAction, .topbar #btnMenuOpen { display: flex; }
+  /* Mobile Styles */
+  @media (max-width: 999px) {
+    .app { 
+        min-height: 100dvh; 
+        grid-template-rows: auto 1fr; 
+    }
+    
+    .stage {
+        padding: 0; 
+        min-height: auto;
+        height: 100%; 
+    }
+    .board-viewport {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .topbar .seg, .topbar .toolbar > .btn { display: none; }
+    .topbar #btnAuthAction, .topbar #btnMenuOpen { display: flex; }
 
-    .sidepanel {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        max-width: 100vw;
-        z-index: 1000;
-        background: var(--bg);
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-out;
-        box-shadow: 4px 0 10px rgba(0,0,0,0.5);
-        padding-top: 60px;
-        display: flex;
-    }
-    
-    .sidepanel.open {
-        transform: translateX(0);
-    }
-    
-    .dock { display: none !important; }
-    
-    #menuOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        display: none;
-    }
-    #menuOverlay.open {
-        display: block;
-    }
-  }
+    .sidepanel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100vw;
+        z-index: 1000;
+        background: var(--bg);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-out;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+        padding-top: 60px;
+        display: flex;
+        flex-direction: column; /* Asegurar que el contenido fluya bien */
+    }
+    
+    .sidepanel.open {
+        transform: translateX(0);
+    }
+    
+    .dock { display: none !important; }
+    
+    #menuOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    #menuOverlay.open {
+        display: block;
+    }
+  }
 
-  /* Menu header */
-  #menuHeader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      z-index: 1001;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-  }
-  .sidepanel.open ~ #menuHeader {
-      display: flex;
-  }
+  /* Menu header */
+  #menuHeader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      z-index: 1001;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+  }
+  .sidepanel.open ~ #menuHeader {
+      display: flex;
+  }
 
-  .icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-  }
-  .icon-btn svg {
-    width: 24px;
-    height: 24px;
-  }
-  #btnMenuOpen {
-      display: none;
-  }
-  @media (max-width: 999px) {
-      #btnMenuOpen {
-          display: inline-block;
-      }
-  }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+  }
+  .icon-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  #btnMenuOpen {
+      display: none;
+  }
+  @media (max-width: 999px) {
+      #btnMenuOpen {
+          display: inline-block;
+      }
+  }
 
-  /* Form elements */
-  .field{display:flex;align-items:center;gap:8px;background:#0f2032;border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem}
-  .field label{font-size:.85rem;color:var(--muted)}
-  select,input[type="number"],input[type="text"]{background:#0c1c2b;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.45rem .55rem}
-  input[type="checkbox"]{width:18px;height:18px}
-  .grow{flex:1}
-  .subtle{color:var(--muted);font-size:.85rem}
-  .row{display:flex;flex-wrap:wrap;gap:8px}
+  /* Form elements */
+  .field{display:flex;align-items:center;gap:8px;background:#0f2032;border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem}
+  .field label{font-size:.85rem;color:var(--muted)}
+  select,input[type="number"],input[type="text"]{background:#0c1c2b;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.45rem .55rem}
+  input[type="checkbox"]{width:18px;height:18px}
+  .grow{flex:1}
+  .subtle{color:var(--muted);font-size:.85rem}
+  .row{display:flex;flex-wrap:wrap;gap:8px}
 
 </style>
 
-<!-- Firebase SDK como módulo -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot, getDocs, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot, getDocs, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI",
-    authDomain: "bologna-rugby-club.firebaseapp.com",
-    projectId: "bologna-rugby-club",
-    storageBucket: "bologna-rugby-club.firebasestorage.app",
-    messagingSenderId: "641438144435",
-    appId: "1:641438144435:web:e2a243bacd522fd1615dc6",
-    measurementId: "G-9C66KXJ561"
-  };
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI",
+    authDomain: "bologna-rugby-club.firebaseapp.com",
+    projectId: "bologna-rugby-club",
+    storageBucket: "bologna-rugby-club.firebasestorage.app",
+    messagingSenderId: "641438144435",
+    appId: "1:641438144435:web:e2a243bacd522fd1615dc6",
+    measurementId: "G-9C66KXJ561"
+  };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  // Exponer Firebase al ámbito global
-  window.firebaseApp = app;
-  window.firebaseAuth = auth;
-  window.firebaseDb = db;
-  window.firebaseSignIn = signInWithEmailAndPassword;
-  window.firebaseSignOut = signOut;
-  window.firebaseOnAuthStateChanged = onAuthStateChanged;
-  
-  // Funciones de Firestore
-  window.firestore = {
-    doc, setDoc, deleteDoc, collection, query, onSnapshot, getDocs, where
-  };
+  // Exponer Firebase al ámbito global
+  window.firebaseApp = app;
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.firebaseSignIn = signInWithEmailAndPassword;
+  window.firebaseSignOut = signOut;
+  window.firebaseOnAuthStateChanged = onAuthStateChanged;
+  
+  // Funciones de Firestore
+  window.firestore = {
+    doc, setDoc, deleteDoc, collection, query, onSnapshot, getDocs, where
+  };
 
-  console.log("Firebase inicializado correctamente");
+  console.log("Firebase inicializado correctamente");
 </script>
 </head>
 <body>
-  <!-- Overlay para cerrar menú móvil -->
-  <div id="menuOverlay" style="display:none;"></div>
+    <div id="menuOverlay" style="display:none;"></div>
 
-  <!-- Modal de Login -->
-  <div class="modal-overlay" id="loginModal">
-    <div class="modal-content">
-        <h3 style="font-weight:700; color:var(--accent);">Acceso Bologna Rugby Club</h3>
-        <p class="subtle">Ingresa tus credenciales para acceder al tablero.</p>
-        
-        <input type="email" id="loginEmail" placeholder="Email"/>
-        <input type="password" id="loginPassword" placeholder="Contraseña"/>
-        
-        <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
-        <p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p>
-        <button class="btn" id="btnCloseLogin">Cerrar</button>
-    </div>
-  </div>
-  
-  <!-- Contenedor del header móvil -->
-  <div id="menuHeader">
-      <span class="brand" style="font-size: 1.1rem;"><span class="dot"></span>Controles</span>
-      <button class="icon-btn" id="btnCloseMenu">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-      </button>
-  </div>
+    <div class="modal-overlay" id="loginModal">
+    <div class="modal-content">
+        <h3 style="font-weight:700; color:var(--accent);">Acceso Bologna Rugby Club</h3>
+        <p class="subtle">Ingresa tus credenciales para acceder al tablero.</p>
+        
+        <input type="email" id="loginEmail" placeholder="Email"/>
+        <input type="password" id="loginPassword" placeholder="Contraseña"/>
+        
+        <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
+        <p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p>
+        <button class="btn" id="btnCloseLogin">Cerrar</button>
+    </div>
+  </div>
+  
+    <div id="menuHeader">
+      <span class="brand" style="font-size: 1.1rem;"><span class="dot"></span>Controles</span>
+      <button class="icon-btn" id="btnCloseMenu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+      </button>
+  </div>
 
-  <!-- Contenedor de la aplicación -->
-  <div class="app">
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="brand" id="brand"><span class="dot"></span>Bologna Rugby Club - RugbyBoard</div>
+    <div class="app">
+        <header class="topbar">
+      <div class="brand" id="brand"><span class="dot"></span>Bologna Rugby Club - RugbyBoard</div>
 
-      <div class="toolbar">
-        <button class="btn primary" id="btnAuthAction">Iniciar Sesión</button>
-        <button class="icon-btn" id="btnMenuOpen">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-              </svg>
-         </button>
-      </div>
-    </header>
+      <div class="toolbar">
+        <button class="btn primary" id="btnAuthAction">Iniciar Sesión</button>
+        <button class="icon-btn" id="btnMenuOpen">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+              </svg>
+         </button>
+      </div>
+    </header>
 
-    <!-- Main stage -->
-    <main class="stage">
-      
-      <!-- Panel lateral -->
-      <aside class="sidepanel" id="desktopSidepanel">
-          
-        <!-- Gestión de Jugadores (solo para entrenadores) -->
-        <div id="playerManagementSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-            <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestionar Jugadores</h3>
-            <div class="field grow">
-                <input type="email" id="playerEmail" placeholder="Email del jugador" class="grow"/>
-            </div>
-            <div class="row">
-                <button class="btn grow" id="btnInvitePlayer">Invitar Jugador</button>
-            </div>
-            <p class="subtle">Los jugadores invitados podrán ver tus jugadas</p>
-        </div>
+        <main class="stage">
+      
+            <aside class="sidepanel" id="desktopSidepanel">
+          
+                <div id="playerManagementSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+            <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestionar Jugadores</h3>
+            <div class="field grow">
+                <input type="email" id="playerEmail" placeholder="Email del jugador" class="grow"/>
+            </div>
+            <div class="row">
+                <button class="btn grow" id="btnInvitePlayer">Invitar Jugador</button>
+            </div>
+            <p class="subtle">Los jugadores invitados podrán ver tus jugadas.</p>
+        </div>
 
-        <!-- Controles de Orientación -->
-        <div id="orientationControls" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-             <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Orientación</h3>
-             <div class="seg" style="margin-top: 5px;">
-                  <button id="btnLandscape" class="active" title="Horizontal">
-                      Horizontal
-                  </button>
-                  <button id="btnPortrait" title="Vertical">
-                      Vertical
-                  </button>
-             </div>
-        </div>
+                <div id="orientationControls" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+             <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Orientación</h3>
+             <div class="seg" style="margin-top: 5px;">
+                  <button id="btnLandscape" class="active" title="Horizontal">
+                      Horizontal
+                  </button>
+                  <button id="btnPortrait" title="Vertical">
+                      Vertical
+                  </button>
+             </div>
+        </div>
 
-        <!-- Exportación y Utilidades -->
-        <div id="exportUtilitiesSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación</h3>
-          <div class="row">
-            <button class="btn grow" id="btnExportJpg">JPG</button>
-            <button class="btn grow" id="btnExportWebm">WebM</button>
-            <button class="btn grow" id="btnExportMp4">MP4</button>
-          </div>
-          <div class="row">
-             <button class="btn grow" id="btnReset">Reiniciar Tablero</button>
-          </div>
-        </div>
-        
-        <!-- Controles de dibujo -->
-        <div id="drawingControlsSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Herramientas de Dibujo</h3>
-          <div class="row">
-            <div class="seg" id="toolSeg">
-              <button id="toolArrows" class="active">Flechas</button>
-              <button id="toolPen">Lápiz</button>
-              <button id="toolText">Texto</button>
-            </div>
-            <button class="btn" id="btnUndo">Deshacer</button>
-            <button class="btn" id="btnClear">Borrar</button>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label>Color</label>
-              <select id="strokeColor">
-                <option value="#ffffff">Blanco</option>
-                <option value="#35d07f">Verde</option>
-                <option value="#2f80ff">Azul</option>
-                <option value="#ff5a6b">Rojo</option>
-                <option value="#ffd400" selected>Amarillo</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Grosor</label>
-              <select id="strokeWidth">
-                <option value="3">Fino</option>
-                <option value="5" selected>Medio</option>
-                <option value="7">Grueso</option>
-              </select>
-            </div>
-            <div class="field">
-              <input type="checkbox" id="dashed"> <label for="dashed">Punteado</label>
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <input type="checkbox" id="showGrid"> <label for="showGrid">Ver grilla</label>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Gestión de Jugadas -->
-        <div id="playManagementSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestión de Jugadas</h3>
-          <div class="field grow">
-            <label class="subtle">Nombre de Jugada</label>
-            <input type="text" id="playName" placeholder="Ej: Lineout 8" class="grow"/>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnDuplicate">Duplicar</button>
-            <select id="playList" class="btn grow">
-              <option value="">Inicia sesión para ver jugadas</option>
-            </select>
-            <button class="btn" id="btnDelete">Eliminar</button>
-          </div>
-          <div class="row">
-            <button class="btn grow" id="btnSavePlay">Guardar Jugada</button>
-            <button class="btn grow" id="btnLoadPlay">Cargar Jugada</button>
-          </div>
-        </div>
+                <div id="exportUtilitiesSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación</h3>
+          <div class="row">
+            <button class="btn grow" id="btnExportJpg">JPG</button>
+            <button class="btn grow" id="btnExportWebm">WebM</button>
+            <button class="btn grow" id="btnExportMp4">MP4</button>
+          </div>
+          <div class="row">
+             <button class="btn grow" id="btnReset">Reiniciar Tablero</button>
+          </div>
+        </div>
+        
+                <div id="drawingControlsSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Herramientas de Dibujo</h3>
+          <div class="row">
+            <div class="seg" id="toolSeg">
+              <button id="toolArrows" class="active">Flechas</button>
+              <button id="toolPen">Lápiz</button>
+              <button id="toolText">Texto</button>
+            </div>
+            <button class="btn" id="btnUndo">Deshacer</button>
+            <button class="btn" id="btnClear">Borrar</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Color</label>
+              <select id="strokeColor">
+                <option value="#ffffff">Blanco</option>
+                <option value="#35d07f">Verde</option>
+                <option value="#2f80ff">Azul</option>
+                <option value="#ff5a6b">Rojo</option>
+                <option value="#ffd400" selected>Amarillo</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Grosor</label>
+              <select id="strokeWidth">
+                <option value="3">Fino</option>
+                <option value="5" selected>Medio</option>
+                <option value="7">Grueso</option>
+              </select>
+            </div>
+            <div class="field">
+              <input type="checkbox" id="dashed"> <label for="dashed">Punteado</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <input type="checkbox" id="showGrid"> <label for="showGrid">Ver grilla</label>
+            </div>
+          </div>
+        </div>
+        
+                <div id="playManagementSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestión de Jugadas</h3>
+          <div class="field grow">
+            <label class="subtle">Nombre de Jugada</label>
+            <input type="text" id="playName" placeholder="Ej: Lineout 8" class="grow"/>
+          </div>
+          <div class="row">
+            <button class="btn" id="btnDuplicate">Duplicar</button>
+            <select id="playList" class="btn grow">
+              <option value="">Inicia sesión para ver jugadas</option>
+            </select>
+            <button class="btn" id="btnDelete">Eliminar</button>
+          </div>
+          <div class="row">
+            <button class="btn grow" id="btnSavePlay">Guardar Jugada</button>
+            <button class="btn grow" id="btnLoadPlay">Cargar Jugada</button>
+          </div>
+        </div>
 
-        <!-- Timeline y Animación -->
-        <div id="timelineSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Control de Animación</h3>
-          <div class="row">
-            <button class="btn grow" id="btnRecord">Grabar paso</button>
-            <div class="field">
-              <input type="checkbox" id="autoRec"> <label for="autoRec">Auto al soltar</label>
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn primary" id="btnPlayPause">Reproducir</button>
-            <button class="btn" id="btnStop">Stop</button>
-            <div class="field grow">
-              <label>Velocidad (ms)</label>
-              <input type="number" id="speed" min="100" step="100" value="800" style="width:100px"/>
-            </div>
-          </div>
-          <div class="field grow">
-            <label>Frame</label>
-            <input type="range" id="scrubber" min="0" max="0" value="0" class="grow"/>
-            <span id="scrubLbl" class="subtle">0/0</span>
-          </div>
-          <button class="btn" id="btnClrTl">Limpiar animación</button>
-        </div>
-      </aside>
+                <div id="timelineSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Control de Animación</h3>
+          <div class="row">
+            <button class="btn grow" id="btnRecord">Grabar paso</button>
+            <div class="field">
+              <input type="checkbox" id="autoRec"> <label for="autoRec">Auto al soltar</label>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btnPlayPause">Reproducir</button>
+            <button class="btn" id="btnStop">Stop</button>
+            <div class="field grow">
+              <label>Velocidad (ms)</label>
+              <input type="number" id="speed" min="100" step="100" value="800" style="width:100px"/>
+            </div>
+          </div>
+          <div class="field grow">
+            <label>Frame</label>
+            <input type="range" id="scrubber" min="0" max="0" value="0" class="grow"/>
+            <span id="scrubLbl" class="subtle">0/0</span>
+          </div>
+          <button class="btn" id="btnClrTl">Limpiar animación</button>
+        </div>
+      </aside>
 
-      <section class="board-viewport" id="boardViewport">
-        <div class="board-wrap" id="boardWrap">
-          <div class="board" id="board">
-            <!-- field lines -->
-            <svg class="lines" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true">
-              <rect x="5" y="5" width="1190" height="690" fill="none" stroke="#fff" stroke-width="6"/>
-              <rect x="0" y="0" width="80" height="700" fill="rgba(255,255,255,.07)"/>
-              <rect x="1120" y="0" width="80" height="700" fill="rgba(255,255,255,.07)"/>
-              <line x1="80" y1="0" x2="80" y2="700" stroke="#fff" stroke-width="4"/>
-              <line x1="1120" y1="0" x2="1120" y2="700" stroke="#fff" stroke-width="4"/>
-              <line x1="309" y1="0" x2="309" y2="700" stroke="#fff" stroke-width="3"/>
-              <line x1="891" y1="0" x2="891" y2="700" stroke="#fff" stroke-width="3"/>
-              <line x1="500" y1="0" x2="500" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
-              <line x1="697" y1="0" x2="697" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
-              <line x1="600" y1="0" x2="600" y2="700" stroke="#fff" stroke-width="4"/>
-              <line x1="5" y1="50" x2="1195" y2="50" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
-              <line x1="5" y1="150" x2="1195" y2="150" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
-              <line x1="5" y1="550" x2="1195" y2="550" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
-              <line x1="5" y1="650" x2="1195" y2="650" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
-              <line x1="130" y1="0" x2="130" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
-              <line x1="1070" y1="0" x2="1070" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
-            </svg>
+      <section class="board-viewport" id="boardViewport">
+        <div class="board-wrap" id="boardWrap">
+          <div class="board" id="board">
+                        <svg class="lines" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true">
+              <rect x="5" y="5" width="1190" height="690" fill="none" stroke="#fff" stroke-width="6"/>
+              <rect x="0" y="0" width="80" height="700" fill="rgba(255,255,255,.07)"/>
+              <rect x="1120" y="0" width="80" height="700" fill="rgba(255,255,255,.07)"/>
+              <line x1="80" y1="0" x2="80" y2="700" stroke="#fff" stroke-width="4"/>
+              <line x1="1120" y1="0" x2="1120" y2="700" stroke="#fff" stroke-width="4"/>
+              <line x1="309" y1="0" x2="309" y2="700" stroke="#fff" stroke-width="3"/>
+              <line x1="891" y1="0" x2="891" y2="700" stroke="#fff" stroke-width="3"/>
+              <line x1="500" y1="0" x2="500" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
+              <line x1="697" y1="0" x2="697" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
+              <line x1="600" y1="0" x2="600" y2="700" stroke="#fff" stroke-width="4"/>
+              <line x1="5" y1="50" x2="1195" y2="50" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
+              <line x1="5" y1="150" x2="1195" y2="150" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
+              <line x1="5" y1="550" x2="1195" y2="550" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
+              <line x1="5" y1="650" x2="1195" y2="650" stroke="#fff" stroke-width="2" stroke-dasharray="4 8"/>
+              <line x1="130" y1="0" x2="130" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
+              <line x1="1070" y1="0" x2="1070" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
+            </svg>
 
-            <svg class="grid" id="grid" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
-            <svg class="draw" id="draw" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
-            <div id="players"></div>
-            <div id="ball" class="ball" title="Balón"></div>
-            <div id="selectionBox" style="display:none;"></div>
-          </div>
-        </div>
-        <canvas id="exportCanvas" width="1200" height="700" style="display:none"></canvas>
-      </section>
-    </main>
-  </div>
+            <svg class="grid" id="grid" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
+            <svg class="draw" id="draw" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
+            <div id="players"></div>
+            <div id="ball" class="ball" title="Balón"></div>
+            <div id="selectionBox" style="display:none;"></div>
+          </div>
+        </div>
+                <canvas id="exportCanvas" width="1200" height="700" style="display:none"></canvas>
+      </section>
+    </main>
+  </div>
 
 <script>
+// ==================== INICIALIZACIÓN FFMPEG ====================
+let ffmpeg = null;
+async function loadFfmpeg() {
+    if (ffmpeg) return ffmpeg;
+    try {
+        // Asegurarse de que el script se cargue
+        if (window.FFmpeg) {
+            ffmpeg = new window.FFmpeg.FFmpeg();
+            ffmpeg.on('log', ({ message }) => console.log('[FFMPEG]', message));
+            ffmpeg.on('progress', ({ progress, time }) => {
+                console.log(`[FFMPEG] Progreso: ${(progress * 100).toFixed(2)}%`);
+                showStatus(`Exportando video: ${(progress * 100).toFixed(0)}%`, 'var(--warn)');
+            });
+            await ffmpeg.load();
+            showStatus('FFMPEG cargado, listo para exportar video', 'var(--accent2)');
+            return ffmpeg;
+        } else {
+            throw new Error('FFmpeg global object not found');
+        }
+    } catch (e) {
+        console.error('Error al cargar FFMPEG:', e);
+        showStatus('ERROR: No se pudo cargar FFMPEG para exportar video.', 'var(--red)');
+        return null;
+    }
+}
+
+
 // Constantes
 const WIDTH = 1200, HEIGHT = 700, GRID = 24;
+const PLAYER_SIZE = 40; // Tamaño base del jugador
+const FRAME_RATE = 20; // FPS para la exportación de video
 
 // Variables DOM
 let desktopSidepanel, boardViewport, boardWrap, board, playersLayer, draw, gridSvg, ball, exportCanvas, ctx, selectionBox, loginModal, btnAuthAction, menuOverlay, btnCloseMenu, btnMenuOpen;
 let btnLandscape, btnPortrait, btnReset, btnSavePlay, btnLoadPlay, btnExportJpg, btnExportWebm, btnExportMp4;
 let toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, showGrid, btnUndo, btnClear;
-let playName, btnDuplicate, playList, btnDelete, btnRecord, autoRec, btnPlayPause, btnStop, speed, scrubber, scrubLbl;
+let playName, btnDuplicate, playList, btnDelete, btnRecord, autoRec, btnPlayPause, btnStop, speed, scrubber, scrubLbl, btnClrTl;
 let btnInvitePlayer, playerEmail;
 
 // Función que asigna todas las variables DOM
 function assignDOMElements() {
-    desktopSidepanel = document.getElementById('desktopSidepanel');
-    boardViewport = document.getElementById('boardViewport');
-    boardWrap = document.getElementById('boardWrap');
-    board = document.getElementById('board');
-    playersLayer = document.getElementById('players');
-    draw = document.getElementById('draw');
-    gridSvg = document.getElementById('grid');
-    ball = document.getElementById('ball');
-    exportCanvas = document.getElementById('exportCanvas');
-    ctx = exportCanvas ? exportCanvas.getContext('2d') : null;
-    selectionBox = document.getElementById('selectionBox');
-    loginModal = document.getElementById('loginModal');
-    btnAuthAction = document.getElementById('btnAuthAction');
-    menuOverlay = document.getElementById('menuOverlay');
-    btnCloseMenu = document.getElementById('btnCloseMenu');
-    btnMenuOpen = document.getElementById('btnMenuOpen');
+    desktopSidepanel = document.getElementById('desktopSidepanel');
+    boardViewport = document.getElementById('boardViewport');
+    boardWrap = document.getElementById('boardWrap');
+    board = document.getElementById('board');
+    playersLayer = document.getElementById('players');
+    draw = document.getElementById('draw');
+    gridSvg = document.getElementById('grid');
+    ball = document.getElementById('ball');
+    exportCanvas = document.getElementById('exportCanvas');
+    ctx = exportCanvas ? exportCanvas.getContext('2d') : null;
+    selectionBox = document.getElementById('selectionBox');
+    loginModal = document.getElementById('loginModal');
+    btnAuthAction = document.getElementById('btnAuthAction');
+    menuOverlay = document.getElementById('menuOverlay');
+    btnCloseMenu = document.getElementById('btnCloseMenu');
+    btnMenuOpen = document.getElementById('btnMenuOpen');
 
-    // Topbar / acciones
-    btnLandscape = document.getElementById('btnLandscape');
-    btnPortrait = document.getElementById('btnPortrait');
-    btnReset = document.getElementById('btnReset');
-    btnSavePlay = document.getElementById('btnSavePlay');
-    btnLoadPlay = document.getElementById('btnLoadPlay');
-    btnExportJpg = document.getElementById('btnExportJpg');
-    btnExportWebm = document.getElementById('btnExportWebm');
-    btnExportMp4 = document.getElementById('btnExportMp4');
+    // Topbar / acciones
+    btnLandscape = document.getElementById('btnLandscape');
+    btnPortrait = document.getElementById('btnPortrait');
+    btnReset = document.getElementById('btnReset');
+    btnSavePlay = document.getElementById('btnSavePlay');
+    btnLoadPlay = document.getElementById('btnLoadPlay');
+    btnExportJpg = document.getElementById('btnExportJpg');
+    btnExportWebm = document.getElementById('btnExportWebm');
+    btnExportMp4 = document.getElementById('btnExportMp4');
 
-    // Herramientas
-    toolArrows = document.getElementById('toolArrows');
-    toolPen = document.getElementById('toolPen');
-    toolText = document.getElementById('toolText');
-    strokeColor = document.getElementById('strokeColor');
-    strokeWidth = document.getElementById('strokeWidth');
-    dashed = document.getElementById('dashed');
-    showGrid = document.getElementById('showGrid');
-    btnUndo = document.getElementById('btnUndo');
-    btnClear = document.getElementById('btnClear');
+    // Herramientas
+    toolArrows = document.getElementById('toolArrows');
+    toolPen = document.getElementById('toolPen');
+    toolText = document.getElementById('toolText');
+    strokeColor = document.getElementById('strokeColor');
+    strokeWidth = document.getElementById('strokeWidth');
+    dashed = document.getElementById('dashed');
+    showGrid = document.getElementById('showGrid');
+    btnUndo = document.getElementById('btnUndo');
+    btnClear = document.getElementById('btnClear');
 
-    // Jugadas
-    playName = document.getElementById('playName');
-    btnDuplicate = document.getElementById('btnDuplicate');
-    playList = document.getElementById('playList');
-    btnDelete = document.getElementById('btnDelete');
+    // Jugadas
+    playName = document.getElementById('playName');
+    btnDuplicate = document.getElementById('btnDuplicate');
+    playList = document.getElementById('playList');
+    btnDelete = document.getElementById('btnDelete');
 
-    // Timeline
-    btnRecord = document.getElementById('btnRecord');
-    autoRec = document.getElementById('autoRec');
-    btnPlayPause = document.getElementById('btnPlayPause');
-    btnStop = document.getElementById('btnStop');
-    speed = document.getElementById('speed');
-    scrubber = document.getElementById('scrubber');
-    scrubLbl = document.getElementById('scrubLbl');
+    // Timeline
+    btnRecord = document.getElementById('btnRecord');
+    autoRec = document.getElementById('autoRec');
+    btnPlayPause = document.getElementById('btnPlayPause');
+    btnStop = document.getElementById('btnStop');
+    speed = document.getElementById('speed');
+    scrubber = document.getElementById('scrubber');
+    scrubLbl = document.getElementById('scrubLbl');
+    btnClrTl = document.getElementById('btnClrTl');
 
-    // Gestión de jugadores
-    btnInvitePlayer = document.getElementById('btnInvitePlayer');
-    playerEmail = document.getElementById('playerEmail');
+    // Gestión de jugadores
+    btnInvitePlayer = document.getElementById('btnInvitePlayer');
+    playerEmail = document.getElementById('playerEmail');
 }
 
 // Variables de estado del tablero
 let arrows = [], strokes = [], notes = [], timeline = [];
-let teamConfig = { 
-    team1: { name: 'Bologna RFC', colorClass: 'team-1', hexColor: '#2f80ff' },
-    team2: { name: 'Rival', colorClass: 'team-2', hexColor: '#ff5a6b' }
+let teamConfig = { 
+    team1: { name: 'Bologna RFC', colorClass: 'team-1', hexColor: '#2f80ff' },
+    team2: { name: 'Rival', colorClass: 'team-2', hexColor: '#ff5a6b' }
 };
 const initialPositions = [];
 for(let i=1;i<=15;i++) initialPositions.push({team:'team-1', number:i, x:WIDTH*0.18,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
 for(let i=1;i<=15;i++) initialPositions.push({team:'team-2', number:i, x:WIDTH*0.82,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
 let currentBallPos = {x:WIDTH/2,y:HEIGHT/2};
 let selectedPlayers = new Set();
+let isDraggingPlayer = false; // Nueva variable de estado para el arrastre
+let isDraggingBall = false;
 
 // Variables de animación
-let playing = false, paused = false, playIdx = 0, rafId = null, segStart = 0, segDur = 800;
-let fromF = null, toF = null;
+let playing = false, isRecordingVideo = false, playIdx = 0, rafId = null, segStart = 0, segDur = 800;
+let frameTimeoutId = null;
 
 // Layout
 let layout = {mode: 'landscape', scale: 1, tx: 0, ty: 0};
@@ -599,1303 +618,1352 @@ let currentTool = 'arrows';
 
 // Utilidades
 function showStatus(message, color='var(--accent)'){
-    const statusDiv = document.createElement('div');
-    statusDiv.className = 'status-message';
-    statusDiv.textContent = message;
-    statusDiv.style.cssText = `
-        position: fixed; top: 70px; right: 20px;
-        background: ${color}; color: var(--bg); padding: 10px 15px;
-        border-radius: 8px; z-index: 9999; opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-    `;
-    document.body.appendChild(statusDiv);
-    
-    setTimeout(() => { statusDiv.style.opacity = 1; }, 10);
-    setTimeout(() => { statusDiv.style.opacity = 0; }, 3000);
-    setTimeout(() => { statusDiv.remove(); }, 3500);
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'status-message';
+    statusDiv.textContent = message;
+    statusDiv.style.cssText = `
+        position: fixed; top: 70px; right: 20px;
+        background: ${color}; color: var(--bg); padding: 10px 15px;
+        border-radius: 8px; z-index: 9999; opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        max-width: 80%; /* Para móvil */
+    `;
+    document.body.appendChild(statusDiv);
+    
+    setTimeout(() => { statusDiv.style.opacity = 1; }, 10);
+    setTimeout(() => { statusDiv.style.opacity = 0; }, 3000);
+    setTimeout(() => { statusDiv.remove(); }, 3500);
 }
 
 function clamp(v, min, max){ return Math.max(min,Math.min(max,v)); }
 function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.hypot(dx,dy); }
 function centerOf(el){ return { x:parseFloat(el.style.left)||0, y:parseFloat(el.style.top)||0 } }
 function rectIntersect(rect1, rect2) {
-    return rect1.left < rect2.right &&
-           rect1.right > rect2.left &&
-           rect1.top < rect2.bottom &&
-           rect1.bottom > rect2.top;
+    return rect1.left < rect2.right &&
+           rect1.right > rect2.left &&
+           rect1.top < rect2.bottom &&
+           rect1.bottom > rect2.top;
+}
+function getPlayerRect(player) {
+    const x = parseFloat(player.style.left) || 0;
+    const y = parseFloat(player.style.top) || 0;
+    const halfSize = PLAYER_SIZE / 2;
+    return {
+        left: x - halfSize,
+        right: x + halfSize,
+        top: y - halfSize,
+        bottom: y + halfSize
+    };
 }
 
 // ==================== SISTEMA DE AUTENTICACIÓN ====================
+// (Lógica de autenticación: sin cambios significativos)
 
 function openLoginModal() {
-    if(loginModal) loginModal.style.display = 'grid';
+    if(loginModal) loginModal.style.display = 'grid';
 }
 
 function closeLoginModal() {
-    if(loginModal) loginModal.style.display = 'none';
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('loginMessage').textContent = '';
+    if(loginModal) loginModal.style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginMessage').textContent = '';
 }
 
 async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const loginMessage = document.getElementById('loginMessage');
-    
-    if (!email || !password) {
-        loginMessage.textContent = 'Por favor ingresa email y contraseña';
-        return;
-    }
-    
-    try {
-        loginMessage.textContent = 'Iniciando sesión...';
-        const userCredential = await window.firebaseSignIn(window.firebaseAuth, email, password);
-        currentUser = userCredential.user;
-        isAuthorized = true;
-        
-        showStatus('¡Sesión iniciada correctamente!', 'var(--accent2)');
-        closeLoginModal();
-        
-    } catch (error) {
-        console.error('Error de login:', error);
-        let errorMessage = 'Error al iniciar sesión';
-        
-        switch(error.code) {
-            case 'auth/invalid-email':
-                errorMessage = 'Email inválido';
-                break;
-            case 'auth/user-disabled':
-                errorMessage = 'Usuario deshabilitado';
-                break;
-            case 'auth/user-not-found':
-                errorMessage = 'Usuario no encontrado';
-                break;
-            case 'auth/wrong-password':
-                errorMessage = 'Contraseña incorrecta';
-                break;
-            default:
-                errorMessage = error.message;
-        }
-        
-        loginMessage.textContent = errorMessage;
-    }
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const loginMessage = document.getElementById('loginMessage');
+    
+    if (!email || !password) {
+        loginMessage.textContent = 'Por favor ingresa email y contraseña';
+        return;
+    }
+    
+    try {
+        loginMessage.textContent = 'Iniciando sesión...';
+        const userCredential = await window.firebaseSignIn(window.firebaseAuth, email, password);
+        currentUser = userCredential.user;
+        isAuthorized = true;
+        
+        showStatus('¡Sesión iniciada correctamente!', 'var(--accent2)');
+        closeLoginModal();
+        
+    } catch (error) {
+        console.error('Error de login:', error);
+        let errorMessage = 'Error al iniciar sesión';
+        
+        switch(error.code) {
+            case 'auth/invalid-email':
+                errorMessage = 'Email inválido';
+                break;
+            case 'auth/user-disabled':
+                errorMessage = 'Usuario deshabilitado';
+                break;
+            case 'auth/user-not-found':
+                errorMessage = 'Usuario no encontrado';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Contraseña incorrecta';
+                break;
+            default:
+                errorMessage = error.message;
+        }
+        
+        loginMessage.textContent = errorMessage;
+    }
 }
 
 async function handleLogout() {
-    try {
-        await window.firebaseSignOut(window.firebaseAuth);
-        currentUser = null;
-        isAuthorized = false;
-        userRole = 'spectator';
-        currentCoachId = null;
-        
-        if (unsubscribePlays) {
-            unsubscribePlays();
-            unsubscribePlays = null;
-        }
-        
-        showStatus('Sesión cerrada', 'var(--accent)');
-        updateAuthUI();
-    } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        showStatus('Error al cerrar sesión', 'var(--red)');
-    }
+    try {
+        await window.firebaseSignOut(window.firebaseAuth);
+        currentUser = null;
+        isAuthorized = false;
+        userRole = 'spectator';
+        currentCoachId = null;
+        
+        if (unsubscribePlays) {
+            unsubscribePlays();
+            unsubscribePlays = null;
+        }
+        
+        showStatus('Sesión cerrada', 'var(--accent)');
+        updateAuthUI();
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        showStatus('Error al cerrar sesión', 'var(--red)');
+    }
 }
 
 // ==================== SISTEMA MULTI-TENANCY ====================
+// (Lógica de Multi-tenancy: sin cambios significativos)
 
-// VERSIÓN MEJORADA - checkPlayerAccess
 async function checkPlayerAccess() {
-    if (!currentUser) {
-        console.log('No hay usuario autenticado');
-        return null;
-    }
-    
-    console.log('🔐 Usuario autenticado:', currentUser.uid, currentUser.email);
-    console.log('📝 ID del usuario:', currentUser.uid);
-    
-    // TEMPORAL: Todos los usuarios son coaches
-    userRole = 'coach';
-    currentCoachId = currentUser.uid;
-    
-    console.log('🎯 Asignado como coach con ID:', currentCoachId);
-    
-    try {
-        // Crear automáticamente el documento del coach en Firestore
-        const coachDocRef = window.firestore.doc(
-            window.firestore.collection(window.firebaseDb, 'coaches'), 
-            currentUser.uid
-        );
-        
-        console.log('📁 Intentando crear documento en: coaches/' + currentUser.uid);
-        
-        await window.firestore.setDoc(coachDocRef, {
-            email: currentUser.email,
-            createdAt: new Date().toISOString(),
-            role: 'coach',
-            name: currentUser.displayName || currentUser.email.split('@')[0],
-            lastLogin: new Date().toISOString()
-        });
-        
-        console.log('✅ Documento de coach creado exitosamente');
-        showStatus('¡Bienvenido Coach! Espacio personal creado', 'var(--accent2)');
-        
-    } catch (error) {
-        console.log('⚠️  Info del documento (puede que ya exista):', error.message);
-        // No es crítico si falla
-    }
-    
-    return [];
+    if (!currentUser) { return null; }
+    
+    // TEMPORAL: Todos los usuarios son coaches
+    userRole = 'coach';
+    currentCoachId = currentUser.uid;
+    
+    try {
+        const coachDocRef = window.firestore.doc(
+            window.firestore.collection(window.firebaseDb, 'coaches'), 
+            currentUser.uid
+        );
+        await window.firestore.setDoc(coachDocRef, {
+            email: currentUser.email,
+            createdAt: new Date().toISOString(),
+            role: 'coach',
+            name: currentUser.displayName || currentUser.email.split('@')[0],
+            lastLogin: new Date().toISOString()
+        }, { merge: true }); // Usar merge para no sobrescribir
+        
+        //showStatus('¡Bienvenido Coach! Espacio personal creado', 'var(--accent2)');
+        
+    } catch (error) {
+        console.log('⚠️  Info del documento (puede que ya exista):', error.message);
+    }
+    
+    return [];
 }
 
-// Función determineUserRole actualizada
 async function determineUserRole() {
-    if (!currentUser) {
-        userRole = 'spectator';
-        return;
-    }
-
-    console.log('Determinando rol para:', currentUser.email);
-    await checkPlayerAccess();
-    console.log('Rol determinado:', userRole, 'Coach ID:', currentCoachId);
+    if (!currentUser) {
+        userRole = 'spectator';
+        return;
+    }
+    await checkPlayerAccess();
 }
 
-// Obtener referencia a la colección de jugadas del entrenador
 function getCoachPlaysCollectionRef(coachId = null) {
-    const coachUID = coachId || currentCoachId || currentUser.uid;
-    return window.firestore.collection(window.firebaseDb, `coaches/${coachUID}/plays`);
+    const coachUID = coachId || currentCoachId || currentUser.uid;
+    return window.firestore.collection(window.firebaseDb, `coaches/${coachUID}/plays`);
 }
 
-// Obtener referencia a la colección de jugadores del entrenador
 function getCoachPlayersCollectionRef(coachId = null) {
-    const coachUID = coachId || currentCoachId || currentUser.uid;
-    return window.firestore.collection(window.firebaseDb, `coaches/${coachUID}/players`);
+    const coachUID = coachId || currentCoachId || currentUser.uid;
+    return window.firestore.collection(window.firebaseDb, `coaches/${coachUID}/players`);
 }
 
-// Invitar jugador
 async function invitePlayer(playerEmail) {
-    if (!isAuthorized || userRole !== 'coach') {
-        showStatus('ERROR: Solo los entrenadores pueden invitar jugadores.', 'var(--red)');
-        return;
-    }
+    if (!isAuthorized || userRole !== 'coach') {
+        showStatus('ERROR: Solo los entrenadores pueden invitar jugadores.', 'var(--red)');
+        return;
+    }
 
-    if (!playerEmail) {
-        showStatus('Ingresa un email válido', 'var(--red)');
-        return;
-    }
+    if (!playerEmail) {
+        showStatus('Ingresa un email válido', 'var(--red)');
+        return;
+    }
 
-    try {
-        // Crear documento de invitación
-        const playerDocRef = window.firestore.doc(
-            getCoachPlayersCollectionRef(), 
-            playerEmail.replace(/[^a-zA-Z0-9]/g, '_')
-        );
-        
-        await window.firestore.setDoc(playerDocRef, {
-            email: playerEmail,
-            invitedBy: currentUser.uid,
-            invitedAt: new Date().toISOString(),
-            status: 'pending'
-        });
-        
-        showStatus(`Invitación enviada a ${playerEmail}`, 'var(--accent2)');
-        
-    } catch (error) {
-        console.error('Error al invitar jugador:', error);
-        showStatus('Error al enviar invitación', 'var(--red)');
-    }
+    try {
+        // La ID del documento es el email sanitizado
+        const docId = playerEmail.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        const playerDocRef = window.firestore.doc(
+            getCoachPlayersCollectionRef(), 
+            docId
+        );
+        
+        await window.firestore.setDoc(playerDocRef, {
+            email: playerEmail,
+            invitedBy: currentUser.uid,
+            invitedAt: new Date().toISOString(),
+            status: 'pending'
+        }, { merge: true });
+        
+        showStatus(`Invitación registrada para ${playerEmail}. NOTA: El email debe ser enviado por un servicio de backend (Cloud Function).`, 'var(--warn)');
+        document.getElementById('playerEmail').value = '';
+        
+    } catch (error) {
+        console.error('Error al invitar jugador:', error);
+        showStatus('Error al registrar invitación', 'var(--red)');
+    }
 }
 
 // ==================== GESTIÓN DE JUGADAS ====================
 
-function snapshotPlayers(){ 
-    if (!playersLayer) return [];
-    return [...playersLayer.children].map(el=>({
-        team:el.dataset.team, 
-        number:+el.dataset.number, 
-        x:parseFloat(el.style.left), 
-        y:parseFloat(el.style.top)
-    })); 
+function snapshotPlayers(){ 
+    if (!playersLayer) return [];
+    return [...playersLayer.children].map(el=>({
+        team:el.dataset.team, 
+        number:+el.dataset.number, 
+        x:parseFloat(el.style.left)||0, 
+        y:parseFloat(el.style.top)||0
+    })); 
 }
 
 function snapshotBall(){ return {...currentBallPos}; }
-function snapshotFrame(){ 
-    return { 
-        players: snapshotPlayers(), 
-        ball: snapshotBall() 
-    }; 
+function snapshotFrame(){ 
+    return { 
+        players: snapshotPlayers(), 
+        ball: snapshotBall() 
+    }; 
 }
 
 // Guardar jugada en el espacio del entrenador
 async function savePlay(name) {
-    if (!isAuthorized || !currentUser || userRole !== 'coach') {
-        showStatus('ERROR: Debes ser entrenador para guardar jugadas.', 'var(--red)');
-        return;
-    }
+    if (!isAuthorized || !currentUser || userRole !== 'coach') {
+        showStatus('ERROR: Debes ser entrenador para guardar jugadas.', 'var(--red)');
+        return;
+    }
+    if (timeline.length === 0) {
+        recordFrame(); // Asegurar al menos el primer frame
+    }
 
-    const playId = name.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase(); 
-    const payload = { 
-        name: name,
-        positions: snapshotPlayers(), 
-        ball: snapshotBall(),
-        arrows: arrows, 
-        strokes: strokes, 
-        notes: notes,
-        timeline: timeline,
-        teamConfig: teamConfig,
-        createdBy: currentUser.uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isPublic: false
-    };
+    const playId = name.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase(); 
+    const payload = { 
+        name: name,
+        positions: snapshotPlayers(), 
+        ball: snapshotBall(),
+        arrows: arrows, 
+        strokes: strokes, 
+        notes: notes,
+        timeline: timeline,
+        teamConfig: teamConfig,
+        createdBy: currentUser.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isPublic: false
+    };
 
-    try {
-        await window.firestore.setDoc(
-            window.firestore.doc(getCoachPlaysCollectionRef(), playId), 
-            payload
-        );
-        showStatus('Jugada guardada en tu espacio personal!', 'var(--accent2)');
-        refreshPlayList();
-    } catch (e) {
-        console.error("Error al guardar jugada:", e);
-        showStatus('Error al guardar: ' + e.message, 'var(--red)');
-    }
+    try {
+        await window.firestore.setDoc(
+            window.firestore.doc(getCoachPlaysCollectionRef(), playId), 
+            payload
+        );
+        showStatus('Jugada guardada en tu espacio personal!', 'var(--accent2)');
+        // No es necesario llamar a refreshPlayList aquí gracias al listener onSnapshot
+    } catch (e) {
+        console.error("Error al guardar jugada:", e);
+        showStatus('Error al guardar: ' + e.message, 'var(--red)');
+    }
 }
 
-// Cargar jugadas del entrenador actual
+// Cargar jugadas del entrenador actual (con listener en tiempo real)
 function refreshPlayList() {
-    console.log('🔄 refreshPlayList iniciado');
-    console.log('👤 Usuario:', currentUser?.email);
-    console.log('🆔 Coach ID:', currentCoachId);
-    
-    if (!currentUser || !currentCoachId) {
-        console.log('❌ No hay usuario o coach ID');
-        if (playList) {
-            playList.innerHTML = '<option value="">Inicia sesión para ver jugadas</option>';
-        }
-        return;
-    }
+    if (!currentUser || !currentCoachId) {
+        if (playList) {
+            playList.innerHTML = '<option value="">Inicia sesión para ver jugadas</option>';
+        }
+        return;
+    }
 
-    // Cancelar suscripción anterior
-    if (unsubscribePlays) {
-        console.log('🔴 Cancelando suscripción anterior');
-        unsubscribePlays();
-    }
+    if (unsubscribePlays) { unsubscribePlays(); }
 
-    try {
-        console.log('🎯 Obteniendo colección para coach:', currentCoachId);
-        const playsCollection = getCoachPlaysCollectionRef();
-        
-        const q = window.firestore.query(playsCollection);
-        console.log('📡 Iniciando suscripción a jugadas...');
-        
-        unsubscribePlays = window.firestore.onSnapshot(q, 
-            (snapshot) => {
-                console.log('📨 Snapshost recibido - Documentos:', snapshot.size);
-                const jugadas = [];
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    jugadas.push({ 
-                        id: doc.id, 
-                        name: data.name || doc.id, 
-                        payload: JSON.stringify(data)
-                    });
-                    console.log('📝 Jugada encontrada:', doc.id);
-                });
-                
-                jugadas.sort((a, b) => a.name.localeCompare(b.name));
-                populatePlayList(jugadas);
-                
-                if (jugadas.length === 0) {
-                    console.log('ℹ️  No hay jugadas guardadas aún');
-                    showStatus('Crea tu primera jugada!', 'var(--accent)');
-                } else {
-                    console.log('✅ ' + jugadas.length + ' jugadas cargadas');
-                    showStatus(jugadas.length + ' jugadas cargadas', 'var(--accent2)');
-                }
-            }, 
-            (error) => {
-                console.error('💥 ERROR en suscripción:', error);
-                console.error('Código del error:', error.code);
-                console.error('Mensaje:', error.message);
-                
-                showStatus('Error de conexión: ' + error.code, 'var(--red)');
-                
-                if (playList) {
-                    playList.innerHTML = '<option value="">Error cargando jugadas</option>';
-                }
-            }
-        );
-        
-        console.log('✅ Suscripción iniciada correctamente');
-        
-    } catch (error) {
-        console.error('💥 ERROR en refreshPlayList:', error);
-        showStatus('Error: ' + error.message, 'var(--red)');
-    }
+    try {
+        const playsCollection = getCoachPlaysCollectionRef();
+        const q = window.firestore.query(playsCollection);
+        
+        unsubscribePlays = window.firestore.onSnapshot(q, 
+            (snapshot) => {
+                const jugadas = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    jugadas.push({ 
+                        id: doc.id, 
+                        name: data.name || doc.id, 
+                        payload: JSON.stringify(data)
+                    });
+                });
+                populatePlayList(jugadas);
+            }, 
+            (error) => {
+                console.error('💥 ERROR en suscripción:', error);
+                showStatus('Error de conexión: ' + error.code, 'var(--red)');
+                if (playList) playList.innerHTML = '<option value="">Error cargando jugadas</option>';
+            }
+        );
+    } catch (error) {
+        console.error('💥 ERROR en refreshPlayList:', error);
+        showStatus('Error: ' + error.message, 'var(--red)');
+    }
 }
 
 function populatePlayList(jugadas) {
-    if (!playList) return;
-    
-    playList.innerHTML = '';
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = jugadas.length > 0 ? '--- Seleccionar Jugada ---' : 'No hay jugadas guardadas';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    playList.appendChild(placeholder);
-    
-    jugadas.forEach(j => {
-        const opt = document.createElement('option');
-        opt.value = j.id;
-        opt.textContent = j.name;
-        opt.dataset.payload = j.payload;
-        playList.appendChild(opt);
-    });
+    if (!playList) return;
+    
+    playList.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = jugadas.length > 0 ? '--- Seleccionar Jugada ---' : 'No hay jugadas guardadas';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    playList.appendChild(placeholder);
+    
+    jugadas.forEach(j => {
+        const opt = document.createElement('option');
+        opt.value = j.id;
+        opt.textContent = j.name;
+        opt.dataset.payload = j.payload;
+        playList.appendChild(opt);
+    });
 }
 
 // Cargar una jugada específica
 function loadPlay(playId) {
-    if (!playList) return;
-    
-    const option = Array.from(playList.options).find(opt => opt.value === playId);
-    if (!option || !option.dataset.payload) {
-        showStatus('Jugada no encontrada', 'var(--red)');
-        return;
-    }
+    if (!playList) return;
+    
+    const option = Array.from(playList.options).find(opt => opt.value === playId);
+    if (!option || !option.dataset.payload) {
+        showStatus('Jugada no encontrada', 'var(--red)');
+        return;
+    }
 
-    try {
-        const data = JSON.parse(option.dataset.payload);
-        
-        // Cargar datos de la jugada
-        if (playName) playName.value = data.name || playId;
-        
-        // Limpiar y recrear jugadores
-        if (playersLayer) playersLayer.innerHTML = '';
-        selectedPlayers.clear();
-        
-        (data.positions || []).forEach(p => {
-            const el = document.createElement('div');
-            el.className = `player ${p.team}`; 
-            el.textContent = p.number;
-            el.dataset.team = p.team; 
-            el.dataset.number = p.number;
-            el.style.left = p.x + 'px'; 
-            el.style.top = p.y + 'px';
-            
-            // Solo habilitar drag si es coach
-            if (userRole === 'coach') {
-                enableDragPlayer(el, () => { 
-                    if (autoRec && autoRec.checked) recordFrame(); 
-                });
-            }
-            
-            if (playersLayer) playersLayer.appendChild(el);
-        });
-        
-        applyUprightTransforms();
+    try {
+        const data = JSON.parse(option.dataset.payload);
+        
+        // Limpiar antes de cargar
+        stopAnimation();
+        
+        if (playName) playName.value = data.name || playId;
+        
+        // Limpiar y recrear jugadores
+        if (playersLayer) playersLayer.innerHTML = '';
+        selectedPlayers.clear();
+        
+        (data.positions || []).forEach(p => {
+            const el = document.createElement('div');
+            const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
+            el.className = `player ${teamData.colorClass}`; 
+            el.textContent = p.number;
+            el.dataset.team = p.team; 
+            el.dataset.number = p.number;
+            el.style.left = p.x + 'px'; 
+            el.style.top = p.y + 'px';
+            
+            // Se re-inicializa el drag en reInitializePlayerInteractions
+            if (playersLayer) playersLayer.appendChild(el);
+        });
+        
+        reInitializePlayerInteractions(); // Vuelve a habilitar el drag para los nuevos elementos
 
-        // Cargar balón
-        placeBall(data.ball?.x || WIDTH/2, data.ball?.y || HEIGHT/2);
-        
-        // Cargar elementos de dibujo
-        arrows = data.arrows || [];
-        strokes = data.strokes || [];
-        notes = data.notes || [];
-        timeline = Array.isArray(data.timeline) ? data.timeline : [];
-        
-        renderDraw(); 
-        updateScrub(); 
-        
-        if (timeline.length) gotoFrame(0);
+        // Cargar balón
+        placeBall(data.ball?.x || WIDTH/2, data.ball?.y || HEIGHT/2);
+        
+        // Cargar elementos de dibujo
+        arrows = data.arrows || [];
+        strokes = data.strokes || [];
+        notes = data.notes || [];
+        timeline = Array.isArray(data.timeline) ? data.timeline : [];
+        
+        renderDraw(); 
+        updateScrub(); 
+        
+        if (timeline.length) gotoFrame(0);
 
-        showStatus(`Jugada '${data.name}' cargada`, 'var(--accent)');
+        showStatus(`Jugada '${data.name}' cargada`, 'var(--accent)');
 
-    } catch (e) {
-        console.error("Error al cargar jugada:", e);
-        showStatus('Error al cargar la jugada.', 'var(--red)');
-    }
+    } catch (e) {
+        console.error("Error al cargar jugada:", e);
+        showStatus('Error al cargar la jugada.', 'var(--red)');
+    }
 }
 
-// ==================== INTERFAZ DE USUARIO ====================
 
-function setControlsDisabled(disabled) {
-    const controls = [
-        btnSavePlay, btnDelete, btnRecord, btnDuplicate, autoRec,
-        toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, 
-        showGrid, btnUndo, btnClear, btnReset, btnInvitePlayer, playerEmail
-    ];
-    
-    controls.forEach(btn => { 
-        if(btn) btn.disabled = disabled; 
-    });
-    
-    // Siempre habilitar controles de lectura
-    const readOnlyControls = [btnLoadPlay, playList, btnPlayPause, btnStop, scrubber];
-    readOnlyControls.forEach(el => { 
-        if(el) el.disabled = false; 
-    });
-    
-    // El campo de nombre solo para coaches
-    if (playName) playName.disabled = disabled;
-    
-    // Habilitar interacciones del tablero si está autorizado y es coach
-    const canInteract = !disabled && userRole === 'coach';
-    if (board) board.style.pointerEvents = canInteract ? 'auto' : 'none';
-    if (playersLayer) playersLayer.style.pointerEvents = canInteract ? 'auto' : 'none';
-    if (ball) ball.style.pointerEvents = canInteract ? 'auto' : 'none';
-
-    // Mostrar/ocultar sección de gestión de jugadores
-    const playerManagementSection = document.getElementById('playerManagementSection');
-    if (playerManagementSection) {
-        playerManagementSection.style.display = (userRole === 'coach') ? 'flex' : 'none';
-    }
-}
-
-function updateAuthUI() {
-    if (!btnAuthAction) return;
-    
-    if (isAuthorized && currentUser) {
-        btnAuthAction.textContent = 'Cerrar Sesión';
-        btnAuthAction.classList.remove('primary');
-        
-        let roleText = '';
-        if (userRole === 'coach') {
-            roleText = ' - Entrenador';
-            setControlsDisabled(false);
-        } else if (userRole === 'player') {
-            roleText = ' - Jugador';
-            setControlsDisabled(true);
-        }
-        
-        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club${roleText}`;
-        
-    } else {
-        btnAuthAction.textContent = 'Iniciar Sesión';
-        btnAuthAction.classList.add('primary');
-        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club - Espectador`;
-        setControlsDisabled(true);
-    }
-}
-
-// ==================== FUNCIONES DE INTERACCIÓN COMPLETAS ====================
+// ==================== FUNCIONES DE INTERACCIÓN COMPLETAS (Corregidas) ====================
 
 function enableDragPlayer(playerEl, onDrop) {
-    if (!isAuthorized || userRole !== 'coach') return;
-    
-    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
-    
-    const down = e => {
-        if (!isAuthorized || userRole !== 'coach') return;
-        
-        pid = e.pointerId; 
-        playerEl.setPointerCapture(pid); 
-        e.preventDefault();
-        sx = e.clientX; 
-        sy = e.clientY;
-        ox = parseFloat(playerEl.style.left) || 0;
-        oy = parseFloat(playerEl.style.top) || 0;
+    if (userRole !== 'coach') return;
+    
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0, isMoving = false;
+    
+    const down = e => {
+        if (userRole !== 'coach') return;
+        
+        pid = e.pointerId; 
+        playerEl.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = parseFloat(playerEl.style.left) || 0;
+        oy = parseFloat(playerEl.style.top) || 0;
+        
+        isDraggingPlayer = true;
+        
+        // Si no está seleccionado, limpia selección y lo selecciona
+        if (!playerEl.classList.contains('selected')) {
+            clearPlayerSelection();
+            playerEl.classList.add('selected');
+            selectedPlayers.add(playerEl);
+        }
+        
+        // Mapa para guardar la posición relativa de cada jugador en el grupo
+        const initialOffsets = new Map();
+        selectedPlayers.forEach(p => {
+            initialOffsets.set(p, {
+                dx: (parseFloat(p.style.left) || 0) - ox,
+                dy: (parseFloat(p.style.top) || 0) - oy,
+            });
+        });
 
-        // Seleccionar jugador
-        clearPlayerSelection();
-        playerEl.classList.add('selected');
-        selectedPlayers.add(playerEl);
+        const move = ev => {
+            if (ev.pointerId !== pid || userRole !== 'coach') return;
+            ev.preventDefault();
+            isMoving = true;
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            
+            // Mover el grupo
+            selectedPlayers.forEach(p => {
+                const offset = initialOffsets.get(p);
+                const newX = clamp(ox + dx + offset.dx, 0, WIDTH);
+                const newY = clamp(oy + dy + offset.dy, 0, HEIGHT);
+                p.style.left = newX + 'px';
+                p.style.top = newY + 'px';
+            });
+        };
 
-        const move = ev => {
-            if (ev.pointerId !== pid || !isAuthorized) return;
-            ev.preventDefault();
-            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
-            const nx = clamp(ox + dx, 0, WIDTH);
-            const ny = clamp(oy + dy, 0, HEIGHT);
-            playerEl.style.left = nx + 'px';
-            playerEl.style.top = ny + 'px';
-        };
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { playerEl.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            isDraggingPlayer = false;
+            
+            if (isMoving && userRole === 'coach') {
+                onDrop && onDrop();
+            } else if (!isMoving) {
+                // Si no hubo movimiento (solo click), mantiene la selección
+                clearPlayerSelection();
+                playerEl.classList.add('selected');
+                selectedPlayers.add(playerEl);
+            }
+            isMoving = false;
+        };
 
-        const up = ev => {
-            if (ev.pointerId !== pid) return;
-            try { playerEl.releasePointerCapture(pid); } catch {}
-            document.removeEventListener('pointermove', move);
-            document.removeEventListener('pointerup', up);
-            onDrop && onDrop(false);
-        };
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
 
-        document.addEventListener('pointermove', move, {passive: false});
-        document.addEventListener('pointerup', up, {passive: false});
-    };
-
-    playerEl.addEventListener('pointerdown', down, {passive: false});
-    playerEl.ondragstart = () => false;
+    playerEl.addEventListener('pointerdown', down, {passive: false});
+    playerEl.ondragstart = () => false;
 }
 
 function enableDragBall(onDrop) {
-    if (!isAuthorized || userRole !== 'coach') return;
-    
-    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
-    
-    const down = e => {
-        if (!isAuthorized || userRole !== 'coach') return;
-        
-        pid = e.pointerId; 
-        ball.setPointerCapture(pid); 
-        e.preventDefault();
-        sx = e.clientX; 
-        sy = e.clientY;
-        ox = currentBallPos.x;
-        oy = currentBallPos.y;
+    if (userRole !== 'coach') return;
+    
+    let pid = null, sx = 0, sy = 0, ox = 0, oy = 0;
+    
+    const down = e => {
+        if (userRole !== 'coach') return;
+        
+        pid = e.pointerId; 
+        ball.setPointerCapture(pid); 
+        e.preventDefault();
+        sx = e.clientX; 
+        sy = e.clientY;
+        ox = currentBallPos.x;
+        oy = currentBallPos.y;
+        isDraggingBall = true;
 
-        // Limpiar selección al tocar el balón
-        clearPlayerSelection();
+        // Limpiar selección al tocar el balón
+        clearPlayerSelection();
 
-        const move = ev => {
-            if (ev.pointerId !== pid || !isAuthorized) return;
-            ev.preventDefault();
-            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
-            const nx = clamp(ox + dx, 0, WIDTH);
-            const ny = clamp(oy + dy, 0, HEIGHT);
-            placeBall(nx, ny);
-        };
+        const move = ev => {
+            if (ev.pointerId !== pid || userRole !== 'coach') return;
+            ev.preventDefault();
+            const {dx, dy} = deltaToBoard(ev.clientX - sx, ev.clientY - sy);
+            const nx = clamp(ox + dx, 0, WIDTH);
+            const ny = clamp(oy + dy, 0, HEIGHT);
+            placeBall(nx, ny);
+        };
 
-        const up = ev => {
-            if (ev.pointerId !== pid) return;
-            try { ball.releasePointerCapture(pid); } catch {}
-            document.removeEventListener('pointermove', move);
-            document.removeEventListener('pointerup', up);
-            onDrop && onDrop();
-        };
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { ball.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            isDraggingBall = false;
+            onDrop && onDrop();
+        };
 
-        document.addEventListener('pointermove', move, {passive: false});
-        document.addEventListener('pointerup', up, {passive: false});
-    };
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
 
-    if (ball) ball.addEventListener('pointerdown', down, {passive: false});
-    if (ball) ball.ondragstart = () => false;
+    if (ball) ball.addEventListener('pointerdown', down, {passive: false});
+    if (ball) ball.ondragstart = () => false;
 }
 
 function enableSelectionBox() {
-    if (!isAuthorized || userRole !== 'coach') return;
-    
-    let pid = null, startBoard = null;
-    
-    const down = e => {
-        if (!isAuthorized || userRole !== 'coach') return;
-        if (e.target.closest('.player') || e.target.closest('#ball')) return;
-        
-        pid = e.pointerId; 
-        board.setPointerCapture(pid);
-        e.preventDefault();
-        startBoard = clientToBoard(e);
-        
-        if (selectionBox) {
-            selectionBox.style.left = startBoard.x + 'px';
-            selectionBox.style.top = startBoard.y + 'px';
-            selectionBox.style.width = '0';
-            selectionBox.style.height = '0';
-            selectionBox.style.display = 'block';
-        }
+    if (userRole !== 'coach') return;
+    
+    let pid = null, startBoard = null, endBoard = null;
+    
+    const down = e => {
+        if (userRole !== 'coach' || isDraggingPlayer || isDraggingBall) return;
+        if (e.target.closest('.player') || e.target.closest('#ball')) return;
+        
+        pid = e.pointerId; 
+        board.setPointerCapture(pid);
+        e.preventDefault();
+        startBoard = clientToBoard(e);
+        clearPlayerSelection(); // Inicia una nueva selección
 
-        const move = ev => {
-            if (ev.pointerId !== pid || !isAuthorized) return;
-            ev.preventDefault();
-            const currentBoard = clientToBoard(ev);
-            const left = Math.min(startBoard.x, currentBoard.x);
-            const top = Math.min(startBoard.y, currentBoard.y);
-            const width = Math.abs(currentBoard.x - startBoard.x);
-            const height = Math.abs(currentBoard.y - startBoard.y);
-            
-            if (selectionBox) {
-                selectionBox.style.left = left + 'px';
-                selectionBox.style.top = top + 'px';
-                selectionBox.style.width = width + 'px';
-                selectionBox.style.height = height + 'px';
-            }
-        };
+        if (selectionBox) {
+            selectionBox.style.left = startBoard.x + 'px';
+            selectionBox.style.top = startBoard.y + 'px';
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
+            selectionBox.style.display = 'block';
+        }
 
-        const up = ev => {
-            if (ev.pointerId !== pid) return;
-            try { board.releasePointerCapture(pid); } catch {}
-            document.removeEventListener('pointermove', move);
-            document.removeEventListener('pointerup', up);
-            if (selectionBox) selectionBox.style.display = 'none';
-        };
+        const move = ev => {
+            if (ev.pointerId !== pid || userRole !== 'coach') return;
+            ev.preventDefault();
+            endBoard = clientToBoard(ev);
+            const left = Math.min(startBoard.x, endBoard.x);
+            const top = Math.min(startBoard.y, endBoard.y);
+            const width = Math.abs(endBoard.x - startBoard.x);
+            const height = Math.abs(endBoard.y - startBoard.y);
+            
+            if (selectionBox) {
+                selectionBox.style.left = left + 'px';
+                selectionBox.style.top = top + 'px';
+                selectionBox.style.width = width + 'px';
+                selectionBox.style.height = height + 'px';
+            }
+            
+            // Highlight temporal de jugadores en la caja (opcional, pero ayuda al UX)
+            const tempRect = {left, top, right: left + width, bottom: top + height};
+            [...playersLayer.children].forEach(p => {
+                const isOverlapping = rectIntersect(getPlayerRect(p), tempRect);
+                if (isOverlapping && !p.classList.contains('selected')) {
+                    p.classList.add('selected');
+                } else if (!isOverlapping && p.classList.contains('selected') && !selectedPlayers.has(p)) {
+                    p.classList.remove('selected');
+                }
+            });
+        };
 
-        document.addEventListener('pointermove', move, {passive: false});
-        document.addEventListener('pointerup', up, {passive: false});
-    };
+        const up = ev => {
+            if (ev.pointerId !== pid) return;
+            try { board.releasePointerCapture(pid); } catch {}
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            
+            if (selectionBox) selectionBox.style.display = 'none';
 
-    if (board) board.addEventListener('pointerdown', down);
-}
+            // Lógica de selección final
+            if (startBoard && endBoard) {
+                const left = Math.min(startBoard.x, endBoard.x);
+                const top = Math.min(startBoard.y, endBoard.y);
+                const right = Math.max(startBoard.x, endBoard.x);
+                const bottom = Math.max(startBoard.y, endBoard.y);
+                const selectionRect = {left, top, right, bottom};
+                
+                // Limpia selección previa (solo si no es un click sin arrastre)
+                if (Math.abs(startBoard.x - endBoard.x) > 5 || Math.abs(startBoard.y - endBoard.y) > 5) {
+                    clearPlayerSelection(); // Lo limpiamos para evitar duplicados si ya estaba seleccionado
+                    [...playersLayer.children].forEach(p => {
+                        if (rectIntersect(getPlayerRect(p), selectionRect)) {
+                            p.classList.add('selected');
+                            selectedPlayers.add(p);
+                        } else {
+                            p.classList.remove('selected');
+                        }
+                    });
+                }
+                
+                // Si es un click simple y no tocó jugador, deseleccionar todo
+                if (Math.abs(startBoard.x - endBoard.x) < 5 && Math.abs(startBoard.y - endBoard.y) < 5) {
+                    clearPlayerSelection();
+                }
+            }
+        };
 
-function initDrawingTools() {
-    if (!board) return;
-    
-    let drawingArrow = false, startPt = null, drawingStroke = false, currentStroke = null;
-    
-    // Configurar eventos de herramientas
-    if (toolArrows) {
-        toolArrows.addEventListener('click', () => {
-            currentTool = 'arrows';
-            setToolActive(toolArrows, [toolPen, toolText]);
-        });
-    }
-    
-    if (toolPen) {
-        toolPen.addEventListener('click', () => {
-            currentTool = 'pen';
-            setToolActive(toolPen, [toolArrows, toolText]);
-        });
-    }
-    
-    if (toolText) {
-        toolText.addEventListener('click', () => {
-            currentTool = 'text';
-            setToolActive(toolText, [toolArrows, toolPen]);
-        });
-    }
-    
-    // Evento de dibujo en el tablero
-    board.addEventListener('pointerdown', e => {
-        if (!isAuthorized || userRole !== 'coach') return;
-        if (e.target.closest('.player') || e.target.closest('#ball')) return;
-        
-        let p = clientToBoard(e);
-        
-        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
-        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
+        document.addEventListener('pointermove', move, {passive: false});
+        document.addEventListener('pointerup', up, {passive: false});
+    };
 
-        if (currentTool === 'arrows') {
-            drawingArrow = true; 
-            startPt = {x: p.x, y: p.y}; 
-        } else if (currentTool === 'pen') {
-            drawingStroke = true;
-            currentStroke = { 
-                points: [`${p.x},${p.y}`], 
-                color: currentStrokeColor, 
-                width: currentStrokeWidth, 
-                dashed: dashed ? dashed.checked : false 
-            };
-            strokes.push(currentStroke); 
-            renderDraw();
-        } else if (currentTool === 'text') {
-            const text = prompt("Ingresa el texto para la nota:");
-            if (text && text.trim()) {
-                notes.push({ 
-                    x: p.x, 
-                    y: p.y, 
-                    text: text.trim().substring(0, 30), 
-                    color: currentStrokeColor 
-                });
-                renderDraw();
-            }
-            // Volver a flechas después de agregar texto
-            currentTool = 'arrows';
-            setToolActive(toolArrows, [toolPen, toolText]);
-        }
-    }, {passive: false});
-
-    board.addEventListener('pointermove', e => {
-        if (!isAuthorized || !drawingStroke || !currentStroke) return;
-        
-        let p = clientToBoard(e);
-        const last = currentStroke.points[currentStroke.points.length - 1];
-        const [lx, ly] = last.split(',').map(Number);
-        
-        if (Math.abs(p.x - lx) + Math.abs(p.y - ly) > 0.5) {
-            currentStroke.points.push(`${p.x},${p.y}`); 
-            renderDraw();
-        }
-    }, {passive: false});
-
-    board.addEventListener('pointerup', e => {
-        if (!isAuthorized) return;
-        
-        let p = clientToBoard(e);
-        const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
-        const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
-
-        if (drawingArrow && startPt) {
-            arrows.push({ 
-                x1: startPt.x, 
-                y1: startPt.y, 
-                x2: p.x, 
-                y2: p.y, 
-                color: currentStrokeColor, 
-                width: currentStrokeWidth, 
-                dashed: dashed ? dashed.checked : false 
-            });
-            drawingArrow = false; 
-            startPt = null; 
-            renderDraw();
-        } else if (drawingStroke && currentStroke) {
-            drawingStroke = false; 
-            renderDraw();
-        }
-    }, {passive: false});
-    
-    // Eventos para botones de dibujo
-    if (btnUndo) {
-        btnUndo.addEventListener('click', () => {
-            if (!isAuthorized || userRole !== 'coach') return;
-            
-            if (currentTool === 'arrows') {
-                arrows.pop();
-            } else if (currentTool === 'pen') {
-                strokes.pop();
-            } else if (currentTool === 'text') {
-                notes.pop();
-            }
-            renderDraw();
-        });
-    }
-    
-    if (btnClear) {
-        btnClear.addEventListener('click', () => {
-            if (!isAuthorized || userRole !== 'coach') return;
-            
-            if (confirm('¿Borrar todos los dibujos?')) {
-                arrows = [];
-                strokes = [];
-                notes = [];
-                renderDraw();
-            }
-        });
-    }
-}
-
-function setToolActive(activeTool, otherTools) {
-    activeTool.classList.add('active');
-    otherTools.forEach(tool => tool.classList.remove('active'));
+    if (board) board.addEventListener('pointerdown', down, {passive: false});
 }
 
 function clearPlayerSelection() {
-    selectedPlayers.forEach(el => el.classList.remove('selected'));
-    selectedPlayers.clear();
+    selectedPlayers.forEach(el => el.classList.remove('selected'));
+    selectedPlayers.clear();
 }
 
-// Función para renderizar dibujos en el SVG
-function renderDraw() {
-    if (!draw) return;
-    
-    // Limpiar dibujos anteriores (mantener las líneas del campo)
-    const existingElements = draw.querySelectorAll('line, polyline, text');
-    existingElements.forEach(el => el.remove());
-    
-    // Renderizar flechas
-    arrows.forEach(arrow => {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', arrow.x1);
-        line.setAttribute('y1', arrow.y1);
-        line.setAttribute('x2', arrow.x2);
-        line.setAttribute('y2', arrow.y2);
-        line.setAttribute('stroke', arrow.color || '#ffd400');
-        line.setAttribute('stroke-width', arrow.width || 5);
-        line.setAttribute('stroke-linecap', 'round');
-        if (arrow.dashed) {
-            line.setAttribute('stroke-dasharray', '8 8');
-        }
-        draw.appendChild(line);
-    });
-    
-    // Renderizar trazos
-    strokes.forEach(stroke => {
-        if (stroke.points.length < 2) return;
-        
-        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-        polyline.setAttribute('points', stroke.points.join(' '));
-        polyline.setAttribute('fill', 'none');
-        polyline.setAttribute('stroke', stroke.color || '#ffd400');
-        polyline.setAttribute('stroke-width', stroke.width || 5);
-        polyline.setAttribute('stroke-linecap', 'round');
-        polyline.setAttribute('stroke-linejoin', 'round');
-        if (stroke.dashed) {
-            polyline.setAttribute('stroke-dasharray', '8 8');
-        }
-        draw.appendChild(polyline);
-    });
-    
-    // Renderizar notas de texto
-    notes.forEach(note => {
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', note.x);
-        text.setAttribute('y', note.y);
-        text.setAttribute('fill', note.color || '#ffffff');
-        text.setAttribute('font-size', '18');
-        text.setAttribute('font-weight', 'bold');
-        text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('dominant-baseline', 'middle');
-        text.textContent = note.text;
-        draw.appendChild(text);
-    });
+
+// ==================== EXPORTACIÓN (Implementadas) ====================
+
+// Función auxiliar para forzar la descarga
+function downloadFile(data, filename, type) {
+    const a = document.createElement('a');
+    a.href = data;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
-// Función para re-inicializar interacciones
-function reInitializePlayerInteractions() {
-    if (!playersLayer || !ball) return;
-    
-    // Habilitar arrastre de jugadores
-    [...playersLayer.children].forEach(el => {
-        enableDragPlayer(el, () => { 
-            if (autoRec && autoRec.checked) recordFrame(); 
-        });
-    });
-    
-    // Habilitar arrastre de balón
-    enableDragBall(() => { 
-        if (autoRec && autoRec.checked) recordFrame(); 
-    });
-    
-    // Habilitar selección masiva
-    enableSelectionBox();
-    
-    // Habilitar herramientas de dibujo
-    initDrawingTools();
+// Exportación a imagen (JPG)
+async function exportToImage(format = 'image/jpeg') {
+    if (!boardWrap) return;
+
+    showStatus('Generando imagen del tablero...', 'var(--warn)');
+    
+    try {
+        // html2canvas captura el DIV del tablero
+        const canvas = await html2canvas(boardWrap, {
+            useCORS: true,
+            logging: false,
+            width: WIDTH,
+            height: HEIGHT,
+            scale: 1,
+            // Evita que el contenedor del viewport aplique escalado/rotación
+            foreignObjectRendering: true,
+            allowTaint: true
+        });
+
+        const mimeType = format === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+        const ext = format === 'image/jpeg' ? 'jpg' : 'png';
+        const dataURL = canvas.toDataURL(mimeType, 0.9);
+
+        downloadFile(dataURL, `rugbyboard-frame.${ext}`, mimeType);
+        showStatus('Imagen exportada correctamente', 'var(--accent2)');
+
+    } catch (error) {
+        console.error('Error al exportar imagen:', error);
+        showStatus('ERROR: No se pudo exportar la imagen. Revisa la consola.', 'var(--red)');
+    }
 }
 
-// Función para la grilla
-function renderGrid() {
-    if (!gridSvg) return;
-    gridSvg.innerHTML = '';
-    if (!showGrid.checked) {
-        gridSvg.classList.remove('on');
-        return;
-    }
-    gridSvg.classList.add('on');
-    
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    
-    // Líneas verticales
-    for (let x = GRID; x < WIDTH; x += GRID) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', x);
-        line.setAttribute('y1', '0');
-        line.setAttribute('x2', x);
-        line.setAttribute('y2', HEIGHT);
-        line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
-        line.setAttribute('stroke-width', '1');
-        g.appendChild(line);
-    }
-    
-    // Líneas horizontales
-    for (let y = GRID; y < HEIGHT; y += GRID) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', '0');
-        line.setAttribute('y1', y);
-        line.setAttribute('x2', WIDTH);
-        line.setAttribute('y2', y);
-        line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
-        line.setAttribute('stroke-width', '1');
-        g.appendChild(line);
-    }
-    
-    gridSvg.appendChild(g);
+
+// Exportación a video (WebM/MP4)
+async function recordVideo(format = 'webm') {
+    if (isRecordingVideo) {
+        showStatus('Ya está exportando un video.', 'var(--warn)');
+        return;
+    }
+    if (timeline.length < 2) {
+        showStatus('Necesitas al menos 2 pasos en la animación para exportar un video.', 'var(--red)');
+        return;
+    }
+
+    const f = await loadFfmpeg();
+    if (!f) return;
+
+    isRecordingVideo = true;
+    showStatus(`Iniciando grabación para exportar a ${format.toUpperCase()}...`, 'var(--warn)');
+
+    // Limpiar antes de empezar
+    stopAnimation();
+    gotoFrame(0);
+    
+    const frameDuration = parseInt(speed.value, 10) || 800; // Duración de cada segmento
+    const totalFrames = timeline.length - 1;
+
+    // 1. Capturar todos los frames intermedios de la animación
+    const framePromises = [];
+    const captureInterval = frameDuration / FRAME_RATE; // Milisegundos por frame
+
+    try {
+        for (let i = 0; i < totalFrames; i++) {
+            const fromFrame = timeline[i];
+            const toFrame = timeline[i + 1];
+            
+            // Capturar la posición inicial
+            framePromises.push(captureCurrentFrame(fromFrame.players, fromFrame.ball, `${i}_00`));
+
+            // Capturar frames intermedios
+            const totalInterFrames = FRAME_RATE; // 20 FPS por segmento
+            for (let j = 1; j < totalInterFrames; j++) {
+                const t = j / totalInterFrames;
+                const frameName = `${i}_${String(j).padStart(2, '0')}`;
+                framePromises.push(captureInterpolatedFrame(fromFrame, toFrame, t, frameName));
+            }
+        }
+        // Capturar la posición final
+        framePromises.push(captureCurrentFrame(timeline[totalFrames].players, timeline[totalFrames].ball, `${totalFrames}_00`));
+
+
+        showStatus('Renderizando frames de la animación...', 'var(--warn)');
+        await Promise.all(framePromises);
+        
+        // 2. Escribir frames en FFMPEG File System (Memoria)
+        showStatus('Preparando archivos de FFMPEG...', 'var(--warn)');
+        for (let i = 0; i <= totalFrames; i++) {
+            const totalInterFrames = i < totalFrames ? FRAME_RATE : 1; // 20 frames por segmento, excepto el último punto
+            for (let j = 0; j < totalInterFrames; j++) {
+                const frameName = `${i}_${String(j).padStart(2, '0')}.png`;
+                const dataUrl = localStorage.getItem(frameName);
+                if (dataUrl) {
+                    const buffer = base64ToUint8Array(dataUrl.split(',')[1]);
+                    await f.writeFile(frameName, buffer);
+                    localStorage.removeItem(frameName); // Limpiar almacenamiento temporal
+                } else {
+                    console.warn(`Frame no encontrado en localStorage: ${frameName}`);
+                }
+            }
+        }
+        // Escribir lista de frames
+        const fileListContent = [];
+        for (let i = 0; i <= totalFrames; i++) {
+            const totalInterFrames = i < totalFrames ? FRAME_RATE : 1;
+            for (let j = 0; j < totalInterFrames; j++) {
+                fileListContent.push(`file '${i}_${String(j).padStart(2, '0')}.png'`);
+                // Duración del frame (1/FPS)
+                if (i < totalFrames || j < totalInterFrames - 1) {
+                    fileListContent.push(`duration ${1 / FRAME_RATE}`);
+                }
+            }
+        }
+        await f.writeFile('input.txt', fileListContent.join('\n'));
+        
+        // 3. Ejecutar FFMPEG
+        const outputName = `rugbyboard-play.${format}`;
+        const command = [
+            '-f', 'concat',
+            '-i', 'input.txt',
+            '-c:v', (format === 'mp4' ? 'libx264' : 'libvpx'),
+            '-pix_fmt', 'yuv420p',
+            '-r', FRAME_RATE,
+            outputName
+        ];
+        
+        showStatus(`Codificando video a ${format.toUpperCase()}...`, 'var(--warn)');
+        await f.exec(command);
+        
+        // 4. Descargar y limpiar
+        const data = await f.readFile(outputName);
+        const blob = new Blob([data.buffer], { type: format === 'mp4' ? 'video/mp4' : 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        downloadFile(url, outputName, 'video/' + format);
+        
+        //f.unlink(outputName); // Limpia archivo de salida
+        showStatus(`Video ${format.toUpperCase()} exportado.`, 'var(--accent2)');
+
+    } catch (error) {
+        console.error('Error al exportar video:', error);
+        showStatus('ERROR: Falló la exportación de video. Revisa la consola.', 'var(--red)');
+    } finally {
+        isRecordingVideo = false;
+        // Vuelve al frame actual
+        gotoFrame(playIdx); 
+    }
 }
 
-// ==================== FUNCIONES DEL TABLERO ====================
+// Auxiliar para la codificación
+function base64ToUint8Array(base64) {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+}
+
+// Captura un frame en el canvas de exportación
+async function captureCurrentFrame(playersData, ballData, frameName) {
+    // 1. Aplicar posiciones al DOM
+    playersData.forEach(p => {
+        const el = [...playersLayer.children].find(e => e.dataset.team === p.team && +e.dataset.number === p.number);
+        if (el) { el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; }
+    });
+    placeBall(ballData.x, ballData.y);
+    await new Promise(r => requestAnimationFrame(r)); // Espera un repaint
+    
+    // 2. Capturar con html2canvas
+    const canvas = await html2canvas(boardWrap, {
+        useCORS: true, logging: false, width: WIDTH, height: HEIGHT, scale: 1, foreignObjectRendering: true, allowTaint: true
+    });
+    
+    // 3. Almacenar temporalmente en localStorage (para simplificar el ejemplo)
+    const dataURL = canvas.toDataURL('image/png');
+    localStorage.setItem(`${frameName}.png`, dataURL);
+}
+
+// Captura un frame interpolado para la suavidad
+async function captureInterpolatedFrame(fromF, toF, t, frameName) {
+    const interpolatedPlayers = fromF.players.map((p, i) => {
+        const target = toF.players.find(tp => tp.team === p.team && tp.number === p.number);
+        return target ? {
+            x: p.x + (target.x - p.x) * t,
+            y: p.y + (target.y - p.y) * t,
+            team: p.team, number: p.number
+        } : p;
+    });
+    const interpolatedBall = {
+        x: fromF.ball.x + (toF.ball.x - fromF.ball.x) * t,
+        y: fromF.ball.y + (toF.ball.y - fromF.ball.y) * t,
+    };
+
+    return captureCurrentFrame(interpolatedPlayers, interpolatedBall, frameName);
+}
+
+
+// ==================== ANIMACIÓN (Implementada) ====================
+
+function animateFrame(timestamp) {
+    if (!playing) return;
+    
+    const duration = parseInt(speed.value, 10) || 800;
+
+    if (rafId === null) {
+        // Primera llamada o después de una pausa/stop
+        segStart = timestamp;
+        playIdx = parseInt(scrubber.value, 10);
+        if (playIdx >= timeline.length - 1) {
+            // Si está en el último frame, volver al inicio
+            playIdx = 0;
+            gotoFrame(playIdx);
+        }
+    }
+
+    const elapsed = timestamp - segStart;
+    const t = clamp(elapsed / duration, 0, 1); // Progreso de 0 a 1 para interpolación
+    
+    if (timeline.length < 2) {
+        stopAnimation();
+        return;
+    }
+
+    const currentFrame = timeline[playIdx];
+    const nextFrame = timeline[playIdx + 1];
+
+    if (currentFrame && nextFrame) {
+        // Interpolación de jugadores
+        currentFrame.players.forEach(p => {
+            const target = nextFrame.players.find(tp => tp.team === p.team && tp.number === p.number);
+            if (target) {
+                const el = [...playersLayer.children].find(e => e.dataset.team === p.team && +e.dataset.number === p.number);
+                if (el) {
+                    el.style.left = p.x + (target.x - p.x) * t + 'px';
+                    el.style.top = p.y + (target.y - p.y) * t + 'px';
+                }
+            }
+        });
+
+        // Interpolación del balón
+        placeBall(
+            currentFrame.ball.x + (nextFrame.ball.x - currentFrame.ball.x) * t,
+            currentFrame.ball.y + (nextFrame.ball.y - currentFrame.ball.y) * t
+        );
+
+        // Actualizar scrubber al frame actual
+        const currentScrubValue = playIdx + t;
+        scrubber.value = currentScrubValue;
+        scrubLbl.textContent=`${playIdx}/${timeline.length-1}`;
+
+        // Avanzar al siguiente frame
+        if (t >= 1) {
+            playIdx++;
+            segStart = timestamp; // Reiniciar temporizador
+            // Si se completó la animación, detener o repetir
+            if (playIdx >= timeline.length - 1) {
+                stopAnimation();
+                gotoFrame(timeline.length - 1);
+                showStatus('Animación finalizada', 'var(--accent)');
+                return;
+            }
+        }
+
+    }
+
+    rafId = requestAnimationFrame(animateFrame);
+}
+
+function startAnimation() {
+    if (timeline.length < 2) {
+        showStatus('Necesitas al menos 2 pasos grabados.', 'var(--red)');
+        return;
+    }
+    if (playing) return;
+    
+    // Si ya está al final, empezar de nuevo
+    playIdx = parseInt(scrubber.value, 10) >= timeline.length - 1 ? 0 : parseInt(scrubber.value, 10);
+    gotoFrame(playIdx); // Asegurar que la posición inicial sea la del frame de inicio
+    
+    playing = true;
+    btnPlayPause.textContent = 'Pausa';
+    rafId = requestAnimationFrame(animateFrame);
+}
+
+function stopAnimation() {
+    if (rafId) cancelAnimationFrame(rafId);
+    playing = false;
+    rafId = null;
+    segStart = 0;
+    btnPlayPause.textContent = 'Reproducir';
+}
+
+
+// ==================== INICIALIZACIÓN ====================
+
+// (Mantenido y adaptado para llamar a las nuevas funciones)
+
+document.addEventListener('DOMContentLoaded', function() {
+    assignDOMElements();
+    
+    // Configurar event listeners
+    if (btnAuthAction) {
+        btnAuthAction.addEventListener('click', function() {
+            if (isAuthorized) {
+                handleLogout();
+            } else {
+                openLoginModal();
+            }
+        });
+    }
+    
+    if (btnLogin) { btnLogin.addEventListener('click', handleLogin); }
+    if (btnCloseLogin) { btnCloseLogin.addEventListener('click', closeLoginModal); }
+
+    if (btnInvitePlayer && playerEmail) {
+        btnInvitePlayer.addEventListener('click', () => {
+            invitePlayer(playerEmail.value);
+        });
+    }
+
+    if (btnSavePlay) {
+        btnSavePlay.addEventListener('click', () => {
+            const name = (playName.value || '').trim();
+            if (!name) {
+                showStatus('Ingresa un nombre para la jugada', 'var(--warn)');
+                return;
+            }
+            savePlay(name);
+        });
+    }
+
+    if (btnLoadPlay) {
+        btnLoadPlay.addEventListener('click', () => {
+            if (!playList.value) {
+                showStatus('Selecciona una jugada', 'var(--warn)');
+                return;
+            }
+            loadPlay(playList.value);
+        });
+    }
+    
+    // **CLONAR JUGADA (DUPLICAR) - Nuevo Evento**
+    if (btnDuplicate) {
+        btnDuplicate.addEventListener('click', () => {
+            const oldName = (playName.value || 'Nueva Jugada').trim();
+            const newName = prompt(`Duplicar: Ingresa el nuevo nombre (Actual: ${oldName})`, `${oldName} (Copia)`);
+            if (newName && newName.trim()) {
+                savePlay(newName.trim());
+                playName.value = newName.trim();
+            }
+        });
+    }
+
+
+    if (btnDelete) {
+        btnDelete.addEventListener('click', async () => {
+            if (!playList.value) {
+                showStatus('Selecciona una jugada para eliminar', 'var(--warn)');
+                return;
+            }
+            
+            if (!confirm(`¿Estás seguro de eliminar la jugada: ${playList.options[playList.selectedIndex].textContent}?`)) return;
+            
+            try {
+                await window.firestore.deleteDoc(
+                    window.firestore.doc(getCoachPlaysCollectionRef(), playList.value)
+                );
+                showStatus('Jugada eliminada', 'var(--accent)');
+                playName.value = ''; // Limpiar campo de nombre
+            } catch (error) {
+                console.error('Error eliminando jugada:', error);
+                showStatus('Error al eliminar jugada', 'var(--red)');
+            }
+        });
+    }
+
+    // Eventos de exportación
+    if (btnExportJpg) { btnExportJpg.addEventListener('click', () => exportToImage('image/jpeg')); }
+    if (btnExportWebm) { btnExportWebm.addEventListener('click', () => recordVideo('webm')); }
+    if (btnExportMp4) { btnExportMp4.addEventListener('click', () => recordVideo('mp4')); }
+
+
+    // Eventos de timeline
+    if (btnRecord) {
+        btnRecord.addEventListener('click', () => {
+            recordFrame();
+            showStatus('Paso grabado', 'var(--accent2)');
+        });
+    }
+
+    if (scrubber) {
+        scrubber.addEventListener('input', (e) => {
+            // Detener animación y saltar al frame
+            stopAnimation();
+            gotoFrame(parseInt(e.target.value, 10));
+        });
+    }
+
+    if (btnPlayPause) {
+        btnPlayPause.addEventListener('click', () => {
+            if (playing) {
+                stopAnimation(); // Pausa
+            } else {
+                startAnimation(); // Reproducir/Continuar
+            }
+        });
+    }
+
+    if (btnStop) {
+        btnStop.addEventListener('click', () => {
+            stopAnimation();
+            gotoFrame(0);
+        });
+    }
+    
+    if (btnClrTl) {
+        btnClrTl.addEventListener('click', () => {
+            if (confirm('¿Limpiar toda la animación? Se conservarán jugadores y dibujos.')) {
+                stopAnimation();
+                timeline = [];
+                recordFrame(); // Deja el estado actual como Frame 0
+                showStatus('Animación limpiada', 'var(--accent)');
+            }
+        });
+    }
+
+
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (confirm('¿Reiniciar tablero? Se perderán los cambios no guardados.')) {
+                stopAnimation();
+                createPlayers();
+                placeBall();
+                arrows = [];
+                strokes = [];
+                notes = [];
+                timeline = [];
+                recordFrame();
+                renderDraw();
+                showStatus('Tablero reiniciado', 'var(--accent)');
+            }
+        });
+    }
+    
+    // Eventos de menú móvil
+    if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
+    if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMobileMenu);
+    if (menuOverlay) menuOverlay.addEventListener('click', closeMobileMenu);
+    
+    // Eventos de orientación
+    if (btnLandscape) btnLandscape.addEventListener('click', ()=>{ 
+        forcePortrait=false; 
+        setSegActive(btnLandscape,btnPortrait); 
+        fitBoard(); 
+        closeMobileMenu(); 
+    });
+    
+    if (btnPortrait) btnPortrait.addEventListener('click', ()=>{ 
+        forcePortrait=true; 
+        setSegActive(btnPortrait,btnLandscape); 
+        fitBoard(); 
+        closeMobileMenu(); 
+    });
+
+    // Eventos de ventana
+    window.addEventListener('resize', fitBoard);
+    window.addEventListener('orientationchange', fitBoard);
+    
+    // Inicializar aplicación
+    initBoardApp();
+});
+
+// ==================== FUNCIONES DEL TABLERO (Mantenidas y adaptadas) ====================
 
 function initBoardApp(){
-    console.log("Inicializando aplicación...");
-    
-    // Crear jugadores y balón
-    createPlayers();
-    placeBall();
-    
-    // Timeline inicial
-    if (!timeline.length) { recordFrame(); }
-    updateScrub();
+    console.log("Inicializando aplicación...");
+    
+    // Crear jugadores y balón
+    createPlayers();
+    placeBall();
+    
+    // Timeline inicial
+    if (!timeline.length) { recordFrame(); }
+    updateScrub();
 
-    // CORRECCIÓN: Configurar Firebase Auth State Listener
-    if (window.firebaseOnAuthStateChanged) {
-        // Primero verificar el estado actual inmediatamente
-        const currentAuthUser = window.firebaseAuth.currentUser;
-        if (currentAuthUser) {
-            console.log('✅ Usuario ya autenticado al cargar:', currentAuthUser.email);
-            currentUser = currentAuthUser;
-            isAuthorized = true;
-            (async () => {
-                await determineUserRole();
-                refreshPlayList();
-                updateAuthUI();
-                
-                // INICIALIZAR INTERACCIONES SI ES COACH
-                if (userRole === 'coach') {
-                    reInitializePlayerInteractions();
-                }
-            })();
-        }
+    // Inicializar estado de auth
+    if (window.firebaseOnAuthStateChanged) {
+        window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthorized = true;
+                await determineUserRole();
+                refreshPlayList();
+            } else {
+                currentUser = null;
+                isAuthorized = false;
+                userRole = 'spectator';
+                currentCoachId = null;
+                if (unsubscribePlays) { unsubscribePlays(); unsubscribePlays = null; }
+            }
+            updateAuthUI();
+            reInitializePlayerInteractions(); // Importante para activar/desactivar drag
+        });
+    } else {
+        reInitializePlayerInteractions();
+    }
 
-        // Luego configurar el listener para cambios futuros
-        window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user) => {
-            console.log('🔄 Auth state changed:', user ? user.email : 'No user');
-            
-            if (user) {
-                currentUser = user;
-                isAuthorized = true;
-                console.log('✅ Usuario autenticado via listener:', user.email);
-                
-                await determineUserRole();
-                refreshPlayList();
-                
-                // INICIALIZAR INTERACCIONES SI ES COACH
-                if (userRole === 'coach') {
-                    reInitializePlayerInteractions();
-                }
-            } else {
-                currentUser = null;
-                isAuthorized = false;
-                userRole = 'spectator';
-                currentCoachId = null;
-                console.log('🚪 Usuario cerró sesión');
-                
-                if (unsubscribePlays) {
-                    unsubscribePlays();
-                    unsubscribePlays = null;
-                }
-            }
-            updateAuthUI();
-        });
-    } else {
-        console.log('⚠️ Firebase Auth no disponible - Modo local');
-    }
-
-    // INICIALIZAR INTERACCIONES BÁSICAS
-    reInitializePlayerInteractions();
-
-    // UI inicial
-    if (showGrid) {
-        showGrid.addEventListener('change', renderGrid);
-        showGrid.checked = false;
-    }
-    renderGrid();
-    renderDraw();
-    fitBoard();
-    
-    // Forzar recálculo del layout
-    setTimeout(fitBoard, 50);
-    
-    showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
+    // UI inicial
+    if (showGrid) {
+        showGrid.addEventListener('change', renderGrid);
+        showGrid.checked = false;
+    }
+    renderGrid();
+    renderDraw();
+    fitBoard();
+    setTimeout(fitBoard, 50);
+    
+    // Precarga de FFMPEG (opcional, para ser más rápido)
+    loadFfmpeg(); 
 }
 
-// Funciones básicas del tablero
 function createPlayers() {
-    if (!playersLayer) return;
-    playersLayer.innerHTML='';
-    selectedPlayers.clear();
-    initialPositions.forEach(p=>{
-        const el=document.createElement('div');
-        const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
-        el.className=`player ${teamData.colorClass}`; 
-        el.textContent = p.number;
-        el.dataset.team = p.team; 
-        el.dataset.number = p.number;
-        el.style.left = p.x+'px'; el.style.top = p.y+'px';
-        
-        // Habilitar drag si es coach
-        if (userRole === 'coach') {
-            enableDragPlayer(el, () => { 
-                if (autoRec && autoRec.checked) recordFrame(); 
-            });
-        }
-        
-        playersLayer.appendChild(el);
-    });
-    applyUprightTransforms();
+    if (!playersLayer) return;
+    playersLayer.innerHTML='';
+    selectedPlayers.clear();
+    initialPositions.forEach(p=>{
+        const el=document.createElement('div');
+        const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
+        el.className=`player ${teamData.colorClass}`; 
+        el.textContent = p.number;
+        el.dataset.team = p.team; 
+        el.dataset.number = p.number;
+        el.style.left = p.x+'px'; el.style.top = p.y+'px';
+        playersLayer.appendChild(el);
+    });
+    applyUprightTransforms();
 }
 
 function placeBall(x=WIDTH/2,y=HEIGHT/2){
-    if (!ball) return;
-    currentBallPos.x=x; currentBallPos.y=y;
-    ball.style.left=x+'px'; ball.style.top=y+'px';
-    ball.style.transform='translate(-50%,-50%) rotate(-15deg)';
+    if (!ball) return;
+    currentBallPos.x=x; currentBallPos.y=y;
+    ball.style.left=x+'px'; ball.style.top=y+'px';
+    ball.style.transform='translate(-50%,-50%) rotate(-15deg)';
 }
 
-// Funciones de coordenadas
+// Funciones de coordenadas (sin cambios)
 function clientToBoard(e){
-    if (!boardViewport) return {x:0, y:0};
-    const vp=boardViewport.getBoundingClientRect();
-    const cx=e.clientX - vp.left;
-    const cy=e.clientY - vp.top;
-    
-    if (layout.mode==='portrait'){
-        const centerX = vp.width / 2;
-        const centerY = vp.height / 2;
-        const px = cx - centerX;
-        const py = cy - centerY;
-        const x_board_scaled = py;
-        const y_board_scaled = -px;
-        const x_board = (WIDTH / 2) + (x_board_scaled / layout.scale);
-        const y_board = (HEIGHT / 2) + (y_board_scaled / layout.scale);
-        return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
-    } else {
-        const scaledW = WIDTH * layout.scale;
-        const scaledH = HEIGHT * layout.scale;
-        const x = (cx - (vp.width - scaledW) / 2) / layout.scale;
-        const y = (cy - (vp.height - scaledH) / 2) / layout.scale;
-        return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
-    }
+    if (!boardViewport) return {x:0, y:0};
+    const vp=boardViewport.getBoundingClientRect();
+    const cx=e.clientX - vp.left;
+    const cy=e.clientY - vp.top;
+    
+    if (layout.mode==='portrait'){
+        const centerX = vp.width / 2;
+        const centerY = vp.height / 2;
+        const px = cx - centerX;
+        const py = cy - centerY;
+        const x_board_scaled = py;
+        const y_board_scaled = -px;
+        const x_board = (WIDTH / 2) + (x_board_scaled / layout.scale);
+        const y_board = (HEIGHT / 2) + (y_board_scaled / layout.scale);
+        return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
+    } else {
+        const scaledW = WIDTH * layout.scale;
+        const scaledH = HEIGHT * layout.scale;
+        const x = (cx - (vp.width - scaledW) / 2) / layout.scale;
+        const y = (cy - (vp.height - scaledH) / 2) / layout.scale;
+        return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
+    }
 }
 
 function deltaToBoard(dxClient, dyClient){
-    if (layout.mode==='portrait'){
-        return { 
-            dx: dyClient / layout.scale,  
-            dy: -dxClient / layout.scale 
-        };
-    }else{
-        return { dx: dxClient / layout.scale, dy: dyClient / layout.scale };
-    }
+    if (layout.mode==='portrait'){
+        return { 
+            dx: dyClient / layout.scale,  
+            dy: -dxClient / layout.scale 
+        };
+    }else{
+        return { dx: dxClient / layout.scale, dy: dyClient / layout.scale };
+    }
 }
 
 function fitBoard(){
-    if (!boardViewport || !boardWrap) return;
-    
-    const vp=boardViewport.getBoundingClientRect();
-    const availW=vp.width, availH=vp.height;
+    if (!boardViewport || !boardWrap) return;
+    
+    const vp=boardViewport.getBoundingClientRect();
+    const availW=vp.width, availH=vp.height;
 
-    const baseW = WIDTH;
-    const baseH = HEIGHT;
+    const baseW = WIDTH;
+    const baseH = HEIGHT;
 
-    let currentW, currentH;
-    let scale;
+    let currentW, currentH;
+    let scale;
 
-    const isMobile = window.innerWidth <= 999;
-    
-    if (isMobile) {
-        forcePortrait = true; 
-    }
-    
-    if (forcePortrait || isMobile){
-        layout.mode='portrait';
-        currentW = baseH;
-        currentH = baseW;
-        scale = Math.min(availW/currentW, availH/currentH);
-        layout.scale=scale;
-        boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
-        boardWrap.style.transformOrigin='center center';
-        
-        const scaledRotatedW = baseH * scale;
-        const scaledRotatedH = baseW * scale;
-        layout.tx = (availW - scaledRotatedW) / 2;
-        layout.ty = (availH - scaledRotatedH) / 2;
+    const isMobile = window.innerWidth <= 999;
+    
+    if (isMobile) {
+        forcePortrait = true; 
+    }
+    
+    if (forcePortrait || isMobile){
+        layout.mode='portrait';
+        currentW = baseH;
+        currentH = baseW;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        
+        const scaledRotatedW = baseH * scale;
+        const scaledRotatedH = baseW * scale;
+        layout.tx = (availW - scaledRotatedW) / 2;
+        layout.ty = (availH - scaledRotatedH) / 2;
 
-        if (btnPortrait) setSegActive(btnPortrait, btnLandscape);
-        
-    } else {
-        layout.mode='landscape';
-        currentW = baseW;
-        currentH = baseH;
-        scale = Math.min(availW/currentW, availH/currentH);
-        layout.scale=scale;
-        layout.tx = (availW - currentW * scale) / 2;
-        layout.ty = (availH - currentH * scale) / 2;
-        boardWrap.style.transform=`scale(${scale})`;
-        boardWrap.style.transformOrigin='center center';
-        if (btnLandscape) setSegActive(btnLandscape, btnPortrait);
-    }
+        if (btnPortrait) setSegActive(btnPortrait, btnLandscape);
+        
+    } else {
+        layout.mode='landscape';
+        currentW = baseW;
+        currentH = baseH;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        layout.tx = (availW - currentW * scale) / 2;
+        layout.ty = (availH - currentH * scale) / 2;
+        boardWrap.style.transform=`scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        if (btnLandscape) setSegActive(btnLandscape, btnPortrait);
+    }
 
-    applyUprightTransforms();
+    applyUprightTransforms();
 }
 
 function applyUprightTransforms(){
-    const rotatePlayers=(layout.mode==='portrait');
-    if (!playersLayer) return;
-    [...playersLayer.children].forEach(el=>{
-        el.style.transform = rotatePlayers
-            ? 'translate(-50%,-50%) rotate(-90deg)' 
-            : 'translate(-50%,-50%)';
-    });
+    const rotatePlayers=(layout.mode==='portrait');
+    if (!playersLayer) return;
+    [...playersLayer.children].forEach(el=>{
+        el.style.transform = rotatePlayers
+            ? 'translate(-50%,-50%) rotate(-90deg)' 
+            : 'translate(-50%,-50%)';
+    });
 }
 
 function setSegActive(segBtn, otherBtn){
-    if(segBtn) segBtn.classList.add('active');
-    if(otherBtn) otherBtn.classList.remove('active');
+    if(segBtn) segBtn.classList.add('active');
+    if(otherBtn) otherBtn.classList.remove('active');
 }
 
-function recordFrame(){ 
-    timeline.push(snapshotFrame()); 
-    updateScrub(); 
+function recordFrame(){ 
+    stopAnimation(); // Detener la reproducción al grabar
+    
+    // Si estamos en medio de una animación (frame interpolado), borrar el resto
+    if (playIdx < timeline.length - 1) {
+        timeline.splice(playIdx + 1);
+    }
+    
+    timeline.push(snapshotFrame()); 
+    playIdx = timeline.length - 1; // Mover el scrubber al nuevo frame
+    updateScrub(); 
+    if(scrubber) scrubber.value = playIdx;
+    if(scrubLbl) scrubLbl.textContent=`${playIdx}/${timeline.length-1}`;
 }
 
 function updateScrub(){
-    if (!scrubber || !scrubLbl) return;
-    scrubber.max = Math.max(0, timeline.length - 1);
-    scrubLbl.textContent = `0/${timeline.length - 1}`;
+    if (!scrubber || !scrubLbl) return;
+    scrubber.max = Math.max(0, timeline.length - 1);
+    scrubLbl.textContent = `${scrubber.value}/${scrubber.max}`;
 }
 
 function gotoFrame(i){
-    if (!timeline.length) return;
-    i=Math.max(0,Math.min(timeline.length-1,i));
-    
-    // Sincronizar el valor del scrubber
-    if(scrubber) scrubber.value = i;
-    if(scrubLbl) scrubLbl.textContent=`${i}/${timeline.length-1}`;
-    
-    const f=timeline[i];
-    if (playersLayer) f.players.forEach(p=>{
-        const el=[...playersLayer.children].find(e=>e.dataset.team===p.team && +e.dataset.number===p.number);
-        if (el){ el.style.left=p.x+'px'; el.style.top=p.y+'px'; }
-    });
-    if (f.ball){ placeBall(f.ball.x, f.ball.y); }
-    clearPlayerSelection();
+    if (!timeline.length) return;
+    i=Math.max(0,Math.min(timeline.length-1,i));
+    playIdx = i;
+    
+    // Sincronizar el valor del scrubber
+    if(scrubber) scrubber.value = i;
+    if(scrubLbl) scrubLbl.textContent=`${i}/${timeline.length-1}`;
+    
+    const f=timeline[i];
+    if (playersLayer) f.players.forEach(p=>{
+        const el=[...playersLayer.children].find(e=>e.dataset.team===p.team && +e.dataset.number===p.number);
+        if (el){ el.style.left=p.x+'px'; el.style.top=p.y+'px'; }
+    });
+    if (f.ball){ placeBall(f.ball.x, f.ball.y); }
+    clearPlayerSelection();
 }
 
 // Funciones móviles
 function openMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.add('open');
-    if(menuOverlay) menuOverlay.classList.add('open');
+    if(desktopSidepanel) desktopSidepanel.classList.add('open');
+    if(menuOverlay) menuOverlay.classList.add('open');
 }
 
 function closeMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
-    if(menuOverlay) menuOverlay.classList.remove('open');
+    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
+    if(menuOverlay) menuOverlay.classList.remove('open');
 }
 
-// ==================== INICIALIZACIÓN ====================
+function reInitializePlayerInteractions() {
+    if (!playersLayer || !ball) return;
+    
+    // Re-habilita el arrastre en todos los elementos que ya existen
+    [...playersLayer.children].forEach(el => {
+        // Eliminar listeners previos para evitar duplicados
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        enableDragPlayer(newEl, () => { 
+            if (autoRec && autoRec.checked) recordFrame(); 
+        });
+    });
+    
+    // Re-asigna la capa de jugadores a la variable global después del reemplazo
+    playersLayer = document.getElementById('players');
+    
+    // Habilitar arrastre de balón
+    enableDragBall(() => { 
+        if (autoRec && autoRec.checked) recordFrame(); 
+    });
+    
+    // Habilitar selección masiva
+    enableSelectionBox();
+    
+    // Habilitar herramientas de dibujo
+    initDrawingTools();
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM cargado, inicializando...");
-    assignDOMElements();
-    
-    // Configurar event listeners
-    if (btnAuthAction) {
-        btnAuthAction.addEventListener('click', function() {
-            if (isAuthorized) {
-                handleLogout();
-            } else {
-                openLoginModal();
-            }
-        });
-    }
-    
-    if (btnLogin) {
-        btnLogin.addEventListener('click', handleLogin);
-    }
-    
-    if (btnCloseLogin) {
-        btnCloseLogin.addEventListener('click', closeLoginModal);
-    }
+    // Aplica las transformaciones si hubo cambio de orientación
+    applyUprightTransforms();
+}
 
-    if (btnInvitePlayer && playerEmail) {
-        btnInvitePlayer.addEventListener('click', () => {
-            invitePlayer(playerEmail.value);
-        });
-    }
-
-    if (btnSavePlay) {
-        btnSavePlay.addEventListener('click', () => {
-            const name = (playName.value || '').trim();
-            if (!name) {
-                showStatus('Ingresa un nombre para la jugada', 'var(--warn)');
-                return;
-            }
-            savePlay(name);
-        });
-    }
-
-    if (btnLoadPlay) {
-        btnLoadPlay.addEventListener('click', () => {
-            if (!playList.value) {
-                showStatus('Selecciona una jugada', 'var(--warn)');
-                return;
-            }
-            loadPlay(playList.value);
-        });
-    }
-
-    if (btnDelete) {
-        btnDelete.addEventListener('click', async () => {
-            if (!playList.value) {
-                showStatus('Selecciona una jugada para eliminar', 'var(--warn)');
-                return;
-            }
-            
-            if (!confirm('¿Estás seguro de eliminar esta jugada?')) return;
-            
-            try {
-                await window.firestore.deleteDoc(
-                    window.firestore.doc(getCoachPlaysCollectionRef(), playList.value)
-                );
-                showStatus('Jugada eliminada', 'var(--accent)');
-            } catch (error) {
-                console.error('Error eliminando jugada:', error);
-                showStatus('Error al eliminar jugada', 'var(--red)');
-            }
-        });
-    }
-
-    // Eventos de timeline
-    if (btnRecord) {
-        btnRecord.addEventListener('click', recordFrame);
-    }
-
-    if (btnPlayPause) {
-        btnPlayPause.addEventListener('click', () => {
-            if (!playing) {
-                playing = true;
-                btnPlayPause.textContent = 'Pausa';
-                // Aquí iría la lógica de reproducción completa
-            } else {
-                playing = false;
-                btnPlayPause.textContent = 'Reproducir';
-            }
-        });
-    }
-
-    if (btnStop) {
-        btnStop.addEventListener('click', () => {
-            playing = false;
-            btnPlayPause.textContent = 'Reproducir';
-            gotoFrame(0);
-        });
-    }
-
-    if (btnReset) {
-        btnReset.addEventListener('click', () => {
-            if (confirm('¿Reiniciar tablero? Se perderán los cambios no guardados.')) {
-                createPlayers();
-                placeBall();
-                arrows = [];
-                strokes = [];
-                notes = [];
-                timeline = [];
-                recordFrame();
-                renderDraw();
-                showStatus('Tablero reiniciado', 'var(--accent)');
-            }
-        });
-    }
-    
-    // Eventos de menú móvil
-    if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
-    if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMobileMenu);
-    if (menuOverlay) menuOverlay.addEventListener('click', closeMobileMenu);
-    
-    // Eventos de orientación
-    if (btnLandscape) btnLandscape.addEventListener('click', ()=>{ 
-        forcePortrait=false; 
-        setSegActive(btnLandscape,btnPortrait); 
-        fitBoard(); 
-        closeMobileMenu(); 
-    });
-    
-    if (btnPortrait) btnPortrait.addEventListener('click', ()=>{ 
-        forcePortrait=true; 
-        setSegActive(btnPortrait,btnLandscape); 
-        fitBoard(); 
-        closeMobileMenu(); 
-    });
-
-    // Eventos de ventana
-    window.addEventListener('resize', fitBoard);
-    window.addEventListener('orientationchange', fitBoard);
-    
-    // Inicializar aplicación
-    initBoardApp();
-});
-
-// Exponer funciones globalmente
-window.initBoardApp = initBoardApp;
-window.fitBoard = fitBoard;
 </script>
 </body>
 </html>
