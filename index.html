@@ -594,6 +594,9 @@ let userRole = 'spectator';
 let currentCoachId = null;
 let unsubscribePlays = null;
 
+// Herramienta actual de dibujo
+let currentTool = 'arrows';
+
 // Utilidades
 function showStatus(message, color='var(--accent)'){
     const statusDiv = document.createElement('div');
@@ -615,6 +618,12 @@ function showStatus(message, color='var(--accent)'){
 function clamp(v, min, max){ return Math.max(min,Math.min(max,v)); }
 function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.hypot(dx,dy); }
 function centerOf(el){ return { x:parseFloat(el.style.left)||0, y:parseFloat(el.style.top)||0 } }
+function rectIntersect(rect1, rect2) {
+    return rect1.left < rect2.right &&
+           rect1.right > rect2.left &&
+           rect1.top < rect2.bottom &&
+           rect1.bottom > rect2.top;
+}
 
 // ==================== SISTEMA DE AUTENTICACIÓN ====================
 
@@ -738,23 +747,6 @@ async function checkPlayerAccess() {
     }
     
     return [];
-}
-
-// CORRECCIÓN: Función ensureCoachDocument
-async function ensureCoachDocument() {
-    if (userRole !== 'coach' || !currentUser) return;
-    
-    try {
-        const coachDocRef = window.firestore.doc(
-            window.firestore.collection(window.firebaseDb, 'coaches'), 
-            currentUser.uid
-        );
-        
-        console.log('✅ Documento de coach verificado:', currentUser.uid);
-        
-    } catch (error) {
-        console.log('ℹ️  Info del documento coach:', error.message);
-    }
 }
 
 // Función determineUserRole actualizada
@@ -1088,223 +1080,6 @@ function updateAuthUI() {
     }
 }
 
-// ==================== FUNCIONES DEL TABLERO ====================
-
-function initBoardApp(){
-    console.log("Inicializando aplicación...");
-    
-    // Crear jugadores y balón
-    createPlayers();
-    placeBall();
-    
-    // Timeline inicial
-    if (!timeline.length) { recordFrame(); }
-    updateScrub();
-
-    // CORRECCIÓN: Configurar Firebase Auth State Listener
-    if (window.firebaseOnAuthStateChanged) {
-        // Primero verificar el estado actual inmediatamente
-        const currentAuthUser = window.firebaseAuth.currentUser;
-        if (currentAuthUser) {
-            console.log('✅ Usuario ya autenticado al cargar:', currentAuthUser.email);
-            currentUser = currentAuthUser;
-            isAuthorized = true;
-            (async () => {
-                await determineUserRole();
-                refreshPlayList();
-                updateAuthUI();
-            })();
-        }
-
-        // Luego configurar el listener para cambios futuros
-        window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user) => {
-            console.log('🔄 Auth state changed:', user ? user.email : 'No user');
-            
-            if (user) {
-                currentUser = user;
-                isAuthorized = true;
-                console.log('✅ Usuario autenticado via listener:', user.email);
-                
-                await determineUserRole();
-                refreshPlayList();
-            } else {
-                currentUser = null;
-                isAuthorized = false;
-                userRole = 'spectator';
-                currentCoachId = null;
-                console.log('🚪 Usuario cerró sesión');
-                
-                if (unsubscribePlays) {
-                    unsubscribePlays();
-                    unsubscribePlays = null;
-                }
-            }
-            updateAuthUI();
-        });
-    } else {
-        console.log('⚠️ Firebase Auth no disponible - Modo local');
-    }
-
-    // INICIALMENTE DESHABILITAR CONTROLES
-    setControlsDisabled(true);
-
-    // UI inicial
-    if (showGrid) showGrid.checked = false;
-    renderGrid();
-    renderDraw();
-    fitBoard();
-    
-    // Forzar recálculo del layout
-    setTimeout(fitBoard, 50);
-    
-    showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
-}
-
-// Funciones básicas del tablero (simplificadas)
-function createPlayers() {
-    if (!playersLayer) return;
-    playersLayer.innerHTML='';
-    selectedPlayers.clear();
-    initialPositions.forEach(p=>{
-        const el=document.createElement('div');
-        const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
-        el.className=`player ${teamData.colorClass}`; 
-        el.textContent = p.number;
-        el.dataset.team = p.team; 
-        el.dataset.number = p.number;
-        el.style.left = p.x+'px'; el.style.top = p.y+'px';
-        playersLayer.appendChild(el);
-    });
-    applyUprightTransforms();
-}
-
-function placeBall(x=WIDTH/2,y=HEIGHT/2){
-    if (!ball) return;
-    currentBallPos.x=x; currentBallPos.y=y;
-    ball.style.left=x+'px'; ball.style.top=y+'px';
-    ball.style.transform='translate(-50%,-50%) rotate(-15deg)';
-}
-
-function fitBoard(){
-    if (!boardViewport || !boardWrap) return;
-    
-    const vp=boardViewport.getBoundingClientRect();
-    const availW=vp.width, availH=vp.height;
-
-    const baseW = WIDTH;
-    const baseH = HEIGHT;
-
-    let currentW, currentH;
-    let scale;
-
-    const isMobile = window.innerWidth <= 999;
-    
-    if (isMobile) {
-        forcePortrait = true; 
-    }
-    
-    if (forcePortrait || isMobile){
-        layout.mode='portrait';
-        currentW = baseH;
-        currentH = baseW;
-        scale = Math.min(availW/currentW, availH/currentH);
-        layout.scale=scale;
-        boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
-        boardWrap.style.transformOrigin='center center';
-        
-        const scaledRotatedW = baseH * scale;
-        const scaledRotatedH = baseW * scale;
-        layout.tx = (availW - scaledRotatedW) / 2;
-        layout.ty = (availH - scaledRotatedH) / 2;
-
-        if (btnPortrait) setSegActive(btnPortrait, btnLandscape);
-        
-    } else {
-        layout.mode='landscape';
-        currentW = baseW;
-        currentH = baseH;
-        scale = Math.min(availW/currentW, availH/currentH);
-        layout.scale=scale;
-        layout.tx = (availW - currentW * scale) / 2;
-        layout.ty = (availH - currentH * scale) / 2;
-        boardWrap.style.transform=`scale(${scale})`;
-        boardWrap.style.transformOrigin='center center';
-        if (btnLandscape) setSegActive(btnLandscape, btnPortrait);
-    }
-
-    applyUprightTransforms();
-}
-
-function applyUprightTransforms(){
-    const rotatePlayers=(layout.mode==='portrait');
-    if (!playersLayer) return;
-    [...playersLayer.children].forEach(el=>{
-        el.style.transform = rotatePlayers
-            ? 'translate(-50%,-50%) rotate(-90deg)' 
-            : 'translate(-50%,-50%)';
-    });
-}
-
-function setSegActive(segBtn, otherBtn){
-    if(segBtn) segBtn.classList.add('active');
-    if(otherBtn) otherBtn.classList.remove('active');
-}
-
-function recordFrame(){ 
-    timeline.push(snapshotFrame()); 
-    updateScrub(); 
-}
-
-function updateScrub(){
-    if (!scrubber || !scrubLbl) return;
-    scrubber.max = Math.max(0, timeline.length - 1);
-    scrubLbl.textContent = `0/${timeline.length - 1}`;
-}
-
-function renderGrid(){
-    if (!gridSvg) return;
-    gridSvg.innerHTML='';
-    if (!showGrid.checked) { gridSvg.classList.remove('on'); return; }
-    gridSvg.classList.add('on');
-}
-
-function renderDraw(){
-    if (!draw) return;
-    draw.innerHTML = '';
-}
-
-// Funciones móviles
-function openMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.add('open');
-    if(menuOverlay) menuOverlay.classList.add('open');
-}
-
-function closeMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
-    if(menuOverlay) menuOverlay.classList.remove('open');
-}
-
-// Funciones de interacción (simplificadas)
-function enableDragPlayer(playerEl, onDrop) {
-    // Implementación básica - se puede expandir
-}
-
-function enableDragBall(onDrop) {
-    // Implementación básica - se puede expandir
-}
-
-function enableSelectionBox() {
-    // Implementación básica - se puede expandir
-}
-
-function initDrawingTools() {
-    // Implementación básica - se puede expandir
-}
-
-function gotoFrame(i){
-    // Implementación básica
-}
-
 // ==================== FUNCIONES DE INTERACCIÓN COMPLETAS ====================
 
 function enableDragPlayer(playerEl, onDrop) {
@@ -1456,26 +1231,25 @@ function initDrawingTools() {
     if (!board) return;
     
     let drawingArrow = false, startPt = null, drawingStroke = false, currentStroke = null;
-    let tool = 'arrows'; // herramienta por defecto
     
     // Configurar eventos de herramientas
     if (toolArrows) {
         toolArrows.addEventListener('click', () => {
-            tool = 'arrows';
+            currentTool = 'arrows';
             setToolActive(toolArrows, [toolPen, toolText]);
         });
     }
     
     if (toolPen) {
         toolPen.addEventListener('click', () => {
-            tool = 'pen';
+            currentTool = 'pen';
             setToolActive(toolPen, [toolArrows, toolText]);
         });
     }
     
     if (toolText) {
         toolText.addEventListener('click', () => {
-            tool = 'text';
+            currentTool = 'text';
             setToolActive(toolText, [toolArrows, toolPen]);
         });
     }
@@ -1490,10 +1264,10 @@ function initDrawingTools() {
         const currentStrokeColor = strokeColor ? strokeColor.value : '#ffd400';
         const currentStrokeWidth = strokeWidth ? parseInt(strokeWidth.value, 10) : 5;
 
-        if (tool === 'arrows') {
+        if (currentTool === 'arrows') {
             drawingArrow = true; 
             startPt = {x: p.x, y: p.y}; 
-        } else if (tool === 'pen') {
+        } else if (currentTool === 'pen') {
             drawingStroke = true;
             currentStroke = { 
                 points: [`${p.x},${p.y}`], 
@@ -1503,7 +1277,7 @@ function initDrawingTools() {
             };
             strokes.push(currentStroke); 
             renderDraw();
-        } else if (tool === 'text') {
+        } else if (currentTool === 'text') {
             const text = prompt("Ingresa el texto para la nota:");
             if (text && text.trim()) {
                 notes.push({ 
@@ -1515,7 +1289,7 @@ function initDrawingTools() {
                 renderDraw();
             }
             // Volver a flechas después de agregar texto
-            tool = 'arrows';
+            currentTool = 'arrows';
             setToolActive(toolArrows, [toolPen, toolText]);
         }
     }, {passive: false});
@@ -1564,11 +1338,11 @@ function initDrawingTools() {
         btnUndo.addEventListener('click', () => {
             if (!isAuthorized || userRole !== 'coach') return;
             
-            if (tool === 'arrows') {
+            if (currentTool === 'arrows') {
                 arrows.pop();
-            } else if (tool === 'pen') {
+            } else if (currentTool === 'pen') {
                 strokes.pop();
-            } else if (tool === 'text') {
+            } else if (currentTool === 'text') {
                 notes.pop();
             }
             renderDraw();
@@ -1678,29 +1452,6 @@ function reInitializePlayerInteractions() {
     initDrawingTools();
 }
 
-// Función para la línea de pase
-function showPassPreview(x1, y1, x2, y2) {
-    if (!draw) return;
-    let line = draw.querySelector('#passPreview');
-    if (!line) {
-        line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('id', 'passPreview');
-        line.setAttribute('stroke', '#fff');
-        line.setAttribute('stroke-width', '3');
-        line.setAttribute('stroke-dasharray', '10 8');
-        draw.appendChild(line);
-    }
-    line.setAttribute('x1', x1);
-    line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2);
-    line.setAttribute('y2', y2);
-}
-
-function hidePassPreview() {
-    const l = draw.querySelector('#passPreview');
-    if (l) l.remove();
-}
-
 // Función para la grilla
 function renderGrid() {
     if (!gridSvg) return;
@@ -1740,8 +1491,8 @@ function renderGrid() {
     gridSvg.appendChild(g);
 }
 
-// Actualizar la función initBoardApp para incluir las interacciones
-// BUSCÁ esta línea en initBoardApp y AGREGALO:
+// ==================== FUNCIONES DEL TABLERO ====================
+
 function initBoardApp(){
     console.log("Inicializando aplicación...");
     
@@ -1753,7 +1504,7 @@ function initBoardApp(){
     if (!timeline.length) { recordFrame(); }
     updateScrub();
 
-    // Configurar Firebase Auth State Listener
+    // CORRECCIÓN: Configurar Firebase Auth State Listener
     if (window.firebaseOnAuthStateChanged) {
         // Primero verificar el estado actual inmediatamente
         const currentAuthUser = window.firebaseAuth.currentUser;
@@ -1815,51 +1566,6 @@ function initBoardApp(){
         showGrid.addEventListener('change', renderGrid);
         showGrid.checked = false;
     }
-  // Agregá esto en la sección de event listeners:
-if (showGrid) {
-    showGrid.addEventListener('change', renderGrid);
-}
-
-if (btnRecord) {
-    btnRecord.addEventListener('click', recordFrame);
-}
-
-if (btnPlayPause) {
-    btnPlayPause.addEventListener('click', () => {
-        if (!playing) {
-            playing = true;
-            btnPlayPause.textContent = 'Pausa';
-            // Aquí iría la lógica de reproducción
-        } else {
-            playing = false;
-            btnPlayPause.textContent = 'Reproducir';
-        }
-    });
-}
-
-if (btnStop) {
-    btnStop.addEventListener('click', () => {
-        playing = false;
-        btnPlayPause.textContent = 'Reproducir';
-        gotoFrame(0);
-    });
-}
-
-if (btnReset) {
-    btnReset.addEventListener('click', () => {
-        if (confirm('¿Reiniciar tablero? Se perderán los cambios no guardados.')) {
-            createPlayers();
-            placeBall();
-            arrows = [];
-            strokes = [];
-            notes = [];
-            timeline = [];
-            recordFrame();
-            renderDraw();
-            showStatus('Tablero reiniciado', 'var(--accent)');
-        }
-    });
-}
     renderGrid();
     renderDraw();
     fitBoard();
@@ -1869,6 +1575,295 @@ if (btnReset) {
     
     showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
 }
+
+// Funciones básicas del tablero
+function createPlayers() {
+    if (!playersLayer) return;
+    playersLayer.innerHTML='';
+    selectedPlayers.clear();
+    initialPositions.forEach(p=>{
+        const el=document.createElement('div');
+        const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
+        el.className=`player ${teamData.colorClass}`; 
+        el.textContent = p.number;
+        el.dataset.team = p.team; 
+        el.dataset.number = p.number;
+        el.style.left = p.x+'px'; el.style.top = p.y+'px';
+        
+        // Habilitar drag si es coach
+        if (userRole === 'coach') {
+            enableDragPlayer(el, () => { 
+                if (autoRec && autoRec.checked) recordFrame(); 
+            });
+        }
+        
+        playersLayer.appendChild(el);
+    });
+    applyUprightTransforms();
+}
+
+function placeBall(x=WIDTH/2,y=HEIGHT/2){
+    if (!ball) return;
+    currentBallPos.x=x; currentBallPos.y=y;
+    ball.style.left=x+'px'; ball.style.top=y+'px';
+    ball.style.transform='translate(-50%,-50%) rotate(-15deg)';
+}
+
+// Funciones de coordenadas
+function clientToBoard(e){
+    if (!boardViewport) return {x:0, y:0};
+    const vp=boardViewport.getBoundingClientRect();
+    const cx=e.clientX - vp.left;
+    const cy=e.clientY - vp.top;
+    
+    if (layout.mode==='portrait'){
+        const centerX = vp.width / 2;
+        const centerY = vp.height / 2;
+        const px = cx - centerX;
+        const py = cy - centerY;
+        const x_board_scaled = py;
+        const y_board_scaled = -px;
+        const x_board = (WIDTH / 2) + (x_board_scaled / layout.scale);
+        const y_board = (HEIGHT / 2) + (y_board_scaled / layout.scale);
+        return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
+    } else {
+        const scaledW = WIDTH * layout.scale;
+        const scaledH = HEIGHT * layout.scale;
+        const x = (cx - (vp.width - scaledW) / 2) / layout.scale;
+        const y = (cy - (vp.height - scaledH) / 2) / layout.scale;
+        return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
+    }
+}
+
+function deltaToBoard(dxClient, dyClient){
+    if (layout.mode==='portrait'){
+        return { 
+            dx: dyClient / layout.scale,  
+            dy: -dxClient / layout.scale 
+        };
+    }else{
+        return { dx: dxClient / layout.scale, dy: dyClient / layout.scale };
+    }
+}
+
+function fitBoard(){
+    if (!boardViewport || !boardWrap) return;
+    
+    const vp=boardViewport.getBoundingClientRect();
+    const availW=vp.width, availH=vp.height;
+
+    const baseW = WIDTH;
+    const baseH = HEIGHT;
+
+    let currentW, currentH;
+    let scale;
+
+    const isMobile = window.innerWidth <= 999;
+    
+    if (isMobile) {
+        forcePortrait = true; 
+    }
+    
+    if (forcePortrait || isMobile){
+        layout.mode='portrait';
+        currentW = baseH;
+        currentH = baseW;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        
+        const scaledRotatedW = baseH * scale;
+        const scaledRotatedH = baseW * scale;
+        layout.tx = (availW - scaledRotatedW) / 2;
+        layout.ty = (availH - scaledRotatedH) / 2;
+
+        if (btnPortrait) setSegActive(btnPortrait, btnLandscape);
+        
+    } else {
+        layout.mode='landscape';
+        currentW = baseW;
+        currentH = baseH;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        layout.tx = (availW - currentW * scale) / 2;
+        layout.ty = (availH - currentH * scale) / 2;
+        boardWrap.style.transform=`scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        if (btnLandscape) setSegActive(btnLandscape, btnPortrait);
+    }
+
+    applyUprightTransforms();
+}
+
+function applyUprightTransforms(){
+    const rotatePlayers=(layout.mode==='portrait');
+    if (!playersLayer) return;
+    [...playersLayer.children].forEach(el=>{
+        el.style.transform = rotatePlayers
+            ? 'translate(-50%,-50%) rotate(-90deg)' 
+            : 'translate(-50%,-50%)';
+    });
+}
+
+function setSegActive(segBtn, otherBtn){
+    if(segBtn) segBtn.classList.add('active');
+    if(otherBtn) otherBtn.classList.remove('active');
+}
+
+function recordFrame(){ 
+    timeline.push(snapshotFrame()); 
+    updateScrub(); 
+}
+
+function updateScrub(){
+    if (!scrubber || !scrubLbl) return;
+    scrubber.max = Math.max(0, timeline.length - 1);
+    scrubLbl.textContent = `0/${timeline.length - 1}`;
+}
+
+function gotoFrame(i){
+    if (!timeline.length) return;
+    i=Math.max(0,Math.min(timeline.length-1,i));
+    
+    // Sincronizar el valor del scrubber
+    if(scrubber) scrubber.value = i;
+    if(scrubLbl) scrubLbl.textContent=`${i}/${timeline.length-1}`;
+    
+    const f=timeline[i];
+    if (playersLayer) f.players.forEach(p=>{
+        const el=[...playersLayer.children].find(e=>e.dataset.team===p.team && +e.dataset.number===p.number);
+        if (el){ el.style.left=p.x+'px'; el.style.top=p.y+'px'; }
+    });
+    if (f.ball){ placeBall(f.ball.x, f.ball.y); }
+    clearPlayerSelection();
+}
+
+// Funciones móviles
+function openMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.add('open');
+    if(menuOverlay) menuOverlay.classList.add('open');
+}
+
+function closeMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
+    if(menuOverlay) menuOverlay.classList.remove('open');
+}
+
+// ==================== INICIALIZACIÓN ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM cargado, inicializando...");
+    assignDOMElements();
+    
+    // Configurar event listeners
+    if (btnAuthAction) {
+        btnAuthAction.addEventListener('click', function() {
+            if (isAuthorized) {
+                handleLogout();
+            } else {
+                openLoginModal();
+            }
+        });
+    }
+    
+    if (btnLogin) {
+        btnLogin.addEventListener('click', handleLogin);
+    }
+    
+    if (btnCloseLogin) {
+        btnCloseLogin.addEventListener('click', closeLoginModal);
+    }
+
+    if (btnInvitePlayer && playerEmail) {
+        btnInvitePlayer.addEventListener('click', () => {
+            invitePlayer(playerEmail.value);
+        });
+    }
+
+    if (btnSavePlay) {
+        btnSavePlay.addEventListener('click', () => {
+            const name = (playName.value || '').trim();
+            if (!name) {
+                showStatus('Ingresa un nombre para la jugada', 'var(--warn)');
+                return;
+            }
+            savePlay(name);
+        });
+    }
+
+    if (btnLoadPlay) {
+        btnLoadPlay.addEventListener('click', () => {
+            if (!playList.value) {
+                showStatus('Selecciona una jugada', 'var(--warn)');
+                return;
+            }
+            loadPlay(playList.value);
+        });
+    }
+
+    if (btnDelete) {
+        btnDelete.addEventListener('click', async () => {
+            if (!playList.value) {
+                showStatus('Selecciona una jugada para eliminar', 'var(--warn)');
+                return;
+            }
+            
+            if (!confirm('¿Estás seguro de eliminar esta jugada?')) return;
+            
+            try {
+                await window.firestore.deleteDoc(
+                    window.firestore.doc(getCoachPlaysCollectionRef(), playList.value)
+                );
+                showStatus('Jugada eliminada', 'var(--accent)');
+            } catch (error) {
+                console.error('Error eliminando jugada:', error);
+                showStatus('Error al eliminar jugada', 'var(--red)');
+            }
+        });
+    }
+
+    // Eventos de timeline
+    if (btnRecord) {
+        btnRecord.addEventListener('click', recordFrame);
+    }
+
+    if (btnPlayPause) {
+        btnPlayPause.addEventListener('click', () => {
+            if (!playing) {
+                playing = true;
+                btnPlayPause.textContent = 'Pausa';
+                // Aquí iría la lógica de reproducción completa
+            } else {
+                playing = false;
+                btnPlayPause.textContent = 'Reproducir';
+            }
+        });
+    }
+
+    if (btnStop) {
+        btnStop.addEventListener('click', () => {
+            playing = false;
+            btnPlayPause.textContent = 'Reproducir';
+            gotoFrame(0);
+        });
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (confirm('¿Reiniciar tablero? Se perderán los cambios no guardados.')) {
+                createPlayers();
+                placeBall();
+                arrows = [];
+                strokes = [];
+                notes = [];
+                timeline = [];
+                recordFrame();
+                renderDraw();
+                showStatus('Tablero reiniciado', 'var(--accent)');
+            }
+        });
+    }
     
     // Eventos de menú móvil
     if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
