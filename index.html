@@ -58,9 +58,9 @@
   .team-1{background:var(--blue);} .team-2{background:var(--red);}
   
   #ball{position:absolute;z-index:4; pointer-events: auto;}
-  /* --- Pelota más pequeña --- */
-  .ball{width:40px;height:24px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
-  .ball::after{content:"";position:absolute;inset:5px 14px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
+  /* --- Pelota aún más pequeña --- */
+  .ball{width:30px;height:18px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
+  .ball::after{content:"";position:absolute;inset:4px 11px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
   
   /* Selection Box */
   #selectionBox{
@@ -252,9 +252,9 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     const firebaseConfig = {"apiKey":"AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI","authDomain":"bologna-rugby-club.firebaseapp.com","projectId":"bologna-rugby-club","storageBucket":"bologna-rugby-club.appspot.com","messagingSenderId":"641438144435","appId":"1:641438144435:web:e2a243bacd522fd1615dc6","measurementId":"G-9C66KXJ561"};
-    const app = initializeApp(firebaseConfig);
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDb = getFirestore(app);
+    initializeApp(firebaseConfig);
+    window.firebaseAuth = getAuth();
+    window.firebaseDb = getFirestore();
     window.firebaseSignIn = signInWithEmailAndPassword;
     window.firebaseSignOut = signOut;
     window.firebaseOnAuthStateChanged = onAuthStateChanged;
@@ -323,7 +323,7 @@
                     <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Herramientas de Dibujo</h3>
                     <div class="row">
                         <div class="seg" id="toolSeg">
-                            <button id="toolArrows" class="active">Flechas</button>
+                            <button id="toolArrows">Flechas</button>
                             <button id="toolPen">Lápiz</button>
                             <button id="toolText">Texto</button>
                         </div>
@@ -395,7 +395,8 @@
         currentBallPos: { x: WIDTH / 2, y: HEIGHT / 2 },
         selectedPlayers: new Set(), playing: false,
         layout: { mode: 'landscape', scale: 1 }, forcePortrait: false,
-        currentTool: 'arrows', ballCarrier: null,
+        currentTool: 'select', // --- Herramienta por defecto: seleccionar ---
+        ballCarrier: null,
     };
 
     const UI = {
@@ -498,6 +499,7 @@
                 if (AppState.userRole !== 'coach' || e.button !== 0) return;
                 const target = e.target, playerEl = target.closest('.player'), ballEl = target.closest('#ball');
                 activeDrag = { type: null, start: this.clientToBoard(e), clientStart: { x: e.clientX, y: e.clientY } };
+
                 if (playerEl) {
                     e.preventDefault();
                     if (!e.ctrlKey && !playerEl.classList.contains('selected')) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); }
@@ -506,13 +508,25 @@
                     activeDrag.type = 'player';
                     activeDrag.offsets = new Map([...AppState.selectedPlayers].map(p => [p, { x: parseFloat(p.style.left), y: parseFloat(p.style.top) }]));
                 } else if (ballEl) { e.preventDefault(); activeDrag.type = 'ball'; } 
-                else { activeDrag.type = 'board'; if (!e.ctrlKey) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); } }
+                else { // Click on board
+                    if (['arrows', 'pen'].includes(AppState.currentTool)) {
+                        activeDrag.type = 'drawing';
+                        const common = { color: UI.els.strokeColor.value, width: UI.els.strokeWidth.value, dashed: UI.els.dashed.checked };
+                        if (AppState.currentTool === 'arrows') activeDrag.drawing = { ...common, x1: activeDrag.start.x, y1: activeDrag.start.y, x2: activeDrag.start.x, y2: activeDrag.start.y };
+                        else activeDrag.drawing = { ...common, points: [`${activeDrag.start.x},${activeDrag.start.y}`] };
+                        AppState.drawings[AppState.currentTool === 'arrows' ? 'arrows' : 'strokes'].push(activeDrag.drawing);
+                    } else {
+                        activeDrag.type = 'selection';
+                        if (!e.ctrlKey) { AppState.selectedPlayers.forEach(p => p.classList.remove('selected')); AppState.selectedPlayers.clear(); }
+                    }
+                }
                 document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
             };
             const move = e => {
                 if (!activeDrag) return; e.preventDefault();
                 const currentPos = this.clientToBoard(e);
                 const { dx, dy } = this.deltaToBoard(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y);
+
                 if (activeDrag.type === 'player') {
                     activeDrag.offsets.forEach((pos, p) => {
                         const newX = pos.x + dx, newY = pos.y + dy;
@@ -520,27 +534,19 @@
                         if (AppState.ballCarrier === p) this.placeBall(newX, newY);
                     });
                 } else if (activeDrag.type === 'ball') { this.placeBall(currentPos.x, currentPos.y); AppState.ballCarrier = null; } 
-                else if (activeDrag.type === 'board') {
-                    if (['arrows', 'pen'].includes(AppState.currentTool) && !activeDrag.drawing) {
-                        const common = { color: UI.els.strokeColor.value, width: UI.els.strokeWidth.value, dashed: UI.els.dashed.checked };
-                        if (AppState.currentTool === 'arrows') activeDrag.drawing = { ...common, x1: activeDrag.start.x, y1: activeDrag.start.y, x2: activeDrag.start.x, y2: activeDrag.start.y };
-                        else activeDrag.drawing = { ...common, points: [`${activeDrag.start.x},${activeDrag.start.y}`] };
-                        AppState.drawings[AppState.currentTool === 'arrows' ? 'arrows' : 'strokes'].push(activeDrag.drawing);
-                    }
-                    if (activeDrag.drawing) {
-                        if (AppState.currentTool === 'arrows') { activeDrag.drawing.x2 = currentPos.x; activeDrag.drawing.y2 = currentPos.y; }
-                        else if (AppState.currentTool === 'pen') activeDrag.drawing.points.push(`${currentPos.x},${currentPos.y}`);
-                        this.renderDraw();
-                    } else {
-                        const { x, y } = activeDrag.start, w = currentPos.x - x, h = currentPos.y - y, { selectionBox } = UI.els;
-                        selectionBox.style.display = 'block'; selectionBox.style.left = `${x}px`; selectionBox.style.top = `${y}px`;
-                        selectionBox.style.transform = `scale(${w < 0 ? -1 : 1}, ${h < 0 ? -1 : 1})`; selectionBox.style.width = `${Math.abs(w)}px`; selectionBox.style.height = `${Math.abs(h)}px`;
-                    }
+                else if (activeDrag.type === 'drawing') {
+                    if (AppState.currentTool === 'arrows') { activeDrag.drawing.x2 = currentPos.x; activeDrag.drawing.y2 = currentPos.y; }
+                    else if (AppState.currentTool === 'pen') activeDrag.drawing.points.push(`${currentPos.x},${currentPos.y}`);
+                    this.renderDraw();
+                } else if (activeDrag.type === 'selection') {
+                    const { x, y } = activeDrag.start, w = currentPos.x - x, h = currentPos.y - y, { selectionBox } = UI.els;
+                    selectionBox.style.display = 'block'; selectionBox.style.left = `${x}px`; selectionBox.style.top = `${y}px`;
+                    selectionBox.style.transform = `scale(${w < 0 ? -1 : 1}, ${h < 0 ? -1 : 1})`; selectionBox.style.width = `${Math.abs(w)}px`; selectionBox.style.height = `${Math.abs(h)}px`;
                 }
             };
             const up = e => {
                 if (!activeDrag) return;
-                if (activeDrag.type === 'board' && !activeDrag.drawing) {
+                if (activeDrag.type === 'selection') {
                     const selRect = UI.els.selectionBox.getBoundingClientRect();
                     UI.els.players.childNodes.forEach(p => {
                         const pRect = p.getBoundingClientRect();
@@ -550,7 +556,7 @@
                     });
                     UI.els.selectionBox.style.display = 'none'; UI.els.selectionBox.style.width = '0'; UI.els.selectionBox.style.height = '0';
                 }
-                if (AppState.currentTool === 'text' && activeDrag.type === 'board' && Math.hypot(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y) < 10) {
+                if (AppState.currentTool === 'text' && activeDrag.type !== 'player' && activeDrag.type !== 'ball' && Math.hypot(e.clientX - activeDrag.clientStart.x, e.clientY - activeDrag.clientStart.y) < 10) {
                     const text = prompt("Ingresa el texto:");
                     if (text) { AppState.drawings.notes.push({ x: activeDrag.start.x, y: activeDrag.start.y, text, color: UI.els.strokeColor.value }); this.renderDraw(); }
                 }
@@ -592,7 +598,16 @@
         els.btnMenuOpen.addEventListener('click', () => UI.openMobileMenu()); els.btnCloseMenu.addEventListener('click', () => UI.closeMobileMenu()); els.menuOverlay.addEventListener('click', () => UI.closeMobileMenu());
         els.btnLandscape.addEventListener('click', () => { AppState.forcePortrait = false; Board.fitBoard(); UI.closeMobileMenu(); });
         els.btnPortrait.addEventListener('click', () => { AppState.forcePortrait = true; Board.fitBoard(); UI.closeMobileMenu(); });
-        ['toolArrows', 'toolPen', 'toolText'].forEach(id => els[id].addEventListener('click', () => { AppState.currentTool = id.replace('tool', '').toLowerCase(); document.querySelectorAll('#toolSeg button').forEach(b => b.classList.remove('active')); els[id].classList.add('active'); }));
+        ['toolArrows', 'toolPen', 'toolText'].forEach(id => els[id].addEventListener('click', () => {
+            if (els[id].classList.contains('active')) {
+                AppState.currentTool = 'select'; // Deseleccionar
+                els[id].classList.remove('active');
+            } else {
+                AppState.currentTool = id.replace('tool', '').toLowerCase();
+                document.querySelectorAll('#toolSeg button').forEach(b => b.classList.remove('active'));
+                els[id].classList.add('active');
+            }
+        }));
         els.showGrid.addEventListener('change', () => els.grid.classList.toggle('on', els.showGrid.checked));
         els.btnClear.addEventListener('click', () => { if (confirm('¿Borrar todos los dibujos?')) { AppState.drawings = { arrows: [], strokes: [], notes: [] }; Board.renderDraw(); } });
         els.btnUndo.addEventListener('click', () => { const lastKey = Object.keys(AppState.drawings).reverse().find(key => AppState.drawings[key].length > 0); if (lastKey) { AppState.drawings[lastKey].pop(); Board.renderDraw(); } });
