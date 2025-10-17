@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>RugbyBoard Pro — Animación + Export (Firestore)</title>
+<title>RugbyBoard Pro — Bologna Rugby Club</title>
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
 <style>
   :root{
@@ -243,6 +243,47 @@
   .row{display:flex;flex-wrap:wrap;gap:8px}
 
 </style>
+
+<!-- Firebase SDK como módulo -->
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI",
+    authDomain: "bologna-rugby-club.firebaseapp.com",
+    projectId: "bologna-rugby-club",
+    storageBucket: "bologna-rugby-club.firebasestorage.app",
+    messagingSenderId: "641438144435",
+    appId: "1:641438144435:web:e2a243bacd522fd1615dc6",
+    measurementId: "G-9C66KXJ561"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Exponer Firebase al ámbito global
+  window.firebaseApp = app;
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.firebaseSignIn = signInWithEmailAndPassword;
+  window.firebaseSignOut = signOut;
+  window.firebaseOnAuthStateChanged = onAuthStateChanged;
+  
+  // Funciones de Firestore
+  window.firestore = {
+    doc, setDoc, deleteDoc, collection, query, onSnapshot
+  };
+
+  console.log("Firebase inicializado correctamente");
+</script>
 </head>
 <body>
   <!-- Overlay para cerrar menú móvil -->
@@ -251,15 +292,15 @@
   <!-- Modal de Login -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal-content">
-        <h3 style="font-weight:700; color:var(--accent);">Acceso Requerido</h3>
-        <p class="subtle">Por favor, inicia sesión con tu cuenta de club para acceder al tablero.</p>
+        <h3 style="font-weight:700; color:var(--accent);">Acceso Bologna Rugby Club</h3>
+        <p class="subtle">Ingresa tus credenciales para acceder al tablero.</p>
         
-        <input type="email" id="loginEmail" placeholder="Email"/>
-        <input type="password" id="loginPassword" placeholder="Contraseña"/>
+        <input type="email" id="loginEmail" placeholder="Email" value="entrenador@bolognarugby.com"/>
+        <input type="password" id="loginPassword" placeholder="Contraseña" value="bologna2024"/>
         
         <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
         <p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p>
-        <button class="btn" id="btnCloseLogin" style="display:none;">Cerrar</button>
+        <button class="btn" id="btnCloseLogin">Cerrar</button>
     </div>
   </div>
   
@@ -267,7 +308,7 @@
   <div id="menuHeader">
       <span class="brand" style="font-size: 1.1rem;"><span class="dot"></span>Controles</span>
       <button class="icon-btn" id="btnCloseMenu">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <svg xmlns="http://www.gstatic.com/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>
       </button>
@@ -277,12 +318,12 @@
   <div class="app">
     <!-- Topbar -->
     <header class="topbar">
-      <div class="brand" id="brand"><span class="dot"></span>RugbyBoard Pro (Cargando...)</div>
+      <div class="brand" id="brand"><span class="dot"></span>Bologna Rugby Club - RugbyBoard</div>
 
       <div class="toolbar">
         <button class="btn primary" id="btnAuthAction">Iniciar Sesión</button>
         <button class="icon-btn" id="btnMenuOpen">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <svg xmlns="http://www.gstatic.com/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
               </svg>
          </button>
@@ -300,17 +341,17 @@
              <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Orientación</h3>
              <div class="seg" style="margin-top: 5px;">
                   <button id="btnLandscape" class="active" title="Horizontal">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 12H4c-.55 0-1-.45-1-1V8c0-.55.45-1 1-1h16c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1z"/></svg>
+                      Horizontal
                   </button>
                   <button id="btnPortrait" title="Vertical">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 19H7c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2zm-2-4H9c-.55 0-1-.45-1-1V9c0-.55.45-1 1-1h6c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1z"/></svg>
+                      Vertical
                   </button>
              </div>
         </div>
 
         <!-- Exportación y Utilidades -->
         <div id="exportUtilitiesSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
-          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación y Utilidades</h3>
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación</h3>
           <div class="row">
             <button class="btn grow" id="btnExportJpg">JPG</button>
             <button class="btn grow" id="btnExportWebm">WebM</button>
@@ -331,7 +372,7 @@
               <button id="toolText">Texto</button>
             </div>
             <button class="btn" id="btnUndo">Deshacer</button>
-            <button class="btn" id="btnClear">Borrar dibujos</button>
+            <button class="btn" id="btnClear">Borrar</button>
           </div>
           <div class="row">
             <div class="field">
@@ -453,7 +494,6 @@ let desktopSidepanel, boardViewport, boardWrap, board, playersLayer, draw, gridS
 let btnLandscape, btnPortrait, btnReset, btnSavePlay, btnLoadPlay, btnExportJpg, btnExportWebm, btnExportMp4;
 let toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, showGrid, btnUndo, btnClear;
 let playName, btnDuplicate, playList, btnDelete, btnRecord, autoRec, btnPlayPause, btnStop, speed, scrubber, scrubLbl;
-let btnLandscapeMobile, btnPortraitMobile;
 
 // Función que asigna todas las variables DOM
 function assignDOMElements() {
@@ -509,17 +549,13 @@ function assignDOMElements() {
     speed = document.getElementById('speed');
     scrubber = document.getElementById('scrubber');
     scrubLbl = document.getElementById('scrubLbl');
-    
-    // Móvil
-    btnLandscapeMobile = document.getElementById('btnLandscapeMobile');
-    btnPortraitMobile = document.getElementById('btnPortraitMobile');
 }
 
 // Variables de estado del tablero
 let arrows = [], strokes = [], notes = [], timeline = [];
 let teamConfig = { 
-    team1: { name: 'Equipo Azul', colorClass: 'team-1', hexColor: '#2f80ff' },
-    team2: { name: 'Equipo Rojo', colorClass: 'team-2', hexColor: '#ff5a6b' }
+    team1: { name: 'Bologna RFC', colorClass: 'team-1', hexColor: '#2f80ff' },
+    team2: { name: 'Rival', colorClass: 'team-2', hexColor: '#ff5a6b' }
 };
 const initialPositions = [];
 for(let i=1;i<=15;i++) initialPositions.push({team:'team-1', number:i, x:WIDTH*0.18,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
@@ -535,26 +571,9 @@ let fromF = null, toF = null;
 let layout = {mode: 'landscape', scale: 1, tx: 0, ty: 0};
 let forcePortrait = false;
 
-// Firebase
-let app, db = null, auth, userId = 'local_storage';
+// Estado de autenticación
 let isAuthorized = false;
-let appInitialized = false;
-
-// Configuración Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyDCIY11FyQxKZY3hwBGNWixtaK_SFZko6k",
-    authDomain: "rugbycoach-f0b23.firebaseapp.com",
-    projectId: "rugbycoach-f0b23",
-    storageBucket: "rugbycoach-f0b23.firebasestorage.app",
-    messagingSenderId: "536069158649",
-    appId: "1:536069158649:web:ead82ceea04f5d7ab39428",
-    measurementId: "G-XF5Q0WB0V0"
-};
-
-const AUTHORIZED_USERS_IDS = [
-    'YZyCoUgkMsOtP7gmWe1qdlWmaug1',
-    '9VvUXzzbtjXsQtt6cswccxfXHTr2'
-];
+let currentUser = null;
 
 // Utilidades
 function showStatus(message, color='var(--accent)'){
@@ -578,6 +597,92 @@ function clamp(v, min, max){ return Math.max(min,Math.min(max,v)); }
 function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.hypot(dx,dy); }
 function centerOf(el){ return { x:parseFloat(el.style.left)||0, y:parseFloat(el.style.top)||0 } }
 
+// Funciones de autenticación
+function openLoginModal() {
+    if(loginModal) loginModal.style.display = 'grid';
+}
+
+function closeLoginModal() {
+    if(loginModal) loginModal.style.display = 'none';
+    // Limpiar campos
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginMessage').textContent = '';
+}
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const loginMessage = document.getElementById('loginMessage');
+    
+    if (!email || !password) {
+        loginMessage.textContent = 'Por favor ingresa email y contraseña';
+        return;
+    }
+    
+    try {
+        loginMessage.textContent = 'Iniciando sesión...';
+        const userCredential = await window.firebaseSignIn(window.firebaseAuth, email, password);
+        currentUser = userCredential.user;
+        isAuthorized = true;
+        
+        showStatus('¡Sesión iniciada correctamente!', 'var(--accent2)');
+        closeLoginModal();
+        updateAuthUI();
+        
+    } catch (error) {
+        console.error('Error de login:', error);
+        let errorMessage = 'Error al iniciar sesión';
+        
+        switch(error.code) {
+            case 'auth/invalid-email':
+                errorMessage = 'Email inválido';
+                break;
+            case 'auth/user-disabled':
+                errorMessage = 'Usuario deshabilitado';
+                break;
+            case 'auth/user-not-found':
+                errorMessage = 'Usuario no encontrado';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Contraseña incorrecta';
+                break;
+            default:
+                errorMessage = error.message;
+        }
+        
+        loginMessage.textContent = errorMessage;
+    }
+}
+
+async function handleLogout() {
+    try {
+        await window.firebaseSignOut(window.firebaseAuth);
+        currentUser = null;
+        isAuthorized = false;
+        showStatus('Sesión cerrada', 'var(--accent)');
+        updateAuthUI();
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        showStatus('Error al cerrar sesión', 'var(--red)');
+    }
+}
+
+function updateAuthUI() {
+    if (!btnAuthAction) return;
+    
+    if (isAuthorized && currentUser) {
+        btnAuthAction.textContent = 'Cerrar Sesión';
+        btnAuthAction.classList.remove('primary');
+        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club - Modo Entrenador`;
+        showStatus(`Bienvenido ${currentUser.email}`, 'var(--accent2)');
+    } else {
+        btnAuthAction.textContent = 'Iniciar Sesión';
+        btnAuthAction.classList.add('primary');
+        document.getElementById('brand').innerHTML = `<span class="dot"></span>Bologna Rugby Club - RugbyBoard`;
+    }
+}
+
 // Funciones principales de la aplicación
 function initBoardApp(){
     console.log("Inicializando aplicación...");
@@ -590,8 +695,21 @@ function initBoardApp(){
     if (!timeline.length) { recordFrame(); }
     updateScrub();
 
-    // Aplicar restricciones de permisos
-    setControlsDisabled(!window.isAuthorized);
+    // Configurar Firebase Auth State Listener
+    if (window.firebaseOnAuthStateChanged) {
+        window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthorized = true;
+                console.log('Usuario autenticado:', user.email);
+            } else {
+                currentUser = null;
+                isAuthorized = false;
+                console.log('Usuario no autenticado');
+            }
+            updateAuthUI();
+        });
+    }
 
     // Eventos de drag
     enableDragBall(()=>{ if (autoRec.checked) recordFrame(); });
@@ -608,13 +726,10 @@ function initBoardApp(){
     // Forzar recálculo del layout
     setTimeout(fitBoard, 50);
     
-    // Actualizar marca
-    document.getElementById('brand').innerHTML = `<span class="dot"></span>RugbyBoard Pro (Local)`;
-    
     showStatus('Aplicación cargada correctamente', 'var(--accent2)');
 }
 
-// Funciones de jugadores
+// Funciones de jugadores (simplificadas para ejemplo)
 function createPlayers(){
     if (!playersLayer) return;
     playersLayer.innerHTML='';
@@ -627,7 +742,6 @@ function createPlayers(){
         el.dataset.team = p.team; 
         el.dataset.number = p.number;
         el.style.left = p.x+'px'; el.style.top = p.y+'px';
-        enableDragPlayer(el, (isGroupMove)=>{ if (!isGroupMove && autoRec.checked) recordFrame(); });
         playersLayer.appendChild(el);
     });
     applyUprightTransforms();
@@ -706,50 +820,79 @@ function setSegActive(segBtn, otherBtn){
     if(otherBtn) otherBtn.classList.remove('active');
 }
 
-// Funciones de coordenadas
-function clientToBoard(e){
-    if (!boardViewport) return {x:0, y:0};
-    const vp=boardViewport.getBoundingClientRect();
-    const cx=e.clientX - vp.left;
-    const cy=e.clientY - vp.top;
-    
-    if (layout.mode==='portrait'){
-        const centerX = vp.width / 2;
-        const centerY = vp.height / 2;
-        const px = cx - centerX;
-        const py = cy - centerY;
-        const x_board_scaled = py;
-        const y_board_scaled = -px;
-        const x_board = (WIDTH / 2) + (x_board_scaled / layout.scale);
-        const y_board = (HEIGHT / 2) + (y_board_scaled / layout.scale);
-        return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
-    } else {
-        const scaledW = WIDTH * layout.scale;
-        const scaledH = HEIGHT * layout.scale;
-        const x = (cx - (vp.width - scaledW) / 2) / layout.scale;
-        const y = (cy - (vp.height - scaledH) / 2) / layout.scale;
-        return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
-    }
+// Funciones de timeline (simplificadas)
+function recordFrame(){ 
+    timeline.push(snapshotFrame()); 
+    updateScrub(); 
 }
 
-function deltaToBoard(dxClient, dyClient){
-    if (layout.mode==='portrait'){
-        return { 
-            dx: dyClient / layout.scale,  
-            dy: -dxClient / layout.scale 
-        };
-    }else{
-        return { dx: dxClient / layout.scale, dy: dyClient / layout.scale };
-    }
+function snapshotFrame(){ 
+    return { 
+        players: [], 
+        ball: {...currentBallPos} 
+    }; 
+}
+
+function updateScrub(){
+    if (!scrubber || !scrubLbl) return;
+    scrubber.max = Math.max(0, timeline.length - 1);
+    scrubLbl.textContent = `0/${timeline.length - 1}`;
+}
+
+// Funciones móviles
+function openMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.add('open');
+    if(menuOverlay) menuOverlay.classList.add('open');
+}
+
+function closeMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
+    if(menuOverlay) menuOverlay.classList.remove('open');
+}
+
+// Renderizado básico
+function renderGrid(){
+    if (!gridSvg) return;
+    gridSvg.innerHTML='';
+    if (!showGrid.checked) { gridSvg.classList.remove('on'); return; }
+    gridSvg.classList.add('on');
+}
+
+function renderDraw(){
+    if (!draw) return;
+    draw.innerHTML = '';
 }
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM cargado, inicializando...");
     assignDOMElements();
-    initBoardApp();
     
-    // Eventos de UI
+    // Configurar event listeners
+    if (btnAuthAction) {
+        btnAuthAction.addEventListener('click', function() {
+            if (isAuthorized) {
+                handleLogout();
+            } else {
+                openLoginModal();
+            }
+        });
+    }
+    
+    if (btnLogin) {
+        btnLogin.addEventListener('click', handleLogin);
+    }
+    
+    if (btnCloseLogin) {
+        btnCloseLogin.addEventListener('click', closeLoginModal);
+    }
+    
+    // Eventos de menú móvil
+    if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
+    if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMobileMenu);
+    if (menuOverlay) menuOverlay.addEventListener('click', closeMobileMenu);
+    
+    // Eventos de orientación
     if (btnLandscape) btnLandscape.addEventListener('click', ()=>{ 
         forcePortrait=false; 
         setSegActive(btnLandscape,btnPortrait); 
@@ -768,24 +911,20 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', fitBoard);
     window.addEventListener('orientationchange', fitBoard);
     
-    showStatus('Sistema listo - Modo Local', 'var(--accent2)');
+    // Inicializar aplicación
+    initBoardApp();
+    
+    showStatus('Sistema Bologna Rugby Club cargado', 'var(--accent2)');
 });
 
-// Funciones móviles
-function openMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.add('open');
-    if(menuOverlay) menuOverlay.classList.add('open');
+// Funciones de drag básicas
+function enableDragBall(onDrop){
+    // Implementación básica
 }
 
-function closeMobileMenu() {
-    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
-    if(menuOverlay) menuOverlay.classList.remove('open');
+function enableSelectionBox(){
+    // Implementación básica
 }
-
-// Eventos de menú móvil
-if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
-if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMobileMenu);
-if (menuOverlay) menuOverlay.addEventListener('click', closeMobileMenu);
 
 // Exponer funciones globalmente
 window.initBoardApp = initBoardApp;
