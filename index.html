@@ -3,128 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>RugbyBoard Pro — Multi-tenant (Firestore)</title>
-
-<!-- FFmpeg.wasm UMD -->
+<title>RugbyBoard Pro — Animación + Export (Firestore)</title>
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
-
-<script type="module">
-/* ===================== Firebase ===================== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInWithCustomToken, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot, setLogLevel, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
-
-setLogLevel('debug');
-
-/* === Configuración Firebase (reemplaza con la tuya si cambia) === */
-const firebaseConfig = {
-  apiKey: "AIzaSyDCIY11FyQxKZY3hwBGNWixtaK_SFZko6k",
-  authDomain: "rugbycoach-f0b23.firebaseapp.com",
-  projectId: "rugbycoach-f0b23",
-  storageBucket: "rugbycoach-f0b23.firebasestorage.app",
-  messagingSenderId: "536069158649",
-  appId: "1:536069158649:web:ead82ceea04f5d7ab39428",
-  measurementId: "G-XF5Q0WB0V0"
-};
-
-/* === App globals === */
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-const auth = getAuth(app);
-const functions = getFunctions(app);
-
-window.db = db; window.auth = auth;
-
-/* === TEAM CONTEXT: /t/{teamId} === */
-function detectTeamIdFromURL() {
-  const m = location.pathname.match(/\/t\/([^\/]+)/);
-  return m && m[1] ? m[1] : null;
-}
-let currentTeamId = detectTeamIdFromURL();
-
-/* === Autorización UI (coach/admin) — por UID lista blanca o por membresía si prefieres) === */
-// Si querés basarte SOLO en memberships, poné siempre isAuthorized=false acá y usa fetchMyMembership() abajo.
-const AUTHORIZED_USERS_IDS = [
-  'YZyCoUgkMsOtP7gmWe1qdlWmaug1',
-  '9VvUXzzbtjXsQtt6cswccxfXHTr2'
-];
-let isAuthorized = false; // cambia dinámicamente al loguear
-
-/* === Colección de Jugadas por Equipo === */
-function getPlayCollectionRef() {
-  if (!db || !currentTeamId) return null;
-  return collection(db, `teams/${currentTeamId}/plays`);
-}
-
-/* === Helpers de membresía (opcional, por si quieres condicionar UI por rol) === */
-async function fetchMyMembership() {
-  if (!db || !auth?.currentUser || !currentTeamId) return null;
-  const ref = doc(db, `teams/${currentTeamId}/memberships/${auth.currentUser.uid}`);
-  const snap = await getDoc(ref);
-  return snap.exists() ? snap.data() : null;
-}
-
-/* === Estado app / listeners === */
-let appInitialized = false;
-
-function handleAuthStateChange(user) {
-  const loginModal = document.getElementById('loginModal');
-  const btnAuthAction = document.getElementById('btnAuthAction');
-  const brand = document.getElementById('brand');
-
-  if (user) {
-    window.userId = user.uid;
-    isAuthorized = AUTHORIZED_USERS_IDS.includes(user.uid); // (o chequeá rol via fetchMyMembership)
-    window.isAuthorized = isAuthorized;
-
-    loginModal.style.display = 'none';
-    updateAuthButton(true);
-    setControlsDisabled(!isAuthorized);
-    brand.innerHTML = `<span class="dot"></span>RugbyBoard Pro ${isAuthorized ? '(Entrenador)' : '(Espectador)'}`;
-    showStatus(`Sesión iniciada.`, isAuthorized ? 'var(--accent2)' : 'var(--warn)');
-
-    refreshPlayList();
-    reInitializePlayerInteractions();
-  } else {
-    window.userId = 'unauthenticated';
-    window.isAuthorized = false; isAuthorized = false;
-    setControlsDisabled(true);
-    updateAuthButton(false);
-    brand.innerHTML = `<span class="dot"></span>RugbyBoard Pro (Modo Lector)`;
-    refreshPlayList();
-  }
-}
-
-/* === init general === */
-onAuthStateChanged(auth, handleAuthStateChange);
-
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.signOut = signOut;
-/* Exponer para otras funciones ya definidas más abajo */
-window.getPlayCollectionRef = getPlayCollectionRef;
-window.onSnapshot = onSnapshot;
-window.doc = doc;
-window.setDoc = setDoc;
-window.deleteDoc = deleteDoc;
-window.query = query;
-window.functions = functions;
-window.httpsCallable = httpsCallable;
-
-/* === Invite Member (Cloud Function) === */
-const inviteMemberFn = httpsCallable(functions, "inviteMember");
-
-</script>
-
 <style>
   :root{
     --bg:#0b1520; --panel:#0e1c2a; --panel2:#122235; --ink:#e8eef5; --muted:#9fb3c8;
     --border:#1b3147; --accent:#00c2ff; --accent2:#7ef29a; --warn:#ffd400; --red:#ff5a6b; --blue:#2f80ff;
-    --shadow:0 8px 28px rgba(0,0,0,.35); --r:12px;
+    --shadow:0 8px 28px rgba(0,0,0,.35);
+    --r:12px;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .app{display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh}
+  .app{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
+
+  /* Top bar */
   .topbar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(180deg,#0f2235,#0c1a29);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
   .brand{display:flex;align-items:center;gap:10px;font-weight:700}
   .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
@@ -135,154 +27,316 @@ const inviteMemberFn = httpsCallable(functions, "inviteMember");
   .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   .seg button{border:none;background:#13293d;padding:.45rem .7rem;color:var(--ink);cursor:pointer}
   .seg button.active{background:#15354f;color:#7fe7ff}
-  .stage{position:relative;display:grid;grid-template-columns: 1fr;grid-template-rows:1fr;min-height:calc(100dvh - 180px); padding: 12px;}
-  .board-viewport{position:relative;inset:0;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:12px}
-  .board-wrap{position:relative;width:1200px;height:700px;transform-origin:top left}
+
+  /* Stage */
+  .stage{position:relative;display:grid;grid-template-columns: 1fr;grid-template-rows:1fr;min-height:100%; padding: 0;}
+  
+  .board-viewport{
+    position:relative;
+    inset:0;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    overflow:hidden;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .board-wrap{position:relative; width:1200px; height:700px; transform-origin:center center;} 
   .board{position:absolute;inset:0;background:#137a46;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-  .lines,.draw{position:absolute;inset:0;pointer-events:none}
+  .lines, .draw{position:absolute;inset:0;pointer-events:none}
   svg{width:100%;height:100%;display:block}
   .grid{position:absolute;inset:0;pointer-events:none;opacity:.55;display:none}
   .grid.on{display:block}
+
+  /* Players & ball */
   #players{position:absolute;inset:0;z-index:3;pointer-events:none}
   .player{pointer-events:auto;position:absolute;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:grab}
-  .player.selected{border:3px solid var(--accent); box-shadow:0 0 10px var(--accent)}
-  .team-1{background:var(--blue)} .team-2{background:var(--red)}
+  .player.selected{border: 3px solid var(--accent); box-shadow: 0 0 10px var(--accent);}
+  .blue{background:var(--blue)} .red{background:var(--red)}
+  .team-1{background:var(--blue);}
+  .team-2{background:var(--red);}
+  
   #ball{position:absolute;z-index:4}
   .ball{width:50px;height:30px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
   .ball::after{content:"";position:absolute;inset:6px 18px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
-  #selectionBox{position:absolute;pointer-events:none;border:1px dashed var(--accent);background:rgba(0,194,255,0.1);z-index:5;display:none}
-  .dock{position:sticky;bottom:0;background:linear-gradient(0deg,#0d1f30,#0b1928);border-top:1px solid var(--border);z-index:90}
-  .dock-inner{display:grid;grid-template-columns:1fr;gap:10px;padding:10px 14px;}
-  .row{display:flex;flex-wrap:wrap;gap:8px}
+  
+  /* Selection Box */
+  #selectionBox{
+      position: absolute;
+      pointer-events: none;
+      border: 1px dashed var(--accent);
+      background: rgba(0, 194, 255, 0.1);
+      z-index: 5;
+      display: none;
+  }
+
+  /* Modal Login */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    place-items: center;
+    z-index: 1000;
+  }
+  .modal-content {
+    background-color: var(--panel);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid var(--border);
+  }
+  .modal-content input {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .modal-content button {
+    margin-top: 10px;
+  }
+
+  /* Desktop Styles */
+  @media (min-width: 1000px){
+    .app{grid-template-rows:auto 1fr}
+    .stage{
+        grid-template-columns: 320px 1fr;
+        gap:14px; 
+        padding:12px; 
+        display: grid; 
+        min-height: calc(100dvh - 70px); 
+    }
+    
+    .sidepanel{
+        position: relative;
+        background:var(--panel);
+        border:1px solid var(--border);
+        border-radius:12px;
+        padding:12px;
+        display:flex; 
+        flex-direction:column;
+        gap:12px; 
+        min-height: 100%; 
+        overflow-y: auto; 
+        transform: translateX(0) !important;
+    }
+    
+    .dock, #btnMenuOpen { display: none !important; }
+    
+    .sidepanel-section { padding-top: 0 !important; border-top: none !important; }
+    .sidepanel-section + .sidepanel-section { border-top: 1px solid var(--border) !important; padding-top: 12px !important; }
+  }
+
+  /* Mobile Styles */
+  @media (max-width: 999px) {
+    .app { 
+        min-height: 100dvh; 
+        grid-template-rows: auto 1fr; 
+    }
+    
+    .stage {
+        padding: 0; 
+        min-height: auto;
+        height: 100%; 
+    }
+    .board-viewport {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .topbar .seg, .topbar .toolbar > .btn { display: none; }
+    .topbar #btnAuthAction, .topbar #btnMenuOpen { display: flex; }
+
+    .sidepanel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100vw;
+        z-index: 1000;
+        background: var(--bg);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-out;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+        padding-top: 60px;
+        display: flex;
+    }
+    
+    .sidepanel.open {
+        transform: translateX(0);
+    }
+    
+    .dock { display: none !important; }
+    
+    #menuOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    #menuOverlay.open {
+        display: block;
+    }
+  }
+
+  /* Menu header */
+  #menuHeader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      z-index: 1001;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+  }
+  .sidepanel.open ~ #menuHeader {
+      display: flex;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+  }
+  .icon-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  #btnMenuOpen {
+      display: none;
+  }
+  @media (max-width: 999px) {
+      #btnMenuOpen {
+          display: inline-block;
+      }
+  }
+
+  /* Form elements */
   .field{display:flex;align-items:center;gap:8px;background:#0f2032;border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem}
   .field label{font-size:.85rem;color:var(--muted)}
   select,input[type="number"],input[type="text"]{background:#0c1c2b;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.45rem .55rem}
   input[type="checkbox"]{width:18px;height:18px}
   .grow{flex:1}
   .subtle{color:var(--muted);font-size:.85rem}
-  #geminiAssistantOutput{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:10px;white-space:pre-wrap;font-size:.9rem}
-  .loader{border:3px solid var(--border);border-top:3px solid var(--accent);border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-left:10px}
-  @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-  .modal-overlay{position:fixed;inset:0;background-color:rgba(0,0,0,.7);display:none;place-items:center;z-index:1000}
-  .modal-content{background:var(--panel);padding:24px;border-radius:12px;box-shadow:var(--shadow);width:90%;max-width:400px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--border)}
-  .modal-content input,.modal-content select{width:100%;padding:10px}
-  .modal-content button{margin-top:6px}
-  @media (min-width:1000px){
-    .app{grid-template-rows:auto 1fr}
-    .stage{grid-template-columns:320px 1fr;gap:14px;padding:12px;display:grid;min-height:calc(100dvh - 70px)}
-    .sidepanel{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:100%;overflow-y:auto}
-    .dock,#btnMenuOpen{display:none!important}
-    .sidepanel-section{padding-top:0!important;border-top:none!important}
-    .sidepanel-section + .sidepanel-section{border-top:1px solid var(--border)!important;padding-top:12px!important}
-  }
-  @media (max-width:999px){
-    .app{min-height:100dvh;grid-template-rows:auto 1fr}
-    .stage{padding:0;height:100%}
-    .board-viewport{width:100%;height:100%}
-    .topbar .seg{display:none!important}
-    #btnMenuOpen{display:inline-block}
-    .sidepanel{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;z-index:1000;background:var(--bg);transform:translateX(-100%);transition:transform .3s ease-out;box-shadow:4px 0 10px rgba(0,0,0,.5);padding-top:60px;display:flex}
-    .sidepanel.open{transform:translateX(0)}
-    .dock{display:none!important}
-    #menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:none}
-    #menuOverlay.open{display:block}
-  }
-  #menuHeader{position:fixed;top:0;left:0;width:100%;height:60px;z-index:1001;background:var(--panel);border-bottom:1px solid var(--border);display:none;align-items:center;justify-content:space-between;padding:0 14px}
-  .sidepanel.open ~ #menuHeader{display:flex}
-  .icon-btn{background:none;border:none;cursor:pointer;padding:8px;color:var(--ink);display:flex;align-items:center}
-  .icon-btn svg{width:24px;height:24px}
-  #btnMenuOpen{display:none}
-  @media (max-width:999px){#btnMenuOpen{display:inline-block}}
+  .row{display:flex;flex-wrap:wrap;gap:8px}
+
 </style>
 </head>
-
 <body>
   <!-- Overlay para cerrar menú móvil -->
   <div id="menuOverlay" style="display:none;"></div>
 
-  <!-- Modal Login -->
+  <!-- Modal de Login -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal-content">
-      <h3 style="font-weight:700;color:var(--accent);">Acceso Requerido</h3>
-      <p class="subtle">Inicia sesión con tu cuenta.</p>
-      <input type="email" id="loginEmail" placeholder="Email"/>
-      <input type="password" id="loginPassword" placeholder="Contraseña"/>
-      <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
-      <p id="loginMessage" style="color:var(--red);font-size:.85rem;margin:0;"></p>
-      <button class="btn" id="btnCloseLogin" style="display:none;">Cerrar</button>
+        <h3 style="font-weight:700; color:var(--accent);">Acceso Requerido</h3>
+        <p class="subtle">Por favor, inicia sesión con tu cuenta de club para acceder al tablero.</p>
+        
+        <input type="email" id="loginEmail" placeholder="Email"/>
+        <input type="password" id="loginPassword" placeholder="Contraseña"/>
+        
+        <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
+        <p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p>
+        <button class="btn" id="btnCloseLogin" style="display:none;">Cerrar</button>
     </div>
   </div>
-
-  <!-- Modal Invitar miembro -->
-  <div class="modal-overlay" id="inviteModal">
-    <div class="modal-content">
-      <h3 style="font-weight:700;color:var(--accent);">Invitar miembro</h3>
-      <p class="subtle">Agrega un jugador o entrenador a este equipo.</p>
-      <label class="subtle">Email</label>
-      <input type="email" id="inviteEmail" placeholder="persona@club.com"/>
-      <label class="subtle">Rol</label>
-      <select id="inviteRole">
-        <option value="player" selected>Jugador</option>
-        <option value="coach">Entrenador</option>
-        <option value="admin">Administrador</option>
-      </select>
-      <div class="row" style="justify-content:flex-end;gap:8px;">
-        <button class="btn" id="btnInviteCancel">Cancelar</button>
-        <button class="btn primary" id="btnInviteConfirm">Invitar</button>
-      </div>
-      <p id="inviteMessage" style="color:var(--red);font-size:.85rem;margin:0;"></p>
-    </div>
-  </div>
-
-  <!-- Header móvil (para menú) -->
+  
+  <!-- Contenedor del header móvil -->
   <div id="menuHeader">
-    <span class="brand" style="font-size:1.1rem;"><span class="dot"></span>Controles</span>
-    <button class="icon-btn" id="btnCloseMenu">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-    </button>
+      <span class="brand" style="font-size: 1.1rem;"><span class="dot"></span>Controles</span>
+      <button class="icon-btn" id="btnCloseMenu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+      </button>
   </div>
 
-  <!-- App -->
+  <!-- Contenedor de la aplicación -->
   <div class="app">
+    <!-- Topbar -->
     <header class="topbar">
       <div class="brand" id="brand"><span class="dot"></span>RugbyBoard Pro (Cargando...)</div>
 
-      <div class="seg" id="orientationSeg">
-        <button id="btnLandscape" class="active" title="Horizontal">Horizontal</button>
-        <button id="btnPortrait" title="Vertical">Vertical</button>
-      </div>
-
       <div class="toolbar">
-        <button class="btn" id="btnReset">Reiniciar</button>
-        <button class="btn primary" id="btnSavePlay" disabled>Guardar jugada</button>
-        <button class="btn" id="btnLoadPlay" disabled>Cargar</button>
-        <button class="btn" id="btnExportJpg">JPG</button>
-        <button class="btn" id="btnExportWebm">WebM</button>
-        <button class="btn" id="btnExportMp4">MP4</button>
-        <button class="btn" id="btnInviteMember">Invitar miembro</button>
-        <button class="btn primary" id="btnAuthAction">Modo Entrenador</button>
+        <button class="btn primary" id="btnAuthAction">Iniciar Sesión</button>
         <button class="icon-btn" id="btnMenuOpen">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-        </button>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+              </svg>
+         </button>
       </div>
     </header>
 
+    <!-- Main stage -->
     <main class="stage">
+      
+      <!-- Panel lateral -->
       <aside class="sidepanel" id="desktopSidepanel">
-        <div id="drawingControlsSection" class="sidepanel-section" style="display:flex;flex-direction:column;gap:10px;">
-          <h3 style="font-weight:700;font-size:1.1rem;color:var(--accent);">Herramientas de Dibujo</h3>
+          
+        <!-- Controles de Orientación -->
+        <div id="orientationControls" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+             <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Orientación</h3>
+             <div class="seg" style="margin-top: 5px;">
+                  <button id="btnLandscape" class="active" title="Horizontal">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 12H4c-.55 0-1-.45-1-1V8c0-.55.45-1 1-1h16c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1z"/></svg>
+                  </button>
+                  <button id="btnPortrait" title="Vertical">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 19H7c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2zm-2-4H9c-.55 0-1-.45-1-1V9c0-.55.45-1 1-1h6c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1z"/></svg>
+                  </button>
+             </div>
+        </div>
+
+        <!-- Exportación y Utilidades -->
+        <div id="exportUtilitiesSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación y Utilidades</h3>
           <div class="row">
-            <div class="seg" id="toolSeg">
-              <button id="toolArrows" class="active" disabled>Flechas</button>
-              <button id="toolPen" disabled>Lápiz</button>
-              <button id="toolText" disabled>Texto</button>
-            </div>
-            <button class="btn" id="btnUndo" disabled>Deshacer</button>
-            <button class="btn" id="btnClear" disabled>Borrar dibujos</button>
+            <button class="btn grow" id="btnExportJpg">JPG</button>
+            <button class="btn grow" id="btnExportWebm">WebM</button>
+            <button class="btn grow" id="btnExportMp4">MP4</button>
           </div>
           <div class="row">
-            <div class="field"><label>Color</label>
-              <select id="strokeColor" disabled>
+             <button class="btn grow" id="btnReset">Reiniciar Tablero</button>
+          </div>
+        </div>
+        
+        <!-- Controles de dibujo -->
+        <div id="drawingControlsSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Herramientas de Dibujo</h3>
+          <div class="row">
+            <div class="seg" id="toolSeg">
+              <button id="toolArrows" class="active">Flechas</button>
+              <button id="toolPen">Lápiz</button>
+              <button id="toolText">Texto</button>
+            </div>
+            <button class="btn" id="btnUndo">Deshacer</button>
+            <button class="btn" id="btnClear">Borrar dibujos</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Color</label>
+              <select id="strokeColor">
                 <option value="#ffffff">Blanco</option>
                 <option value="#35d07f">Verde</option>
                 <option value="#2f80ff">Azul</option>
@@ -290,43 +344,59 @@ const inviteMemberFn = httpsCallable(functions, "inviteMember");
                 <option value="#ffd400" selected>Amarillo</option>
               </select>
             </div>
-            <div class="field"><label>Grosor</label>
-              <select id="strokeWidth" disabled>
-                <option value="3">Fino</option><option value="5" selected>Medio</option><option value="7">Grueso</option>
+            <div class="field">
+              <label>Grosor</label>
+              <select id="strokeWidth">
+                <option value="3">Fino</option>
+                <option value="5" selected>Medio</option>
+                <option value="7">Grueso</option>
               </select>
             </div>
-            <div class="field"><input type="checkbox" id="dashed" disabled> <label for="dashed">Punteado</label></div>
+            <div class="field">
+              <input type="checkbox" id="dashed"> <label for="dashed">Punteado</label>
+            </div>
           </div>
           <div class="row">
-            <div class="field"><input type="checkbox" id="showGrid" disabled> <label for="showGrid">Ver grilla</label></div>
+            <div class="field">
+              <input type="checkbox" id="showGrid"> <label for="showGrid">Ver grilla</label>
+            </div>
           </div>
         </div>
-
-        <div id="playManagementSection" class="sidepanel-section" style="display:flex;flex-direction:column;gap:10px;">
-          <h3 style="font-weight:700;font-size:1.1rem;color:var(--accent);">Gestión de Jugadas</h3>
+        
+        <!-- Gestión de Jugadas -->
+        <div id="playManagementSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestión de Jugadas</h3>
           <div class="field grow">
             <label class="subtle">Nombre de Jugada</label>
             <input type="text" id="playName" placeholder="Ej: Lineout 8" class="grow"/>
           </div>
           <div class="row">
-            <button class="btn" id="btnDuplicate" disabled>Duplicar (Local)</button>
-            <select id="playList" class="btn grow" disabled>
-              <option value="">Modo Lector: Cargando jugadas...</option>
+            <button class="btn" id="btnDuplicate">Duplicar</button>
+            <select id="playList" class="btn grow">
+              <option value="">Cargando jugadas...</option>
             </select>
-            <button class="btn" id="btnDelete" disabled>Eliminar</button>
+            <button class="btn" id="btnDelete">Eliminar</button>
+          </div>
+          <div class="row">
+            <button class="btn grow" id="btnSavePlay">Guardar Jugada</button>
+            <button class="btn grow" id="btnLoadPlay">Cargar Jugada</button>
           </div>
         </div>
 
-        <div id="timelineSection" class="sidepanel-section" style="display:flex;flex-direction:column;gap:10px;">
-          <h3 style="font-weight:700;font-size:1.1rem;color:var(--accent);">Control de Animación</h3>
+        <!-- Timeline y Animación -->
+        <div id="timelineSection" class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;">
+          <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Control de Animación</h3>
           <div class="row">
-            <button class="btn grow" id="btnRecord" disabled>Grabar paso</button>
-            <div class="field"><input type="checkbox" id="autoRec" disabled> <label for="autoRec">Auto al soltar</label></div>
+            <button class="btn grow" id="btnRecord">Grabar paso</button>
+            <div class="field">
+              <input type="checkbox" id="autoRec"> <label for="autoRec">Auto al soltar</label>
+            </div>
           </div>
           <div class="row">
             <button class="btn primary" id="btnPlayPause">Reproducir</button>
             <button class="btn" id="btnStop">Stop</button>
-            <div class="field grow"><label>Velocidad (ms)</label>
+            <div class="field grow">
+              <label>Velocidad (ms)</label>
               <input type="number" id="speed" min="100" step="100" value="800" style="width:100px"/>
             </div>
           </div>
@@ -335,13 +405,14 @@ const inviteMemberFn = httpsCallable(functions, "inviteMember");
             <input type="range" id="scrubber" min="0" max="0" value="0" class="grow"/>
             <span id="scrubLbl" class="subtle">0/0</span>
           </div>
-          <button class="btn" id="btnClrTl" disabled>Limpiar animación</button>
+          <button class="btn" id="btnClrTl">Limpiar animación</button>
         </div>
       </aside>
 
       <section class="board-viewport" id="boardViewport">
         <div class="board-wrap" id="boardWrap">
           <div class="board" id="board">
+            <!-- field lines -->
             <svg class="lines" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true">
               <rect x="5" y="5" width="1190" height="690" fill="none" stroke="#fff" stroke-width="6"/>
               <rect x="0" y="0" width="80" height="700" fill="rgba(255,255,255,.07)"/>
@@ -360,6 +431,7 @@ const inviteMemberFn = httpsCallable(functions, "inviteMember");
               <line x1="130" y1="0" x2="130" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
               <line x1="1070" y1="0" x2="1070" y2="700" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
             </svg>
+
             <svg class="grid" id="grid" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
             <svg class="draw" id="draw" viewBox="0 0 1200 700" preserveAspectRatio="none"></svg>
             <div id="players"></div>
@@ -373,621 +445,351 @@ const inviteMemberFn = httpsCallable(functions, "inviteMember");
   </div>
 
 <script>
-/* ===================== Lógica UI / App ===================== */
-const WIDTH=1200, HEIGHT=700, GRID=24;
-const FIELD_GRID_W = 12, FIELD_GRID_H = 7;
-const CELL_W = WIDTH / FIELD_GRID_W, CELL_H = HEIGHT / FIELD_GRID_H;
+// Constantes
+const WIDTH = 1200, HEIGHT = 700, GRID = 24;
 
-const desktopSidepanel = document.getElementById('desktopSidepanel');
-const boardViewport = document.getElementById('boardViewport');
-const boardWrap = document.getElementById('boardWrap');
-const board = document.getElementById('board');
-const playersLayer = document.getElementById('players');
-const draw = document.getElementById('draw');
-const gridSvg = document.getElementById('grid');
-const ball = document.getElementById('ball');
-const exportCanvas = document.getElementById('exportCanvas');
-const ctx = exportCanvas.getContext('2d');
-const selectionBox = document.getElementById('selectionBox');
-const loginModal = document.getElementById('loginModal');
-const btnAuthAction = document.getElementById('btnAuthAction');
-const menuOverlay = document.getElementById('menuOverlay');
-const btnCloseMenu = document.getElementById('btnCloseMenu');
-const btnMenuOpen = document.getElementById('btnMenuOpen');
+// Variables DOM
+let desktopSidepanel, boardViewport, boardWrap, board, playersLayer, draw, gridSvg, ball, exportCanvas, ctx, selectionBox, loginModal, btnAuthAction, menuOverlay, btnCloseMenu, btnMenuOpen;
+let btnLandscape, btnPortrait, btnReset, btnSavePlay, btnLoadPlay, btnExportJpg, btnExportWebm, btnExportMp4;
+let toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, showGrid, btnUndo, btnClear;
+let playName, btnDuplicate, playList, btnDelete, btnRecord, autoRec, btnPlayPause, btnStop, speed, scrubber, scrubLbl;
+let btnLandscapeMobile, btnPortraitMobile;
 
-const btnLandscape = document.getElementById('btnLandscape');
-const btnPortrait = document.getElementById('btnPortrait');
-const btnReset = document.getElementById('btnReset');
-const btnSavePlay = document.getElementById('btnSavePlay');
-const btnLoadPlay = document.getElementById('btnLoadPlay');
-const btnExportJpg = document.getElementById('btnExportJpg');
-const btnExportWebm = document.getElementById('btnExportWebm');
-const btnExportMp4 = document.getElementById('btnExportMp4');
-const btnInviteOpen = document.getElementById('btnInviteMember');
+// Función que asigna todas las variables DOM
+function assignDOMElements() {
+    desktopSidepanel = document.getElementById('desktopSidepanel');
+    boardViewport = document.getElementById('boardViewport');
+    boardWrap = document.getElementById('boardWrap');
+    board = document.getElementById('board');
+    playersLayer = document.getElementById('players');
+    draw = document.getElementById('draw');
+    gridSvg = document.getElementById('grid');
+    ball = document.getElementById('ball');
+    exportCanvas = document.getElementById('exportCanvas');
+    ctx = exportCanvas ? exportCanvas.getContext('2d') : null;
+    selectionBox = document.getElementById('selectionBox');
+    loginModal = document.getElementById('loginModal');
+    btnAuthAction = document.getElementById('btnAuthAction');
+    menuOverlay = document.getElementById('menuOverlay');
+    btnCloseMenu = document.getElementById('btnCloseMenu');
+    btnMenuOpen = document.getElementById('btnMenuOpen');
 
-const toolArrows = document.getElementById('toolArrows');
-const toolPen = document.getElementById('toolPen');
-const toolText = document.getElementById('toolText');
-const strokeColor = document.getElementById('strokeColor');
-const strokeWidth = document.getElementById('strokeWidth');
-const dashed = document.getElementById('dashed');
-const showGrid = document.getElementById('showGrid');
-const btnUndo = document.getElementById('btnUndo');
-const btnClear = document.getElementById('btnClear');
+    // Topbar / acciones
+    btnLandscape = document.getElementById('btnLandscape');
+    btnPortrait = document.getElementById('btnPortrait');
+    btnReset = document.getElementById('btnReset');
+    btnSavePlay = document.getElementById('btnSavePlay');
+    btnLoadPlay = document.getElementById('btnLoadPlay');
+    btnExportJpg = document.getElementById('btnExportJpg');
+    btnExportWebm = document.getElementById('btnExportWebm');
+    btnExportMp4 = document.getElementById('btnExportMp4');
 
-const playName = document.getElementById('playName');
-const btnDuplicate = document.getElementById('btnDuplicate');
-const playList = document.getElementById('playList');
-const btnDelete = document.getElementById('btnDelete');
+    // Herramientas
+    toolArrows = document.getElementById('toolArrows');
+    toolPen = document.getElementById('toolPen');
+    toolText = document.getElementById('toolText');
+    strokeColor = document.getElementById('strokeColor');
+    strokeWidth = document.getElementById('strokeWidth');
+    dashed = document.getElementById('dashed');
+    showGrid = document.getElementById('showGrid');
+    btnUndo = document.getElementById('btnUndo');
+    btnClear = document.getElementById('btnClear');
 
-const btnRecord = document.getElementById('btnRecord');
-const autoRec = document.getElementById('autoRec');
-const btnPlayPause = document.getElementById('btnPlayPause');
-const btnStop = document.getElementById('btnStop');
-const speed = document.getElementById('speed');
-const scrubber = document.getElementById('scrubber');
-const scrubLbl = document.getElementById('scrubLbl');
+    // Jugadas
+    playName = document.getElementById('playName');
+    btnDuplicate = document.getElementById('btnDuplicate');
+    playList = document.getElementById('playList');
+    btnDelete = document.getElementById('btnDelete');
 
-const inviteModal = document.getElementById('inviteModal');
-const inviteEmail = document.getElementById('inviteEmail');
-const inviteRole = document.getElementById('inviteRole');
-const inviteMsg  = document.getElementById('inviteMessage');
-const btnInviteCancel = document.getElementById('btnInviteCancel');
-const btnInviteConfirm = document.getElementById('btnInviteConfirm');
+    // Timeline
+    btnRecord = document.getElementById('btnRecord');
+    autoRec = document.getElementById('autoRec');
+    btnPlayPause = document.getElementById('btnPlayPause');
+    btnStop = document.getElementById('btnStop');
+    speed = document.getElementById('speed');
+    scrubber = document.getElementById('scrubber');
+    scrubLbl = document.getElementById('scrubLbl');
+    
+    // Móvil
+    btnLandscapeMobile = document.getElementById('btnLandscapeMobile');
+    btnPortraitMobile = document.getElementById('btnPortraitMobile');
+}
 
-let arrows=[], strokes=[], notes=[], timeline=[];
-let teamConfig = {
-  team1: { name:'Equipo Azul', colorClass:'team-1', hexColor:'#2f80ff' },
-  team2: { name:'Equipo Rojo', colorClass:'team-2', hexColor:'#ff5a6b' }
+// Variables de estado del tablero
+let arrows = [], strokes = [], notes = [], timeline = [];
+let teamConfig = { 
+    team1: { name: 'Equipo Azul', colorClass: 'team-1', hexColor: '#2f80ff' },
+    team2: { name: 'Equipo Rojo', colorClass: 'team-2', hexColor: '#ff5a6b' }
 };
-const initialPositions=[];
+const initialPositions = [];
 for(let i=1;i<=15;i++) initialPositions.push({team:'team-1', number:i, x:WIDTH*0.18,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
 for(let i=1;i<=15;i++) initialPositions.push({team:'team-2', number:i, x:WIDTH*0.82,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
-let currentBallPos={x:WIDTH/2,y:HEIGHT/2};
+let currentBallPos = {x:WIDTH/2,y:HEIGHT/2};
 let selectedPlayers = new Set();
 
+// Variables de animación
+let playing = false, paused = false, playIdx = 0, rafId = null, segStart = 0, segDur = 800;
+let fromF = null, toF = null;
+
+// Layout
+let layout = {mode: 'landscape', scale: 1, tx: 0, ty: 0};
+let forcePortrait = false;
+
+// Firebase
+let app, db = null, auth, userId = 'local_storage';
+let isAuthorized = false;
+let appInitialized = false;
+
+// Configuración Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyDCIY11FyQxKZY3hwBGNWixtaK_SFZko6k",
+    authDomain: "rugbycoach-f0b23.firebaseapp.com",
+    projectId: "rugbycoach-f0b23",
+    storageBucket: "rugbycoach-f0b23.firebasestorage.app",
+    messagingSenderId: "536069158649",
+    appId: "1:536069158649:web:ead82ceea04f5d7ab39428",
+    measurementId: "G-XF5Q0WB0V0"
+};
+
+const AUTHORIZED_USERS_IDS = [
+    'YZyCoUgkMsOtP7gmWe1qdlWmaug1',
+    '9VvUXzzbtjXsQtt6cswccxfXHTr2'
+];
+
+// Utilidades
 function showStatus(message, color='var(--accent)'){
-  const d=document.createElement('div');
-  d.className='status-message';
-  d.textContent=message;
-  d.style.cssText=`position:fixed;top:70px;right:20px;background:${color};color:var(--bg);padding:10px 15px;border-radius:8px;z-index:9999;opacity:0;transition:.5s`;
-  document.body.appendChild(d);
-  setTimeout(()=>d.style.opacity=1,10);
-  setTimeout(()=>d.style.opacity=0,3000);
-  setTimeout(()=>d.remove(),3500);
-}
-window.showStatus = showStatus;
-
-/* ====== Permisos UI ====== */
-function setControlsDisabled(disabled) {
-  [btnSavePlay, btnDelete, btnRecord, btnDuplicate, autoRec, btnClrTl].forEach(b=>b && (b.disabled = disabled));
-  [toolArrows, toolPen, toolText, strokeColor, strokeWidth, dashed, showGrid, btnUndo, btnClear].forEach(el=>el && (el.disabled = disabled));
-  board.style.pointerEvents = disabled ? 'none' : 'auto';
-  playersLayer.style.pointerEvents = disabled ? 'none' : 'auto';
-  ball.style.pointerEvents = disabled ? 'none' : 'auto';
-  [btnLoadPlay, playList, btnPlayPause, btnStop, scrubber].forEach(el=>el && (el.disabled = false));
-  btnReset.disabled = !window.isAuthorized;
-  if (playName) playName.disabled = disabled;
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'status-message';
+    statusDiv.textContent = message;
+    statusDiv.style.cssText = `
+        position: fixed; top: 70px; right: 20px;
+        background: ${color}; color: var(--bg); padding: 10px 15px;
+        border-radius: 8px; z-index: 9999; opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    `;
+    document.body.appendChild(statusDiv);
+    
+    setTimeout(() => { statusDiv.style.opacity = 1; }, 10);
+    setTimeout(() => { statusDiv.style.opacity = 0; }, 3000);
+    setTimeout(() => { statusDiv.remove(); }, 3500);
 }
 
-/* ====== Auth UI ====== */
-function updateAuthButton(isLoggedIn){
-  if (isLoggedIn) { btnAuthAction.textContent='Cerrar Sesión'; btnAuthAction.classList.remove('primary'); btnAuthAction.onclick = handleLogout; }
-  else { btnAuthAction.textContent='Iniciar Sesión'; btnAuthAction.classList.add('primary'); btnAuthAction.onclick = () => openLoginModal(); }
-}
-function openLoginModal(){ loginModal.style.display='grid'; }
-async function handleLogout(){
-  try { await window.signOut(window.auth); showStatus('Sesión cerrada. Modo Espectador.', 'var(--accent)'); }
-  catch(e){ showStatus('Error al cerrar sesión.', 'var(--red)'); console.error(e); }
-}
-
-/* ====== Login modal ====== */
-const loginEmail = document.getElementById('loginEmail');
-const loginPassword = document.getElementById('loginPassword');
-const btnLogin = document.getElementById('btnLogin');
-const btnCloseLogin = document.getElementById('btnCloseLogin');
-const loginMessage = document.getElementById('loginMessage');
-
-btnLogin.addEventListener('click', async ()=>{
-  const email = loginEmail.value.trim();
-  const password = loginPassword.value.trim();
-  if (!email || !password) { loginMessage.textContent='Ingresa email y contraseña.'; return; }
-  btnLogin.disabled = true; loginMessage.textContent='Iniciando sesión...';
-  try {
-    if (window.auth.currentUser) await window.signOut(window.auth);
-    await window.signInWithEmailAndPassword(window.auth,email,password);
-    loginMessage.textContent='';
-  } catch (error) {
-    console.error(error);
-    let msg='Error de inicio de sesión';
-    if (error.code==='auth/invalid-email') msg='Email inválido';
-    if (error.code==='auth/wrong-password'||error.code==='auth/invalid-credential') msg='Credenciales incorrectas';
-    if (error.code==='auth/user-not-found') msg='Usuario no encontrado';
-    loginMessage.textContent=msg;
-  } finally { btnLogin.disabled=false; }
-});
-btnCloseLogin.addEventListener('click', ()=>{
-  if (window.auth && window.auth.currentUser) {
-    loginModal.style.display='none'; loginMessage.textContent=''; loginEmail.value=''; loginPassword.value='';
-  } else { showStatus('Debes iniciar sesión.', 'var(--red)'); }
-});
-
-/* ====== Invite Modal ====== */
-function openInviteModal(){
-  if (!window.auth?.currentUser) { showStatus('Iniciá sesión.', 'var(--red)'); return; }
-  if (!window.isAuthorized) { showStatus('Solo entrenadores/admin.', 'var(--red)'); return; }
-  if (!window.getPlayCollectionRef()) { showStatus('Falta teamId en URL (/t/{teamId}).', 'var(--red)'); return; }
-  inviteEmail.value=''; inviteRole.value='player'; inviteMsg.textContent=''; inviteMsg.style.color='var(--red)';
-  inviteModal.style.display='grid';
-}
-function closeInviteModal(){ inviteModal.style.display='none'; }
-btnInviteOpen?.addEventListener('click', openInviteModal);
-btnInviteCancel?.addEventListener('click', closeInviteModal);
-function validEmail(mail){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail); }
-btnInviteConfirm?.addEventListener('click', async ()=>{
-  try{
-    const email=(inviteEmail.value||'').trim();
-    const role=inviteRole.value;
-    if (!validEmail(email)) { inviteMsg.textContent='Email inválido.'; return; }
-    inviteMsg.textContent='Creando invitación...'; inviteMsg.style.color='var(--muted)';
-    btnInviteConfirm.disabled=true;
-    const res = await window.httpsCallable(window.functions,"inviteMember")({ teamId: (window.location.pathname.match(/\/t\/([^\/]+)/)||[])[1], email, role });
-    const { resetLink, message } = res.data || {};
-    console.log('[inviteMember] link:', resetLink);
-    alert(`${message || 'Usuario invitado.'}\n\nLink para definir contraseña:\n${resetLink}`);
-    inviteMsg.style.color='var(--accent2)'; inviteMsg.textContent='Invitación creada.';
-    closeInviteModal(); showStatus('Miembro invitado.', 'var(--accent2)');
-  }catch(e){ console.error(e); inviteMsg.style.color='var(--red)'; inviteMsg.textContent='Error al invitar.'; }
-  finally{ btnInviteConfirm.disabled=false; }
-});
-
-/* ====== Menú móvil ====== */
-function openMobileMenu(){ desktopSidepanel.classList.add('open'); menuOverlay.classList.add('open'); }
-function closeMobileMenu(){ desktopSidepanel.classList.remove('open'); menuOverlay.classList.remove('open'); }
-btnMenuOpen?.addEventListener('click', openMobileMenu);
-btnCloseMenu?.addEventListener('click', closeMobileMenu);
-menuOverlay?.addEventListener('click', closeMobileMenu);
-
-/* ====== Board & Tools (idéntico a tu lógica, con mínimos cambios) ====== */
-let layout={mode:'landscape', scale:1, tx:0, ty:0};
-let forcePortrait=false;
-
-function setSegActive(a,b){ a?.classList.add('active'); b?.classList.remove('active'); }
-btnLandscape.addEventListener('click', ()=>{ forcePortrait=false; setSegActive(btnLandscape,btnPortrait); fitBoard(); });
-btnPortrait.addEventListener('click', ()=>{ forcePortrait=true; setSegActive(btnPortrait,btnLandscape); fitBoard(); });
-
-function isPortraitLike(){
-  if (forcePortrait) return true;
-  const mq=window.matchMedia('(orientation: portrait)');
-  return (mq && mq.matches) || (window.innerHeight>window.innerWidth);
-}
-function applyUprightTransforms(){
-  const rotatePlayers=(layout.mode==='portrait');
-  [...playersLayer.children].forEach(el=>{
-    el.style.transform = rotatePlayers ? 'translate(-50%,-50%) rotate(-90deg)' : 'translate(-50%,-50%)';
-  });
-}
-function fitBoard(){
-  const vp=boardViewport.getBoundingClientRect();
-  const availW=vp.width, availH=vp.height;
-  const baseW=WIDTH, baseH=HEIGHT;
-  const isMobile=window.innerWidth<=999;
-  if (isMobile) forcePortrait=true;
-
-  if (forcePortrait || isMobile || isPortraitLike()){
-    layout.mode='portrait';
-    const currentW=baseH, currentH=baseW;
-    const scale=Math.min(availW/currentW, availH/currentH);
-    layout.scale=scale;
-    boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
-    boardWrap.style.transformOrigin='center center';
-    layout.tx = (availW - baseH*scale)/2;
-    layout.ty = (availH - baseW*scale)/2;
-    setSegActive(btnPortrait,btnLandscape);
-  } else {
-    layout.mode='landscape';
-    const scale=Math.min(availW/baseW, availH/baseH);
-    layout.scale=scale;
-    layout.tx=(availW - baseW*scale)/2;
-    layout.ty=(availH - baseH*scale)/2;
-    boardWrap.style.transform=`scale(${scale})`;
-    boardWrap.style.transformOrigin='center center';
-    setSegActive(btnLandscape,btnPortrait);
-  }
-  applyUprightTransforms();
-}
-window.addEventListener('resize', fitBoard);
-window.addEventListener('orientationchange', fitBoard);
-
-function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function clamp(v, min, max){ return Math.max(min,Math.min(max,v)); }
 function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.hypot(dx,dy); }
 function centerOf(el){ return { x:parseFloat(el.style.left)||0, y:parseFloat(el.style.top)||0 } }
 
-function clientToBoard(e){
-  const vp=boardViewport.getBoundingClientRect();
-  const cx=e.clientX - vp.left;
-  const cy=e.clientY - vp.top;
-  if (layout.mode==='portrait'){
-    const centerX=vp.width/2, centerY=vp.height/2;
-    const px=cx-centerX, py=cy-centerY;
-    const x_board = (WIDTH/2)+(py/layout.scale);
-    const y_board = (HEIGHT/2)+(-px/layout.scale);
-    return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
-  } else {
-    const scaledW=WIDTH*layout.scale, scaledH=HEIGHT*layout.scale;
-    const x=(cx-(vp.width - scaledW)/2)/layout.scale;
-    const y=(cy-(vp.height - scaledH)/2)/layout.scale;
-    return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
-  }
-}
-function deltaToBoard(dxClient,dyClient){
-  if (layout.mode==='portrait'){ return { dx: dyClient/layout.scale, dy: -dxClient/layout.scale }; }
-  return { dx: dxClient/layout.scale, dy: dyClient/layout.scale };
+// Funciones principales de la aplicación
+function initBoardApp(){
+    console.log("Inicializando aplicación...");
+    
+    // Crear jugadores y balón
+    createPlayers();
+    placeBall();
+    
+    // Timeline inicial
+    if (!timeline.length) { recordFrame(); }
+    updateScrub();
+
+    // Aplicar restricciones de permisos
+    setControlsDisabled(!window.isAuthorized);
+
+    // Eventos de drag
+    enableDragBall(()=>{ if (autoRec.checked) recordFrame(); });
+    
+    // Selección masiva
+    enableSelectionBox();
+
+    // UI inicial
+    if (showGrid) showGrid.checked = false;
+    renderGrid();
+    renderDraw();
+    fitBoard();
+    
+    // Forzar recálculo del layout
+    setTimeout(fitBoard, 50);
+    
+    // Actualizar marca
+    document.getElementById('brand').innerHTML = `<span class="dot"></span>RugbyBoard Pro (Local)`;
+    
+    showStatus('Aplicación cargada correctamente', 'var(--accent2)');
 }
 
-function renderGrid(){
-  gridSvg.innerHTML='';
-  if (!showGrid.checked) { gridSvg.classList.remove('on'); return; }
-  gridSvg.classList.add('on');
-  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-  for(let x=GRID;x<WIDTH;x+=GRID){
-    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
-    l.setAttribute('x1',x); l.setAttribute('y1',0); l.setAttribute('x2',x); l.setAttribute('y2',HEIGHT);
-    l.setAttribute('stroke','rgba(255,255,255,.08)'); l.setAttribute('stroke-width','1'); g.appendChild(l);
-  }
-  for(let y=GRID;y<HEIGHT;y+=GRID){
-    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
-    l.setAttribute('x1',0); l.setAttribute('y1',y); l.setAttribute('x2',WIDTH); l.setAttribute('y2',y);
-    l.setAttribute('stroke','rgba(255,255,255,.08)'); l.setAttribute('stroke-width','1'); g.appendChild(l);
-  }
-  gridSvg.appendChild(g);
-}
-showGrid.addEventListener('change', renderGrid);
-
+// Funciones de jugadores
 function createPlayers(){
-  playersLayer.innerHTML=''; selectedPlayers.clear();
-  initialPositions.forEach(p=>{
-    const el=document.createElement('div');
-    const teamData = p.team==='team-1' ? teamConfig.team1 : teamConfig.team2;
-    el.className=`player ${teamData.colorClass}`;
-    el.textContent=p.number; el.dataset.team=p.team; el.dataset.number=p.number;
-    el.style.left=p.x+'px'; el.style.top=p.y+'px';
-    enableDragPlayer(el,(isGroupMove)=>{ if (!isGroupMove && autoRec.checked) recordFrame(); });
-    playersLayer.appendChild(el);
-  });
-  applyUprightTransforms();
-}
-function placeBall(x=WIDTH/2,y=HEIGHT/2){ currentBallPos.x=x; currentBallPos.y=y; ball.style.left=x+'px'; ball.style.top=y+'px'; ball.style.transform='translate(-50%,-50%) rotate(-15deg)'; }
-function ballOverPlayer(playerEl,thr=28){ const b=centerOf(ball), p=centerOf(playerEl); return dist(b.x,b.y,p.x,p.y)<thr; }
-
-function enableDragPlayer(playerEl,onDrop){
-  if (window.db && !window.isAuthorized) return;
-  let pid=null,sx=0,sy=0,ox=0,oy=0,lockBall=false,offX=0,offY=0;
-  let isGroupMove=false, playerOffsets=[];
-  const down=e=>{
-    pid=e.pointerId; playerEl.setPointerCapture(pid); e.preventDefault();
-    sx=e.clientX; sy=e.clientY; ox=parseFloat(playerEl.style.left)||0; oy=parseFloat(playerEl.style.top)||0;
-    if (!playerEl.classList.contains('selected')){ clearPlayerSelection(); playerEl.classList.add('selected'); selectedPlayers.add(playerEl); }
-    isGroupMove = selectedPlayers.has(playerEl) && selectedPlayers.size>1;
-    if (isGroupMove){
-      playerOffsets = Array.from(selectedPlayers).map(el=>({ el, offsetX:parseFloat(el.style.left)-ox, offsetY:parseFloat(el.style.top)-oy, initialX:parseFloat(el.style.left), initialY:parseFloat(el.style.top) }));
-    }
-    lockBall=ballOverPlayer(playerEl);
-    if (lockBall){ const p0={x:ox,y:oy}, b0=centerOf(ball); offX=b0.x-p0.x; offY=b0.y-p0.y; }
-    const move=ev=>{
-      if (ev.pointerId!==pid) return; ev.preventDefault();
-      const {dx,dy}=deltaToBoard(ev.clientX-sx, ev.clientY-sy);
-      let nx_main=clamp(ox+dx,0,WIDTH), ny_main=clamp(oy+dy,0,HEIGHT);
-      if (isGroupMove){
-        playerOffsets.forEach(p=>{
-          let nx=clamp(p.initialX+dx,0,WIDTH), ny=clamp(p.initialY+dy,0,HEIGHT);
-          p.el.style.left=nx+'px'; p.el.style.top=ny+'px';
-        });
-        playerEl.style.left=nx_main+'px'; playerEl.style.top=ny_main+'px';
-      } else {
-        playerEl.style.left=nx_main+'px'; playerEl.style.top=ny_main+'px';
-      }
-      if (lockBall){ const bx=clamp(nx_main+offX,0,WIDTH), by=clamp(ny_main+offY,0,HEIGHT); placeBall(bx,by); }
-    };
-    const up=ev=>{
-      if (ev.pointerId!==pid) return; try{playerEl.releasePointerCapture(pid);}catch{}
-      document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up);
-      onDrop && onDrop(isGroupMove);
-    };
-    document.addEventListener('pointermove',move,{passive:false});
-    document.addEventListener('pointerup',up,{passive:false});
-  };
-  playerEl.addEventListener('pointerdown',down,{passive:false}); playerEl.ondragstart=()=>false;
-}
-function enableDragBall(onDrop){
-  if (window.db && !window.isAuthorized) return;
-  let pid=null,sx=0,sy=0,ox=0,oy=0,passer=null;
-  const down=e=>{
-    pid=e.pointerId; ball.setPointerCapture(pid); e.preventDefault();
-    sx=e.clientX; sy=e.clientY; ox=currentBallPos.x; oy=currentBallPos.y; clearPlayerSelection();
-    const b0=centerOf(ball);
-    passer=(()=>{ let best=null,bestD=Infinity; for(const el of playersLayer.children){ const p=centerOf(el), d=dist(b0.x,b0.y,p.x,p.y); if (d<28 && d<bestD){ best=el; bestD=d; } } return best; })();
-    if (passer){ const p=centerOf(passer); showPassPreview(p.x,p.y,b0.x,b0.y); }
-    const move=ev=>{
-      if (ev.pointerId!==pid) return; ev.preventDefault();
-      const {dx,dy}=deltaToBoard(ev.clientX-sx, ev.clientY-sy);
-      let nx=clamp(ox+dx,0,WIDTH), ny=clamp(oy+dy,0,HEIGHT);
-      placeBall(nx,ny); if (passer){ const p=centerOf(passer); showPassPreview(p.x,p.y,nx,ny); }
-    };
-    const up=ev=>{
-      if (ev.pointerId!==pid) return; try{ball.releasePointerCapture(pid);}catch{}
-      document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up);
-      hidePassPreview(); onDrop && onDrop();
-    };
-    document.addEventListener('pointermove',move,{passive:false});
-    document.addEventListener('pointerup',up,{passive:false});
-  };
-  ball.addEventListener('pointerdown',down,{passive:false}); ball.ondragstart=()=>false;
-}
-function rectIntersect(a,b){ return a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top; }
-function clearPlayerSelection(){ selectedPlayers.forEach(el=>el.classList.remove('selected')); selectedPlayers.clear(); }
-function enableSelectionBox(){
-  if (window.db && !window.isAuthorized) return;
-  let pid=null, startBoard=null;
-  const down=(e)=>{
-    const isPlayerOrBall = e.target.closest('.player') || e.target.closest('#ball');
-    if (isPlayerOrBall || tool!=='arrows') return;
-    if (drawingArrow || drawingStroke) return;
-    clearPlayerSelection();
-    pid=e.pointerId; board.setPointerCapture(pid); e.preventDefault();
-    startBoard=clientToBoard(e);
-    selectionBox.style.left=startBoard.x+'px'; selectionBox.style.top=startBoard.y+'px';
-    selectionBox.style.width='0'; selectionBox.style.height='0'; selectionBox.style.display='block';
-    board.addEventListener('pointermove',move);
-    board.addEventListener('pointerup',up);
-  };
-  const move=(e)=>{
-    if (e.pointerId!==pid) return; e.preventDefault();
-    const cur=clientToBoard(e);
-    const left=Math.min(startBoard.x,cur.x), top=Math.min(startBoard.y,cur.y);
-    const right=Math.max(startBoard.x,cur.x), bottom=Math.max(startBoard.y,cur.y);
-    selectionBox.style.left=left+'px'; selectionBox.style.top=top+'px';
-    selectionBox.style.width=(right-left)+'px'; selectionBox.style.height=(bottom-top)+'px';
-    const rect={left,top,right,bottom};
-    playersLayer.querySelectorAll('.player').forEach(el=>{
-      const pX=parseFloat(el.style.left), pY=parseFloat(el.style.top);
-      const pr={left:pX-20,top:pY-20,right:pX+20,bottom:pY+20};
-      if (rectIntersect(rect,pr)){ el.classList.add('selected'); selectedPlayers.add(el); }
-      else { el.classList.remove('selected'); selectedPlayers.delete(el); }
-    });
-  };
-  const up=(e)=>{
-    if (e.pointerId!==pid) return; try{board.releasePointerCapture(pid);}catch{}
-    board.removeEventListener('pointermove',move); board.removeEventListener('pointerup',up);
-    selectionBox.style.display='none'; pid=null; startBoard=null;
-  };
-  board.addEventListener('pointerdown',down);
-}
-
-/* ====== Dibujo ====== */
-let tool='arrows', drawingArrow=false, startPt=null, drawingStroke=false, currentStroke=null;
-const setTool=(t)=>{ tool=t; clearPlayerSelection(); [toolArrows,toolPen,toolText].forEach(b=>b&&b.classList.remove('active'));
-  if (t==='arrows') toolArrows?.classList.add('active'); if (t==='pen') toolPen?.classList.add('active'); if (t==='text') toolText?.classList.add('active'); };
-toolArrows?.addEventListener('click',()=>setTool('arrows'));
-toolPen?.addEventListener('click',()=>setTool('pen'));
-toolText?.addEventListener('click',()=>setTool('text'));
-function ensureDefs(){
-  if (draw.querySelector('defs')) return;
-  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
-  const mk=(id,c)=>{ const m=document.createElementNS('http://www.w3.org/2000/svg','marker'); m.setAttribute('id',id); m.setAttribute('markerWidth','10'); m.setAttribute('markerHeight','10'); m.setAttribute('refX','9'); m.setAttribute('refY','5'); m.setAttribute('orient','auto'); const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon'); poly.setAttribute('points','0 0, 10 5, 0 10'); poly.setAttribute('fill',c); m.appendChild(poly); defs.appendChild(m); };
-  mk('awh','#ffffff'); mk('agr','#35d07f'); mk('abl','#2f80ff'); mk('ard','#ff5a6b'); mk('ayl','#ffd400'); draw.appendChild(defs);
-}
-function markerId(c){ return ({'#ffffff':'awh','#35d07f':'agr','#2f80ff':'abl','#ff5a6b':'ard','#ffd400':'ayl'})[c]||'ayl'; }
-function renderDraw(){
-  ensureDefs();
-  const defs=draw.querySelector('defs');
-  [...draw.childNodes].forEach(n=>{ if(n!==defs && n.id!=='passPreview') draw.removeChild(n); });
-  strokes.forEach(s=>{ const pl=document.createElementNS('http://www.w3.org/2000/svg','polyline'); pl.setAttribute('fill','none'); pl.setAttribute('stroke',s.color||'#ffd400'); pl.setAttribute('stroke-width',s.width||5); if (s.dashed) pl.setAttribute('stroke-dasharray','8 8'); pl.setAttribute('vector-effect','non-scaling-stroke'); pl.setAttribute('points', s.points.join(' ')); draw.insertBefore(pl, draw.querySelector('#passPreview')||null); });
-  arrows.forEach(a=>{ const ln=document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1',a.x1); ln.setAttribute('y1',a.y1); ln.setAttribute('x2',a.x2); ln.setAttribute('y2',a.y2); ln.setAttribute('stroke',a.color||'#ffd400'); ln.setAttribute('stroke-width',a.width||5); if (a.dashed) ln.setAttribute('stroke-dasharray','8 8'); ln.setAttribute('marker-end',`url(#${markerId(a.color||'#ffd400')})`); ln.setAttribute('vector-effect','non-scaling-stroke'); draw.insertBefore(ln, draw.querySelector('#passPreview')||null); });
-  notes.forEach(n=>{ const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',n.x); t.setAttribute('y',n.y); t.setAttribute('fill',n.color||'#ffffff'); t.setAttribute('font-size','18'); t.setAttribute('font-weight','700'); t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle'); t.setAttribute('stroke','#000'); t.setAttribute('stroke-width','0.5'); t.textContent=n.text; draw.insertBefore(t, draw.querySelector('#passPreview')||null); });
-}
-function getActiveToolColor(){ return strokeColor.value; }
-function getActiveToolWidth(){ return parseInt(strokeWidth.value,10)||5; }
-function getActiveDashed(){ return dashed.checked; }
-board.addEventListener('pointerdown',e=>{
-  if (e.target.closest('.player') || e.target.closest('#ball')) return;
-  if (tool==='arrows' && e.shiftKey) return;
-  if (window.db && !window.isAuthorized) return;
-  try{board.setPointerCapture(e.pointerId);}catch{}
-  let p=clientToBoard(e);
-  const color=getActiveToolColor(), width=getActiveToolWidth();
-  if (tool==='arrows'){ drawingArrow=true; startPt={x:p.x,y:p.y}; }
-  else if (tool==='pen'){ drawingStroke=true; currentStroke={ points:[`${p.x},${p.y}`], color, width, dashed:getActiveDashed() }; strokes.push(currentStroke); renderDraw(); }
-  else if (tool==='text'){ const text=prompt("Texto (máx 30):"); if (text && text.trim()){ notes.push({ x:p.x, y:p.y, text:text.trim().substring(0,30), color }); renderDraw(); } setTool('arrows'); }
-},{passive:false});
-board.addEventListener('pointermove',e=>{
-  if (tool==='text') return; if (tool==='arrows' && e.shiftKey) return;
-  if (tool!=='pen' || !drawingStroke || !currentStroke) return;
-  if (window.db && !window.isAuthorized) return;
-  let p=clientToBoard(e);
-  const last=currentStroke.points[currentStroke.points.length-1];
-  const [lx,ly]=last.split(',').map(Number);
-  if (Math.abs(p.x-lx)+Math.abs(p.y-ly)>0.5){ currentStroke.points.push(`${p.x},${p.y}`); renderDraw(); }
-},{passive:false});
-board.addEventListener('pointerup',e=>{
-  if (tool==='text') return;
-  try{board.releasePointerCapture(pid);}catch{}
-  if (window.db && !window.isAuthorized) return;
-  let p=clientToBoard(e);
-  const color=getActiveToolColor(), width=getActiveToolWidth();
-  if (tool==='arrows' && drawingArrow && startPt){ arrows.push({ x1:startPt.x,y1:startPt.y,x2:p.x,y2:p.y,color,width,dashed:getActiveDashed() }); drawingArrow=false; startPt=null; renderDraw(); }
-  else if (tool==='pen' && drawingStroke && currentStroke){ drawingStroke=false; renderDraw(); }
-},{passive:false});
-btnUndo.addEventListener('click',()=>{ if (window.db && !window.isAuthorized){ showStatus('No autorizado.', 'var(--red)'); return; } if (tool==='arrows') arrows.pop(); else if (tool==='pen') strokes.pop(); else if (tool==='text') notes.pop(); renderDraw(); });
-btnClear.addEventListener('click',()=>{ if (window.db && !window.isAuthorized){ showStatus('No autorizado.', 'var(--red)'); return; } arrows=[]; strokes=[]; notes=[]; renderDraw(); });
-
-/* ====== Pase preview ====== */
-function showPassPreview(x1,y1,x2,y2){
-  let line=draw.querySelector('#passPreview');
-  if (!line){ line=document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('id','passPreview'); line.setAttribute('stroke','#fff'); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-dasharray','10 8'); line.setAttribute('vector-effect','non-scaling-stroke'); draw.appendChild(line); }
-  line.setAttribute('x1',x1); line.setAttribute('y1',y1); line.setAttribute('x2',x2); line.setAttribute('y2',y2);
-}
-function hidePassPreview(){ const l=draw.querySelector('#passPreview'); if(l) l.remove(); }
-
-/* ====== Timeline ====== */
-let playing=false, paused=false, playIdx=0, rafId=null, segStart=0, segDur=800;
-function snapshotPlayers(){ return [...playersLayer.children].map(el=>({team:el.dataset.team, number:+el.dataset.number, x:parseFloat(el.style.left), y:parseFloat(el.style.top)})); }
-function snapshotBall(){ return {...currentBallPos}; }
-function snapshotFrame(){ return { players: snapshotPlayers(), ball: snapshotBall() }; }
-function recordFrame(){ if (window.db && !window.isAuthorized){ showStatus('No autorizado para grabar.', 'var(--red)'); return; } timeline.push(snapshotFrame()); updateScrub(); }
-btnRecord.addEventListener('click',recordFrame);
-function updateScrub(){ scrubber.max = Math.max(0, timeline.length-1); const v=parseInt(scrubber.value,10)||0; if (v>scrubber.max) scrubber.value=scrubber.max; scrubLbl.textContent=`${scrubber.value}/${scrubber.max}`; }
-scrubber.addEventListener('input',()=>gotoFrame(parseInt(scrubber.value,10)));
-function gotoFrame(i){ if (!timeline.length) return; i=Math.max(0,Math.min(timeline.length-1,i)); stopPlayback(); scrubber.value=i; scrubLbl.textContent=`${i}/${timeline.length-1}`; const f=timeline[i];
-  f.players.forEach(p=>{ const el=[...playersLayer.children].find(e=>e.dataset.team===p.team && +e.dataset.number===p.number); if (el){ el.style.left=p.x+'px'; el.style.top=p.y+'px'; }});
-  if (f.ball){ placeBall(f.ball.x,f.ball.y); } clearPlayerSelection();
-}
-function togglePlayPause(){ if (playing){ paused=true; playing=false; btnPlayPause.textContent='Reanudar'; btnPlayPause.classList.add('primary'); }
-  else if (paused){ paused=false; playing=true; btnPlayPause.textContent='Pausa'; btnPlayPause.classList.remove('primary'); if (!rafId) rafId=requestAnimationFrame(animate);}
-  else{ playTimeline(); btnPlayPause.textContent='Pausa'; btnPlayPause.classList.remove('primary'); } }
-btnPlayPause.addEventListener('click', togglePlayPause);
-function stopPlayback(){ playing=false; paused=false; if (rafId){ cancelAnimationFrame(rafId); rafId=null; } btnPlayPause.textContent='Reproducir'; btnPlayPause.classList.add('primary'); }
-btnStop.addEventListener('click', stopPlayback);
-function toMap(f){ const m=new Map(); f.players.forEach(p=>m.set(p.team+'#'+p.number,p)); return m; }
-function lerp(a,b,t){ return a+(b-a)*t; }
-function animate(now){
-  if (!playing || paused){ rafId=requestAnimationFrame(animate); return; }
-  const u=Math.max(0,Math.min(1,(now-segStart)/segDur)); const A=toMap(fromF), B=toMap(toF);
-  [...playersLayer.children].forEach(el=>{ const key=el.dataset.team+'#'+el.dataset.number; const pa=A.get(key)||{x:parseFloat(el.style.left),y:parseFloat(el.style.top)}; const pb=B.get(key)||pa; el.style.left=lerp(pa.x,pb.x,u)+'px'; el.style.top=lerp(pa.y,pb.y,u)+'px'; });
-  placeBall(lerp(fromF.ball.x,toF.ball.x,u), lerp(fromF.ball.y,toF.ball.y,u));
-  if (u>=1){ playIdx++; scrubber.value=playIdx; scrubLbl.textContent=`${playIdx}/${timeline.length-1}`; if (playIdx>=timeline.length-1){ stopPlayback(); return; } fromF=timeline[playIdx]; toF=timeline[playIdx+1]; segStart=performance.now(); }
-  rafId=requestAnimationFrame(animate);
-}
-function playTimeline(){
-  if (timeline.length<2){ showStatus('Necesitás al menos 2 pasos.', 'var(--warn)'); return; }
-  segDur=Math.max(100, parseInt(speed.value||800,10));
-  if (!paused){ playIdx=parseInt(scrubber.value,10)||0; if (playIdx>=timeline.length-1) playIdx=0; fromF=timeline[playIdx]; toF=timeline[playIdx+1]; gotoFrame(playIdx); }
-  paused=false; playing=true; segStart=performance.now(); if (!rafId) rafId=requestAnimationFrame(animate);
-}
-
-/* ====== Export ====== */
-function drawPitch(ctx,W,H){
-  ctx.fillStyle='#137a46'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#fff'; ctx.lineWidth=6; ctx.strokeRect(5,5,W-10,H-10);
-  ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(0,0,W*80/1200,H); ctx.fillRect(W*1120/1200,0,W*80/1200,H);
-  const v=(x,w=4,d=null)=>{ ctx.save(); ctx.beginPath(); if(d)ctx.setLineDash(d); ctx.moveTo(W*x/1200,0); ctx.lineTo(W*x/1200,H); ctx.lineWidth=w*W/1200; ctx.stroke(); ctx.restore(); };
-  const h=(y,w=2,d=[4,8])=>{ ctx.save(); ctx.beginPath(); if(d)ctx.setLineDash(d); ctx.moveTo(5,W*y/1200); ctx.lineTo(W-5,W*y/1200); ctx.lineWidth=w*W/1200; ctx.stroke(); ctx.restore(); };
-  v(80,4); v(1120,4); v(309,3); v(891,3); v(500,2,[8,10]); v(697,2,[8,10]); v(600,4); h(50); h(150); h(550); h(650); v(130,2,[8,10]); v(1070,2,[8,10]);
-}
-function drawPlayerC(ctx,p){ const r=20; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); const teamData=p.team==='team-1'?teamConfig.team1:teamConfig.team2; ctx.fillStyle=teamData.hexColor; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke(); ctx.fillStyle='#fff'; ctx.font='700 14px Inter,system-ui,Segoe UI,Roboto,Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(p.number,p.x,p.y); }
-function drawBallC(ctx,b){ ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(-15*Math.PI/180); ctx.beginPath(); ctx.ellipse(0,0,25,15,0,0,Math.PI*2); ctx.fillStyle='#ffd400'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke(); ctx.setLineDash([4,6]); ctx.lineWidth=2; ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0,0,15,9,0,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
-function drawStrokeC(ctx,s){ const pts=s.points.map(pt=>pt.split(',').map(Number)); if (pts.length<2) return; ctx.save(); if (s.dashed) ctx.setLineDash([8,8]); ctx.lineWidth=s.width||5; ctx.strokeStyle=s.color||'#ffd400'; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]); ctx.stroke(); ctx.restore(); }
-function drawArrowC(ctx,a){ ctx.save(); if(a.dashed) ctx.setLineDash([8,8]); ctx.lineWidth=a.width||5; ctx.strokeStyle=a.color||'#ffd400'; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(a.x1,a.y1); ctx.lineTo(a.x2,a.y2); ctx.stroke(); ctx.fillStyle=a.color||'#ffd400'; const ang=Math.atan2(a.y2-a.y1,a.x2-a.x1), L=15; ctx.beginPath(); ctx.moveTo(a.x2,a.y2); ctx.lineTo(a.x2 - L*Math.cos(ang - Math.PI/7), a.y2 - L*Math.sin(ang - Math.PI/7)); ctx.lineTo(a.x2 - L*Math.cos(ang + Math.PI/7), a.y2 - L*Math.sin(ang + Math.PI/7)); ctx.closePath(); ctx.fill(); ctx.restore(); }
-function drawNoteC(ctx,n){ ctx.save(); ctx.fillStyle=n.color||'#fff'; ctx.font='700 18px Inter,system-ui,Segoe UI,Roboto,Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.text,n.x,n.y); ctx.restore(); }
-function renderFrameToCanvas(playersArr,ballPos,arrowsArr,strokesArr,notesArr,portrait=false){
-  let W=WIDTH,H=HEIGHT; exportCanvas.width=W; exportCanvas.height=H; ctx.clearRect(0,0,W,H);
-  drawPitch(ctx,W,H); arrowsArr.forEach(a=>drawArrowC(ctx,a)); strokesArr.forEach(s=>drawStrokeC(ctx,s)); notesArr.forEach(n=>drawNoteC(ctx,n));
-  playersArr.forEach(p=>drawPlayerC(ctx,p)); drawBallC(ctx,ballPos);
-}
-function currentPlayers(){ return [...playersLayer.children].map(el=>({team:el.dataset.team, number:+el.dataset.number, x:parseFloat(el.style.left), y:parseFloat(el.style.top)})); }
-function currentBall(){ return {...currentBallPos}; }
-btnExportJpg.addEventListener('click',()=>{ const players=currentPlayers(); const b=currentBall(); renderFrameToCanvas(players,b,arrows,strokes,notes,false); const url=exportCanvas.toDataURL('image/jpeg',0.95); const a=document.createElement('a'); a.href=url; a.download=(playName.value?.trim()||'jugada')+'.jpg'; document.body.appendChild(a); a.click(); a.remove(); showStatus('Exportando JPG...','var(--accent)'); });
-
-/* ====== Persistencia (Multi-tenant) ====== */
-function getPlayKey(name){ return 'rb-play-'+name.replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase(); }
-async function savePlay(name){
-  if (window.db && !window.isAuthorized){ showStatus('No autorizado para guardar.', 'var(--red)'); return; }
-  const playId=name.replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase();
-  const payload={ name, positions:snapshotPlayers(), ball:snapshotBall(), arrows, strokes, notes, timeline, teamConfig, updatedAt:new Date().toISOString() };
-  if (window.db){
-    const col=window.getPlayCollectionRef();
-    if (!col){ showStatus('Falta teamId en la URL (/t/{teamId}).', 'var(--red)'); return; }
-    try{ await window.setDoc(window.doc(col,playId), payload); showStatus('Jugada guardada en la nube!','var(--accent2)'); }
-    catch(e){ console.error(e); showStatus('Error al guardar: '+e.message,'var(--red)'); }
-  } else {
-    try{ localStorage.setItem(getPlayKey(playId), JSON.stringify(payload)); refreshPlayList(); playName.value=name; showStatus('Guardada LOCALmente.','var(--warn)'); }
-    catch(e){ console.error(e); showStatus('ERROR Local Storage.','var(--red)'); }
-  }
-}
-async function deletePlay(playId){
-  if (!playId) return;
-  if (window.db && !window.isAuthorized){ showStatus('No autorizado para eliminar.', 'var(--red)'); return; }
-  if (window.db){
-    const col=window.getPlayCollectionRef(); if (!col){ showStatus('Falta teamId.', 'var(--red)'); return; }
-    try{ await window.deleteDoc(window.doc(col,playId)); showStatus('Jugada eliminada.','var(--accent)'); }
-    catch(e){ console.error(e); showStatus('Error al eliminar: '+e.message,'var(--red)'); }
-  } else { localStorage.removeItem(getPlayKey(playId)); refreshPlayList(); showStatus('Eliminada local.','var(--accent)'); }
-}
-function populatePlayList(jugadas){
-  const list=playList; if (!list) return; list.innerHTML='';
-  const ph=document.createElement('option'); ph.value=''; ph.textContent=jugadas.length?'--- Seleccionar Jugada ---':'No hay jugadas'; ph.disabled=true; ph.selected=true; list.appendChild(ph);
-  jugadas.forEach(j=>{ const opt=document.createElement('option'); opt.value=j.id; opt.textContent=j.name; opt.dataset.payload=j.payload; list.appendChild(opt); });
-  list.disabled=false; if (btnLoadPlay) btnLoadPlay.disabled=false;
-}
-let unsubscribePlays=null;
-function refreshPlayList(){
-  if (window.db){
-    if (unsubscribePlays) unsubscribePlays();
-    if (!window.getPlayCollectionRef()){
-      playList.innerHTML='<option value="">Falta teamId en URL (/t/{teamId}).</option>'; btnLoadPlay.disabled=true; return;
-    }
-    const q = window.query(window.getPlayCollectionRef());
-    unsubscribePlays = window.onSnapshot(q,(snapshot)=>{
-      const jugadas=[]; snapshot.forEach(docSnap=>{ const data=docSnap.data(); jugadas.push({ id:docSnap.id, name:data.name||docSnap.id, payload:JSON.stringify(data) }); });
-      jugadas.sort((a,b)=>a.name.localeCompare(b.name)); populatePlayList(jugadas);
-    },(error)=>{ console.error(error); showStatus('Error al cargar jugadas. Verifica reglas.','var(--red)'); });
-  } else {
-    if (unsubscribePlays){ unsubscribePlays(); unsubscribePlays=null; }
-    const keys=Object.keys(localStorage).filter(k=>k.startsWith('rb-play-')).sort();
-    const jugadas=[]; keys.forEach(k=>{ try{ const data=JSON.parse(localStorage.getItem(k)); const id=k.replace('rb-play-',''); jugadas.push({ id, name:data.name||id, payload:JSON.stringify(data) }); }catch{} });
-    jugadas.sort((a,b)=>a.name.localeCompare(b.name)); populatePlayList(jugadas);
-  }
-}
-function loadPlay(playId){
-  const option = Array.from(playList.options).find(o=>o.value===playId);
-  if (!option || !option.dataset.payload){ showStatus('Jugada no encontrada.','var(--red)'); return; }
-  try{
-    const data=JSON.parse(option.dataset.payload);
-    if (data.teamConfig) teamConfig=data.teamConfig;
-    playName.value=data.name||playId;
-    playersLayer.innerHTML=''; selectedPlayers.clear();
-    (data.positions||[]).forEach(p=>{
-      const el=document.createElement('div'); el.className=`player ${p.team==='team-1'?teamConfig.team1.colorClass:teamConfig.team2.colorClass}`; el.textContent=p.number;
-      el.dataset.team=p.team; el.dataset.number=p.number; el.style.left=p.x+'px'; el.style.top=p.y+'px';
-      enableDragPlayer(el, (isGroupMove)=>{ if (!isGroupMove && autoRec.checked) recordFrame(); });
-      playersLayer.appendChild(el);
+    if (!playersLayer) return;
+    playersLayer.innerHTML='';
+    selectedPlayers.clear();
+    initialPositions.forEach(p=>{
+        const el=document.createElement('div');
+        const teamData = p.team === 'team-1' ? teamConfig.team1 : teamConfig.team2;
+        el.className=`player ${teamData.colorClass}`; 
+        el.textContent = p.number;
+        el.dataset.team = p.team; 
+        el.dataset.number = p.number;
+        el.style.left = p.x+'px'; el.style.top = p.y+'px';
+        enableDragPlayer(el, (isGroupMove)=>{ if (!isGroupMove && autoRec.checked) recordFrame(); });
+        playersLayer.appendChild(el);
     });
     applyUprightTransforms();
-    placeBall(data.ball.x, data.ball.y);
-    arrows=data.arrows||[]; strokes=data.strokes||[]; notes=data.notes||[]; timeline=Array.isArray(data.timeline)?data.timeline:[];
-    renderDraw(); updateScrub(); if (timeline.length) gotoFrame(0); showStatus(`Jugada '${data.name}' cargada.`,'var(--accent)');
-  }catch(e){ console.error(e); showStatus('Error al cargar.','var(--red)'); }
 }
 
-/* ====== Eventos ====== */
-btnSavePlay.addEventListener('click', async ()=>{ const name=(playName.value||'').trim(); if(!name){ showStatus('Poné un nombre.','var(--warn)'); return; } await savePlay(name); });
-btnDelete.addEventListener('click', async ()=>{ const playId=playList.value; if(!playId){ showStatus('Elegí una jugada.','var(--warn)'); return; } if(!confirm(`¿Eliminar "${playList.options[playList.selectedIndex].textContent}"?`)) return; await deletePlay(playId); });
-btnLoadPlay.addEventListener('click', ()=>{ if (!playList.value){ showStatus('Elegí una jugada.','var(--warn)'); return; } loadPlay(playList.value); });
-playList.addEventListener('change', ()=>{ if (!playList.options[playList.selectedIndex]) return; playName.value = playList.options[playList.selectedIndex].textContent; });
-
-function reInitializePlayerInteractions(){ [...playersLayer.children].forEach(el=>enableDragPlayer(el,(isGroup)=>{ if (!isGroup && autoRec.checked) recordFrame(); })); enableDragBall(()=>{ if (autoRec.checked) recordFrame(); }); enableSelectionBox(); }
-
-/* ====== Reset ====== */
-function resetBoard(){
-  if (!confirm('¿Reiniciar tablero?')) return;
-  stopPlayback(); arrows.length=0; strokes.length=0; notes.length=0; renderDraw();
-  createPlayers(); placeBall(WIDTH/2, HEIGHT/2); clearPlayerSelection();
-  timeline.length=0; recordFrame(); updateScrub(); gotoFrame(0);
-  playName.value=''; showStatus('Tablero reiniciado.','var(--accent2)');
+function placeBall(x=WIDTH/2,y=HEIGHT/2){
+    if (!ball) return;
+    currentBallPos.x=x; currentBallPos.y=y;
+    ball.style.left=x+'px'; ball.style.top=y+'px';
+    ball.style.transform='translate(-50%,-50%) rotate(-15deg)';
 }
-btnReset.addEventListener('click', ()=>{
-  if (window.db && !window.isAuthorized){ showStatus('No autorizado para reiniciar.','var(--red)'); return; }
-  resetBoard();
+
+// Funciones de layout
+function fitBoard(){
+    if (!boardViewport || !boardWrap) return;
+    
+    const vp=boardViewport.getBoundingClientRect();
+    const availW=vp.width, availH=vp.height;
+
+    const baseW = WIDTH;
+    const baseH = HEIGHT;
+
+    let currentW, currentH;
+    let scale;
+
+    const isMobile = window.innerWidth <= 999;
+    
+    if (isMobile) {
+        forcePortrait = true; 
+    }
+    
+    if (forcePortrait || isMobile){
+        layout.mode='portrait';
+        currentW = baseH;
+        currentH = baseW;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        boardWrap.style.transform=`rotate(90deg) scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        
+        const scaledRotatedW = baseH * scale;
+        const scaledRotatedH = baseW * scale;
+        layout.tx = (availW - scaledRotatedW) / 2;
+        layout.ty = (availH - scaledRotatedH) / 2;
+
+        if (btnPortrait) setSegActive(btnPortrait, btnLandscape);
+        
+    } else {
+        layout.mode='landscape';
+        currentW = baseW;
+        currentH = baseH;
+        scale = Math.min(availW/currentW, availH/currentH);
+        layout.scale=scale;
+        layout.tx = (availW - currentW * scale) / 2;
+        layout.ty = (availH - currentH * scale) / 2;
+        boardWrap.style.transform=`scale(${scale})`;
+        boardWrap.style.transformOrigin='center center';
+        if (btnLandscape) setSegActive(btnLandscape, btnPortrait);
+    }
+
+    applyUprightTransforms();
+}
+
+function applyUprightTransforms(){
+    const rotatePlayers=(layout.mode==='portrait');
+    if (!playersLayer) return;
+    [...playersLayer.children].forEach(el=>{
+        el.style.transform = rotatePlayers
+            ? 'translate(-50%,-50%) rotate(-90deg)' 
+            : 'translate(-50%,-50%)';
+    });
+}
+
+function setSegActive(segBtn, otherBtn){
+    if(segBtn) segBtn.classList.add('active');
+    if(otherBtn) otherBtn.classList.remove('active');
+}
+
+// Funciones de coordenadas
+function clientToBoard(e){
+    if (!boardViewport) return {x:0, y:0};
+    const vp=boardViewport.getBoundingClientRect();
+    const cx=e.clientX - vp.left;
+    const cy=e.clientY - vp.top;
+    
+    if (layout.mode==='portrait'){
+        const centerX = vp.width / 2;
+        const centerY = vp.height / 2;
+        const px = cx - centerX;
+        const py = cy - centerY;
+        const x_board_scaled = py;
+        const y_board_scaled = -px;
+        const x_board = (WIDTH / 2) + (x_board_scaled / layout.scale);
+        const y_board = (HEIGHT / 2) + (y_board_scaled / layout.scale);
+        return { x:clamp(x_board,0,WIDTH), y:clamp(y_board,0,HEIGHT) };
+    } else {
+        const scaledW = WIDTH * layout.scale;
+        const scaledH = HEIGHT * layout.scale;
+        const x = (cx - (vp.width - scaledW) / 2) / layout.scale;
+        const y = (cy - (vp.height - scaledH) / 2) / layout.scale;
+        return { x:clamp(x,0,WIDTH), y:clamp(y,0,HEIGHT) };
+    }
+}
+
+function deltaToBoard(dxClient, dyClient){
+    if (layout.mode==='portrait'){
+        return { 
+            dx: dyClient / layout.scale,  
+            dy: -dxClient / layout.scale 
+        };
+    }else{
+        return { dx: dxClient / layout.scale, dy: dyClient / layout.scale };
+    }
+}
+
+// Inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM cargado, inicializando...");
+    assignDOMElements();
+    initBoardApp();
+    
+    // Eventos de UI
+    if (btnLandscape) btnLandscape.addEventListener('click', ()=>{ 
+        forcePortrait=false; 
+        setSegActive(btnLandscape,btnPortrait); 
+        fitBoard(); 
+        closeMobileMenu(); 
+    });
+    
+    if (btnPortrait) btnPortrait.addEventListener('click', ()=>{ 
+        forcePortrait=true; 
+        setSegActive(btnPortrait,btnLandscape); 
+        fitBoard(); 
+        closeMobileMenu(); 
+    });
+
+    // Eventos de ventana
+    window.addEventListener('resize', fitBoard);
+    window.addEventListener('orientationchange', fitBoard);
+    
+    showStatus('Sistema listo - Modo Local', 'var(--accent2)');
 });
 
-/* ====== Init ====== */
-function initBoardApp(){
-  createPlayers(); placeBall(); if (!timeline.length) recordFrame(); updateScrub(); refreshPlayList(); setControlsDisabled(!window.isAuthorized);
-  if (window.auth) { updateAuthButton(window.auth.currentUser); btnAuthAction.style.display='inline-block'; } else { btnAuthAction.style.display='none'; }
-  enableDragBall(()=>{ if (autoRec.checked) recordFrame(); }); enableSelectionBox(); renderDraw(); fitBoard(); setTimeout(fitBoard,50);
+// Funciones móviles
+function openMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.add('open');
+    if(menuOverlay) menuOverlay.classList.add('open');
 }
-window.initBoardApp = initBoardApp;
-initBoardApp();
 
+function closeMobileMenu() {
+    if(desktopSidepanel) desktopSidepanel.classList.remove('open');
+    if(menuOverlay) menuOverlay.classList.remove('open');
+}
+
+// Eventos de menú móvil
+if (btnMenuOpen) btnMenuOpen.addEventListener('click', openMobileMenu);
+if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMobileMenu);
+if (menuOverlay) menuOverlay.addEventListener('click', closeMobileMenu);
+
+// Exponer funciones globalmente
+window.initBoardApp = initBoardApp;
+window.fitBoard = fitBoard;
 </script>
 </body>
 </html>
