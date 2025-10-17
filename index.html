@@ -3,17 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<!-- Headers necesarios para que funcione la exportación de video -->
 <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
 <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
-<title>RugbyBoard Pro — Bologna Rugby Club</title>
+<title>RugbyBoard Pro — Integrado</title>
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQODhPcO4/S/IpicFiGWcI4eXhF1G6h/ulD81Yj0L+O0BFCJAEInInKpTXy/x/YpB9PjS/fZy8f/K7t6h/a==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" xintegrity="sha512-BNaRQODhPcO4/S/IpicFiGWcI4eXhF1G6h/ulD81Yj0L+O0BFCJAEInInKpTXy/x/YpB9PjS/fZy8f/K7t6h/a==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
-  :root{
-    --bg:#0b1520; --panel:#0e1c2a; --panel2:#122235; --ink:#e8eef5; --muted:#9fb3c8;
-    --border:#1b3147; --accent:#00c2ff; --accent2:#7ef29a; --warn:#ffd400; --red:#ff5a6b; --blue:#2f80ff;
-    --shadow:0 8px 28px rgba(0,0,0,.35);
-  }
+  :root{--bg:#0b1520;--panel:#0e1c2a;--ink:#e8eef5;--muted:#9fb3c8;--border:#1b3147;--accent:#00c2ff;--accent2:#7ef29a;--warn:#ffd400;--red:#ff5a6b;--blue:#2f80ff;--shadow:0 8px 28px rgba(0,0,0,.35);}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
   .app{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
@@ -27,75 +24,124 @@
   .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   .seg button{border:none;background:#13293d;padding:.45rem .7rem;color:var(--ink);cursor:pointer}
   .seg button.active{background:#15354f;color:#7fe7ff}
-  .stage{position:relative;display:grid;grid-template-columns: 1fr;grid-template-rows:1fr;min-height:100%; padding: 0;}
+  .stage{position:relative;display:grid;grid-template-columns:1fr;grid-template-rows:1fr;min-height:100%;padding:0}
   .board-viewport{position:relative;inset:0;display:flex;justify-content:center;align-items:center;overflow:hidden;width:100%;height:100%}
-  .board-wrap{position:relative; width:1200px; height:700px; transform-origin:center center}
+  .board-wrap{position:relative;width:1200px;height:700px;transform-origin:center center}
   .board{position:absolute;inset:0;background:#137a46;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-  .lines, .draw{position:absolute;inset:0;pointer-events:none}
+  .lines,.draw{position:absolute;inset:0;pointer-events:none}
   svg{width:100%;height:100%;display:block}
   .grid{position:absolute;inset:0;pointer-events:none;opacity:.55;display:none}
   .grid.on{display:block}
   #players{position:absolute;inset:0;z-index:3}
-  .player{pointer-events:auto;position:absolute;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:grab; transform: translate(-50%, -50%); user-select: none;}
-  .player.selected{border: 3px solid var(--accent); box-shadow: 0 0 10px var(--accent);}
-  .team-1{background:var(--blue);} .team-2{background:var(--red);}
-  #ball{position:absolute;z-index:4; pointer-events: auto;}
+  .player{pointer-events:auto;position:absolute;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:grab;transform:translate(-50%,-50%);user-select:none}
+  .player.selected{border:3px solid var(--accent);box-shadow:0 0 10px var(--accent)}
+  .team-1{background:var(--blue)}
+  .team-2{background:var(--red)}
+  #ball{position:absolute;z-index:4;pointer-events:auto}
   .ball{width:30px;height:18px;background:var(--warn);border:2px solid #fff;border-radius:50%/60%;transform:translate(-50%,-50%) rotate(-15deg);box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:grab}
   .ball::after{content:"";position:absolute;inset:4px 11px;border-radius:50%/60%;border:2px dashed rgba(0,0,0,.25)}
-  #selectionBox{position:absolute;pointer-events:none;border:1px dashed var(--accent);background:rgba(0,194,255,0.1);z-index:5;display:none}
-  .modal-overlay{position:fixed;inset:0;background-color:rgba(0,0,0,0.7);display:none;place-items:center;z-index:1000}
-  .modal-content{background-color:var(--panel);padding:24px;border-radius:12px;box-shadow:var(--shadow);width:90%;max-width:400px;display:flex;flex-direction:column;gap:15px;border:1px solid var(--border)}
-  .modal-content input{width:100%;padding:10px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}
+  #selectionBox{position:absolute;pointer-events:none;border:1px dashed var(--accent);background:rgba(0,194,255,.1);z-index:5;display:none}
+  .modal-overlay{position:fixed;inset:0;background-color:rgba(0,0,0,.7);display:none;place-items:center;z-index:1000}
+  .modal-content{background-color:var(--panel);padding:24px;border-radius:12px;box-shadow:var(--shadow);width:90%;max-width:500px;display:flex;flex-direction:column;gap:15px;border:1px solid var(--border)}
+  .modal-content input,.modal-content select{width:100%;padding:10px;background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px}
   .modal-content button{margin-top:10px}
-  @media (min-width: 1000px){.app{grid-template-rows:auto 1fr}.stage{grid-template-columns:320px 1fr;gap:14px;padding:12px;display:grid;min-height:calc(100dvh - 70px)}.sidepanel{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:100%;overflow-y:auto;transform:translateX(0) !important}.dock, #btnMenuOpen{display:none !important}.sidepanel-section{padding-top:0 !important;border-top:none !important}.sidepanel-section + .sidepanel-section{border-top:1px solid var(--border) !important;padding-top:12px !important}}
-  @media (max-width: 999px){.app{min-height:100dvh;grid-template-rows:auto 1fr}.stage{padding:0;min-height:auto;height:100%}.board-viewport{width:100%;height:100%}.topbar .seg, .topbar .toolbar > .btn{display:none}.topbar #btnAuthAction, .topbar #btnMenuOpen{display:flex}.sidepanel{position:fixed;inset:0;width:100%;max-width:100vw;z-index:1000;background:var(--bg);transform:translateX(-100%);transition:transform 0.3s ease-out;box-shadow:4px 0 10px rgba(0,0,0,0.5);padding-top:60px;display:flex;flex-direction:column}.sidepanel.open{transform:translateX(0)}.dock{display:none !important}#menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:none}#menuOverlay.open{display:block}}
+  @media (min-width:1000px){.app{grid-template-rows:auto 1fr}.stage{grid-template-columns:320px 1fr;gap:14px;padding:12px;display:grid;min-height:calc(100dvh - 70px)}.sidepanel{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:100%;overflow-y:auto;transform:translateX(0) !important}.dock,#btnMenuOpen{display:none !important}.sidepanel-section{padding-top:0 !important;border-top:none !important}.sidepanel-section+.sidepanel-section{border-top:1px solid var(--border) !important;padding-top:12px !important}}
+  @media (max-width:999px){.app{min-height:100dvh;grid-template-rows:auto 1fr}.stage{padding:0;min-height:auto;height:100%}.board-viewport{width:100%;height:100%}.topbar .seg,.topbar .toolbar>.btn{display:none}.topbar #btnAuthAction,.topbar #btnMenuOpen{display:flex}.sidepanel{position:fixed;inset:0;width:100%;max-width:100vw;z-index:1000;background:var(--bg);transform:translateX(-100%);transition:transform .3s ease-out;box-shadow:4px 0 10px rgba(0,0,0,.5);padding-top:60px;display:flex;flex-direction:column}.sidepanel.open{transform:translateX(0)}.dock{display:none !important}#menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:none}#menuOverlay.open{display:block}}
   #menuHeader{position:fixed;top:0;left:0;width:100%;height:60px;z-index:1001;background:var(--panel);border-bottom:1px solid var(--border);display:none;align-items:center;justify-content:space-between;padding:0 14px}
   .sidepanel.open ~ #menuHeader{display:flex}
   .icon-btn{background:none;border:none;cursor:pointer;padding:8px;color:var(--ink);display:flex;align-items:center}
   .icon-btn svg{width:24px;height:24px}
   #btnMenuOpen{display:none}
-  @media (max-width: 999px){#btnMenuOpen{display:inline-block}}
+  @media (max-width:999px){#btnMenuOpen{display:inline-block}}
   .field{display:flex;align-items:center;gap:8px;background:#0f2032;border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem}
   .field label{font-size:.85rem;color:var(--muted)}
-  select,input[type="number"],input[type="text"]{background:#0c1c2b;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.45rem .55rem}
-  input[type="checkbox"]{width:18px;height:18px}
+  select,input[type=number],input[type=text]{background:#0c1c2b;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.45rem .55rem}
+  input[type=checkbox]{width:18px;height:18px}
   .grow{flex:1}
   .subtle{color:var(--muted);font-size:.85rem}
   .row{display:flex;flex-wrap:wrap;gap:8px}
+  #inviteResultModal .result-link { background-color: var(--bg); border: 1px solid var(--border); padding: 10px; border-radius: 8px; word-break: break-all; cursor: pointer; }
 </style>
 </head>
 <body>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    const firebaseConfig = {"apiKey":"AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI","authDomain":"bologna-rugby-club.firebaseapp.com","projectId":"bologna-rugby-club","storageBucket":"bologna-rugby-club.appspot.com","messagingSenderId":"641438144435","appId":"1:641438144435:web:e2a243bacd522fd1615dc6","measurementId":"G-9C66KXJ561"};
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    // TODO: Reemplaza con la configuración de tu proyecto de Firebase
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "<projectId>.firebaseapp.com",
+      projectId: "<projectId>",
+      storageBucket: "<projectId>.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
     initializeApp(firebaseConfig);
-    window.firebaseAuth = getAuth(); window.firebaseDb = getFirestore(); window.firebaseSignIn = signInWithEmailAndPassword; window.firebaseSignOut = signOut; window.firebaseOnAuthStateChanged = onAuthStateChanged;
+    window.getApp = getApp;
+    window.getAuth = getAuth;
+    window.getFirestore = getFirestore;
+    window.getFunctions = getFunctions;
+    window.httpsCallable = httpsCallable;
+    window.firebaseSignIn = signInWithEmailAndPassword;
+    window.firebaseSignOut = signOut;
+    window.firebaseOnAuthStateChanged = onAuthStateChanged;
     window.firestore = { doc, setDoc, deleteDoc, collection, query, onSnapshot };
     console.log("Firebase inicializado correctamente");
-</script>
+  </script>
 
     <div id="menuOverlay"></div>
+
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
-            <h3 style="font-weight:700; color:var(--accent);">Acceso Bologna Rugby Club</h3><p class="subtle">Ingresa tus credenciales para acceder al tablero.</p>
-            <input type="email" id="loginEmail" placeholder="Email"/><input type="password" id="loginPassword" placeholder="Contraseña"/>
-            <button class="btn primary" id="btnLogin">Iniciar Sesión</button><p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p><button class="btn" id="btnCloseLogin">Cerrar</button>
+            <h3 style="font-weight:700; color:var(--accent);">Acceso RugbyBoard Pro</h3>
+            <p class="subtle">Ingresa tus credenciales para acceder al tablero.</p>
+            <input type="email" id="loginEmail" placeholder="Email"/>
+            <input type="password" id="loginPassword" placeholder="Contraseña"/>
+            <button class="btn primary" id="btnLogin">Iniciar Sesión</button>
+            <p id="loginMessage" style="color:var(--red); font-size:0.85rem; margin:0;"></p>
+            <button class="btn" id="btnCloseLogin">Cerrar</button>
         </div>
     </div>
+    
+    <div class="modal-overlay" id="inviteResultModal">
+        <div class="modal-content">
+            <h3 style="font-weight:700; color:var(--accent2);">¡Invitación Enviada!</h3>
+            <p class="subtle">Copia el siguiente enlace y compártelo con el nuevo miembro para que pueda establecer su contraseña e iniciar sesión.</p>
+            <div id="inviteResultLink" class="result-link" title="Click para copiar"></div>
+            <button class="btn" id="btnCloseInviteResult">Cerrar</button>
+        </div>
+    </div>
+
     <div id="menuHeader">
         <span class="brand" style="font-size: 1.1rem;"><span class="dot"></span>Controles</span>
         <button class="icon-btn" id="btnCloseMenu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
+
     <div class="app">
         <header class="topbar">
-            <div class="brand" id="brand"><span class="dot"></span>Bologna Rugby Club - RugbyBoard</div>
+            <div class="brand" id="brand"><span class="dot"></span>RugbyBoard Pro</div>
             <div class="toolbar"><button class="btn primary" id="btnAuthAction">Iniciar Sesión</button><button class="icon-btn" id="btnMenuOpen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button></div>
         </header>
         <main class="stage">
             <aside class="sidepanel" id="desktopSidepanel">
-                <div id="playerManagementSection" class="sidepanel-section" style="display:none; flex-direction:column; gap:10px;"><h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestionar Jugadores</h3><div class="field grow"><input type="email" id="playerEmail" placeholder="Email del jugador" class="grow"/></div><div class="row"><button class="btn grow" id="btnInvitePlayer">Invitar Jugador</button></div><p class="subtle">Los jugadores invitados podrán ver tus jugadas.</p></div>
+                <div id="playerManagementSection" class="sidepanel-section" style="display:none; flex-direction:column; gap:10px;">
+                    <h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Gestionar Equipo</h3>
+                    <div class="field grow"><input type="email" id="inviteEmail" placeholder="Email del miembro" class="grow"/></div>
+                    <div class="field grow">
+                        <label for="inviteRole">Rol</label>
+                        <select id="inviteRole" class="grow">
+                            <option value="player" selected>Jugador</option>
+                            <option value="coach">Entrenador</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="row"><button class="btn primary grow" id="btnInvitePlayer">Invitar Miembro</button></div>
+                    <p id="inviteStatus" class="subtle"></p>
+                </div>
                 <div class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;"><h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Orientación</h3><div class="seg" style="margin-top: 5px;"><button id="btnLandscape" class="active" title="Horizontal">Horizontal</button><button id="btnPortrait" title="Vertical">Vertical</button></div></div>
                 <div class="sidepanel-section" style="display:flex; flex-direction:column; gap:10px;"><h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Exportación</h3><div class="row"><button class="btn grow" id="btnExportJpg">JPG</button><button class="btn grow" id="btnExportWebm">WebM</button><button class="btn grow" id="btnExportMp4">MP4</button></div><div class="row"><button class="btn grow" id="btnReset">Reiniciar Tablero</button></div></div>
                 <div id="drawingControlsSection" class="sidepanel-section" style="display:none; flex-direction:column; gap:10px;"><h3 style="font-weight:700; font-size:1.1rem; color:var(--accent);">Herramientas de Dibujo</h3><div class="row"><div class="seg" id="toolSeg"><button id="toolArrows">Flechas</button><button id="toolPen">Lápiz</button><button id="toolText">Texto</button></div><button class="btn" id="btnUndo">Deshacer</button><button class="btn" id="btnClear">Borrar</button></div><div class="row"><div class="field"><label>Color</label><select id="strokeColor"><option value="#ffffff">Blanco</option><option value="#35d07f">Verde</option><option value="#2f80ff">Azul</option><option value="#ff5a6b">Rojo</option><option value="#ffd400" selected>Amarillo</option></select></div><div class="field"><label>Grosor</label><select id="strokeWidth"><option value="3">Fino</option><option value="5" selected>Medio</option><option value="7">Grueso</option></select></div><div class="field"><input type="checkbox" id="dashed"/> <label for="dashed">Punteado</label></div></div><div class="row"><div class="field"><input type="checkbox" id="showGrid"/> <label for="showGrid">Ver grilla</label></div></div></div>
@@ -111,139 +157,53 @@
 <script>
 (function() {
     "use strict";
-
-    const WIDTH = 1200, HEIGHT = 700, PLAYER_SIZE = 40, GRID_SIZE = 24;
+    const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
+    const TEAM_ID = "my-first-team"; // Hardcoded Team ID for this implementation
     const initialPositions = [];
     for(let i=1;i<=15;i++) initialPositions.push({team:'team-1', number:i, x:WIDTH*0.18,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
     for(let i=1;i<=15;i++) initialPositions.push({team:'team-2', number:i, x:WIDTH*0.82,y:HEIGHT*(0.1+(i-1)*(0.8/14))});
-
-    const AppState = {
-        ffmpeg: null, isAuthorized: false, userRole: 'spectator', timeline: [],
-        drawings: { arrows: [], strokes: [], notes: [] },
-        currentBallPos: { x: WIDTH / 2, y: HEIGHT / 2 },
-        selectedPlayers: new Set(), playing: false,
-        layout: { mode: 'landscape', scale: 1 }, forcePortrait: false,
-        currentTool: 'select', ballCarrier: null,
-    };
-
-    const UI = {
-        els: {},
-        assignDOMElements() {
-            const ids = ['desktopSidepanel', 'boardViewport', 'boardWrap', 'board', 'players', 'draw', 'grid', 'ball', 'selectionBox', 'loginModal', 'btnAuthAction', 'menuOverlay', 'btnCloseMenu', 'btnMenuOpen', 'btnLandscape', 'btnPortrait', 'btnReset', 'btnSavePlay', 'btnLoadPlay', 'btnExportJpg', 'btnExportWebm', 'btnExportMp4', 'toolArrows', 'toolPen', 'toolText', 'strokeColor', 'strokeWidth', 'dashed', 'showGrid', 'btnUndo', 'btnClear', 'playName', 'btnDuplicate', 'playList', 'btnDelete', 'btnRecord', 'autoRec', 'btnPlayPause', 'btnStop', 'speed', 'scrubber', 'scrubLbl', 'btnClrTl', 'btnInvitePlayer', 'playerEmail', 'loginEmail', 'loginPassword', 'btnLogin', 'btnCloseLogin', 'loginMessage', 'menuHeader'];
-            ids.forEach(id => this.els[id] = document.getElementById(id));
+    const AppState = {ffmpeg:null,isAuthorized:!1,userRole:"spectator",timeline:[],drawings:{arrows:[],strokes:[],notes:[]},currentBallPos:{x:600,y:350},selectedPlayers:new Set,playing:!1,layout:{mode:"landscape",scale:1},forcePortrait:!1,currentTool:"select",ballCarrier:null};
+    const UI={els:{},assignDOMElements(){const e=["desktopSidepanel","boardViewport","boardWrap","board","players","draw","grid","ball","selectionBox","loginModal","btnAuthAction","menuOverlay","btnCloseMenu","btnMenuOpen","btnLandscape","btnPortrait","btnReset","btnSavePlay","btnLoadPlay","btnExportJpg","btnExportWebm","btnExportMp4","toolArrows","toolPen","toolText","strokeColor","strokeWidth","dashed","showGrid","btnUndo","btnClear","playName","btnDuplicate","playList","btnDelete","btnRecord","autoRec","btnPlayPause","btnStop","speed","scrubber","scrubLbl","btnClrTl","btnInvitePlayer","inviteEmail","inviteRole","inviteStatus","inviteResultModal","inviteResultLink","btnCloseInviteResult","loginEmail","loginPassword","btnLogin","btnCloseLogin","loginMessage","menuHeader"];e.forEach(t=>this.els[t]=document.getElementById(t))},showStatus(e,t="var(--accent)",n=3500){const s=document.createElement("div");s.textContent=e,s.style.cssText=`position: fixed; top: 70px; right: 20px; background: ${t}; color: var(--bg); padding: 10px 15px; border-radius: 8px; z-index: 9999; opacity: 0; transition: all 0.5s ease;`,document.body.appendChild(s),setTimeout(()=>s.style.opacity="1",10),setTimeout(()=>{s.style.opacity="0",setTimeout(()=>s.remove(),500)},n)},updateAuthUI(){this.els.btnAuthAction.textContent=AppState.isAuthorized?"Cerrar Sesión":"Iniciar Sesión";const e=AppState.isAuthorized&&"coach"===AppState.userRole?"flex":"none";["playManagementSection","playerManagementSection","timelineSection","drawingControlsSection"].forEach(t=>document.getElementById(t).style.display=e),AppState.isAuthorized?DB.refreshPlayList():this.els.playList.innerHTML='<option value="">Inicia sesión</option>'},populatePlayList(e){const{playList:t}=this.els;t.innerHTML=`<option value="" disabled selected>${e.length>0?"--- Seleccionar Jugada ---":"No hay jugadas"}</option>`,e.forEach(e=>t.insertAdjacentHTML("beforeend",`<option value="${e.id}" data-payload='${JSON.stringify(e.payload)}'>${e.name}</option>`))},openMobileMenu(){this.els.desktopSidepanel.classList.add("open"),this.els.menuOverlay.classList.add("open")},closeMobileMenu(){this.els.desktopSidepanel.classList.remove("open"),this.els.menuOverlay.classList.remove("open")}};
+    const Auth={init(){window.firebaseOnAuthStateChanged(window.getAuth(),e=>this.handleAuthStateChange(e))},handleAuthStateChange(e){e?Object.assign(AppState,{currentUser:e,isAuthorized:!0,userRole:"coach",currentCoachId:e.uid}):Object.assign(AppState,{currentUser:null,isAuthorized:!1,userRole:"spectator",currentCoachId:null}),e||!AppState.unsubscribePlays||AppState.unsubscribePlays(),UI.updateAuthUI()},async login(e,t){try{await window.firebaseSignIn(window.getAuth(),e,t),UI.showStatus("¡Sesión iniciada!","var(--accent2)"),UI.els.loginModal.style.display="none"}catch(n){UI.els.loginMessage.textContent=n.message}},async logout(){await window.firebaseSignOut(window.getAuth()),UI.showStatus("Sesión cerrada","var(--accent)")}};
+    const DB={getPlaysCollection:()=>window.firestore.collection(window.getFirestore(),`teams/${TEAM_ID}/plays`),async savePlay(e){if("coach"!==AppState.userRole||!e)return UI.showStatus("Ingresa un nombre","var(--warn)");0===AppState.timeline.length&&Timeline.recordFrame();const t=e.replace(/[^a-zA-Z0-9_-]/g,"_").toLowerCase(),n={name:e,teamId:TEAM_ID,timeline:AppState.timeline,drawings:AppState.drawings,updatedAt:(new Date).toISOString()};try{await window.firestore.setDoc(window.firestore.doc(this.getPlaysCollection(),t),n,{merge:!0}),UI.showStatus("Jugada guardada","var(--accent2)")}catch(s){UI.showStatus("Error al guardar","var(--red)")}},refreshPlayList(){AppState.currentCoachId&&(AppState.unsubscribePlays&&AppState.unsubscribePlays(),AppState.unsubscribePlays=window.firestore.onSnapshot(window.firestore.query(this.getPlaysCollection()),e=>UI.populatePlayList(e.docs.map(e=>({id:e.id,name:e.data().name||e.id,payload:e.data()}))),e=>UI.showStatus("Error de conexión","var(--red)")))},loadPlay(e){const t=UI.els.playList.querySelector(`[value="${e}"]`);if(t)try{const n=JSON.parse(t.dataset.payload);Timeline.stopAnimation(),UI.els.playName.value=n.name||e,AppState.drawings=n.drawings||{arrows:[],strokes:[],notes:[]},AppState.timeline=Array.isArray(n.timeline)?n.timeline:[],Board.renderDraw(),Timeline.updateScrub(),AppState.timeline.length&&Timeline.gotoFrame(0),UI.showStatus(`'${n.name}' cargada`,"var(--accent)")}catch(s){UI.showStatus("Error al cargar","var(--red)")}},async deletePlay(e){confirm("¿Eliminar esta jugada?")&&await window.firestore.deleteDoc(window.firestore.doc(this.getPlaysCollection(),e)).then(()=>{UI.showStatus("Jugada eliminada","var(--accent)"),UI.els.playName.value=""}).catch(e=>UI.showStatus("Error al eliminar","var(--red)"))}};
+    const Functions = {
+        inviteMember: null,
+        init() {
+            const funcs = window.getFunctions(window.getApp());
+            this.inviteMember = window.httpsCallable(funcs, 'inviteMember');
         },
-        showStatus(message, color = 'var(--accent)', duration = 3500) {
-            const el = document.createElement('div');
-            el.textContent = message;
-            el.style.cssText = `position: fixed; top: 70px; right: 20px; background: ${color}; color: var(--bg); padding: 10px 15px; border-radius: 8px; z-index: 9999; opacity: 0; transition: all 0.5s ease;`;
-            document.body.appendChild(el);
-            setTimeout(() => el.style.opacity = '1', 10);
-            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, duration);
-        },
-        updateAuthUI() { /* ... unchanged ... */ this.els.btnAuthAction.textContent=AppState.isAuthorized?"Cerrar Sesión":"Iniciar Sesión";const e=AppState.isAuthorized&&"coach"===AppState.userRole?"flex":"none";["playManagementSection","playerManagementSection","timelineSection","drawingControlsSection"].forEach(t=>document.getElementById(t).style.display=e),AppState.isAuthorized?DB.refreshPlayList():this.els.playList.innerHTML='<option value="">Inicia sesión para ver jugadas</option>'},
-        populatePlayList(plays) { /* ... unchanged ... */ const{playList:e}=this.els;e.innerHTML=`<option value="" disabled selected>${plays.length>0?"--- Seleccionar Jugada ---":"No hay jugadas"}</option>`,plays.forEach(t=>e.insertAdjacentHTML("beforeend",`<option value="${t.id}" data-payload='${JSON.stringify(t.payload)}'>${t.name}</option>`))},
-        openMobileMenu() { this.els.desktopSidepanel.classList.add('open'); this.els.menuOverlay.classList.add('open'); },
-        closeMobileMenu() { this.els.desktopSidepanel.classList.remove('open'); this.els.menuOverlay.classList.remove('open'); }
-    };
-
-    const Auth = { /* ... unchanged ... */ init(){window.firebaseOnAuthStateChanged(window.firebaseAuth,e=>{this.handleAuthStateChange(e)})},handleAuthStateChange(e){e?Object.assign(AppState,{currentUser:e,isAuthorized:!0,userRole:"coach",currentCoachId:e.uid}):Object.assign(AppState,{currentUser:null,isAuthorized:!1,userRole:"spectator",currentCoachId:null}),e||!AppState.unsubscribePlays||AppState.unsubscribePlays(),UI.updateAuthUI()},async login(e,t){try{await window.firebaseSignIn(window.firebaseAuth,e,t),UI.showStatus("¡Sesión iniciada!","var(--accent2)"),UI.els.loginModal.style.display="none"}catch(n){UI.els.loginMessage.textContent=n.message}},async logout(){await window.firebaseSignOut(window.firebaseAuth),UI.showStatus("Sesión cerrada","var(--accent)")}};
-    const DB = { /* ... unchanged ... */ getPlaysCollection:()=>window.firestore.collection(window.firebaseDb,`coaches/${AppState.currentCoachId}/plays`),async savePlay(e){if("coach"!==AppState.userRole||!e)return UI.showStatus("Ingresa un nombre","var(--warn)");0===AppState.timeline.length&&Timeline.recordFrame();const t=e.replace(/[^a-zA-Z0-9_-]/g,"_").toLowerCase(),n={name:e,timeline:AppState.timeline,drawings:AppState.drawings,updatedAt:(new Date).toISOString()};try{await window.firestore.setDoc(window.firestore.doc(this.getPlaysCollection(),t),n,{merge:!0}),UI.showStatus("Jugada guardada","var(--accent2)")}catch(s){UI.showStatus("Error al guardar","var(--red)")}},refreshPlayList(){AppState.currentCoachId&&(AppState.unsubscribePlays&&AppState.unsubscribePlays(),AppState.unsubscribePlays=window.firestore.onSnapshot(window.firestore.query(this.getPlaysCollection()),e=>UI.populatePlayList(e.docs.map(e=>({id:e.id,name:e.data().name||e.id,payload:e.data()}))),e=>UI.showStatus("Error de conexión","var(--red)")))},loadPlay(e){const t=UI.els.playList.querySelector(`[value="${e}"]`);if(t)try{const n=JSON.parse(t.dataset.payload);Timeline.stopAnimation(),UI.els.playName.value=n.name||e,AppState.drawings=n.drawings||{arrows:[],strokes:[],notes:[]},AppState.timeline=Array.isArray(n.timeline)?n.timeline:[],Board.renderDraw(),Timeline.updateScrub(),AppState.timeline.length&&Timeline.gotoFrame(0),UI.showStatus(`'${n.name}' cargada`,"var(--accent)")}catch(s){UI.showStatus("Error al cargar","var(--red)")}},async deletePlay(e){confirm("¿Eliminar esta jugada?")&&await window.firestore.deleteDoc(window.firestore.doc(this.getPlaysCollection(),e)).then(()=>{UI.showStatus("Jugada eliminada","var(--accent)"),UI.els.playName.value=""}).catch(e=>UI.showStatus("Error al eliminar","var(--red)"))}};
-    
-    const Export = {
-        async exportJpg() {
-            UI.showStatus('Generando JPG...', 'var(--warn)');
-            try {
-                const canvas = await html2canvas(UI.els.boardWrap, { backgroundColor: '#137a46', useCORS: true });
-                const a = document.createElement('a');
-                a.href = canvas.toDataURL('image/jpeg', 0.9);
-                a.download = 'rugbyboard-play.jpg';
-                a.click();
-                UI.showStatus('JPG Exportado', 'var(--accent2)');
-            } catch (e) { UI.showStatus('Error al exportar JPG', 'var(--red)'); console.error(e); }
-        },
-        async recordVideo(format) {
-            if (AppState.timeline.length < 2) return UI.showStatus('Graba al menos 2 pasos para un video.', 'var(--red)');
-            if (!AppState.ffmpeg) {
-                try {
-                    UI.showStatus('Cargando FFmpeg por primera vez... (puede tardar)', 'var(--warn)', 10000);
-                    AppState.ffmpeg = new FFmpeg.FFmpeg();
-                    await AppState.ffmpeg.load();
-                } catch (e) { return UI.showStatus('Error al cargar FFmpeg.', 'var(--red)'); }
+        async sendInvitation(email, role) {
+            const { inviteStatus, btnInvitePlayer, inviteResultModal, inviteResultLink } = UI.els;
+            if (!email || !role) {
+                inviteStatus.textContent = "Email y rol son requeridos.";
+                inviteStatus.style.color = "var(--red)";
+                return;
             }
-            UI.showStatus('Iniciando exportación de video...', 'var(--warn)');
-            const f = AppState.ffmpeg;
-            f.on('progress', ({ progress }) => UI.showStatus(`Codificando: ${(progress * 100).toFixed(0)}%`, 'var(--warn)'));
+            btnInvitePlayer.disabled = true;
+            inviteStatus.textContent = "Enviando invitación...";
+            inviteStatus.style.color = "var(--warn)";
             try {
-                const FRAME_RATE = 24;
-                for (let i = 0; i < AppState.timeline.length - 1; i++) {
-                    for (let j = 0; j < FRAME_RATE; j++) {
-                        const frameData = Timeline.getInterpolatedFrame(AppState.timeline[i], AppState.timeline[i + 1], j / FRAME_RATE);
-                        const canvas = await this.renderFrameToCanvas(frameData);
-                        const frameName = `f-${String(i).padStart(3, '0')}-${String(j).padStart(2, '0')}.png`;
-                        const data = await fetch(canvas.toDataURL()).then(res => res.arrayBuffer());
-                        await f.writeFile(frameName, new Uint8Array(data));
-                    }
+                const result = await this.inviteMember({ teamId: TEAM_ID, email, role });
+                const data = result.data;
+                if (data.success) {
+                    inviteStatus.textContent = `¡Invitación para ${email} enviada!`;
+                    inviteStatus.style.color = "var(--accent2)";
+                    inviteResultLink.textContent = data.passwordResetLink;
+                    inviteResultModal.style.display = "grid";
                 }
-                const outputName = `rugbyboard-play.${format}`;
-                await f.exec(['-framerate', `${FRAME_RATE}`, '-i', 'f-%03d-%02d.png', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', outputName]);
-                const data = await f.readFile(outputName);
-                const blob = new Blob([data.buffer], { type: `video/${format}` });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = outputName;
-                a.click();
-                URL.revokeObjectURL(a.href);
-                UI.showStatus('Video exportado!', 'var(--accent2)');
-            } catch(e) { UI.showStatus('Error durante la exportación', 'var(--red)'); console.error(e); }
-            f.on('progress', null);
-        },
-        async renderFrameToCanvas(frameData) {
-            Board.applyFrame(frameData);
-            await new Promise(r => requestAnimationFrame(r));
-            return html2canvas(UI.els.boardWrap, { backgroundColor: '#137a46', useCORS: true });
+            } catch (error) {
+                console.error("Error al invitar:", error);
+                inviteStatus.textContent = `Error: ${error.message}`;
+                inviteStatus.style.color = "var(--red)";
+            } finally {
+                btnInvitePlayer.disabled = false;
+            }
         }
     };
-    
-    const Board = { /* ... unchanged ... */ init(){this.createPlayers(),this.placeBall(600,350),this.renderGrid(),Timeline.recordFrame(),this.fitBoard(),this.initInteractions(),this.renderDraw()},createPlayers(){UI.els.players.innerHTML="",AppState.selectedPlayers.clear(),initialPositions.forEach(e=>UI.els.players.insertAdjacentHTML("beforeend",`<div class="player team-${"team-1"===e.team?1:2}" data-team="${e.team}" data-number="${e.number}" style="left: ${e.x}px; top: ${e.y}px;">${e.number}</div>`))},placeBall(e,t){AppState.currentBallPos={x:e,y:t},UI.els.ball.style.left=`${e}px`,UI.els.ball.style.top=`${t}px`},applyFrame(e){e.players.forEach(t=>{const n=UI.els.players.querySelector(`[data-team="${t.team}"][data-number="${t.number}"]`);n&&(n.style.left=`${t.x}px`,n.style.top=`${t.y}px`)}),this.placeBall(e.ball.x,e.ball.y),AppState.ballCarrier&&this.placeBall(parseFloat(AppState.ballCarrier.style.left),parseFloat(AppState.ballCarrier.style.top))},fitBoard(){const e=UI.els.boardViewport.getBoundingClientRect(),t=window.innerWidth<=999;AppState.layout.mode=AppState.forcePortrait||t?"portrait":"landscape",AppState.layout.scale="portrait"===AppState.layout.mode?Math.min(e.width/700,e.height/1200):Math.min(e.width/1200,e.height/700),UI.els.boardWrap.style.transform=`rotate(${"portrait"===AppState.layout.mode?90:0}deg) scale(${AppState.layout.scale})`,this.applyUprightTransforms()},applyUprightTransforms(){const e="portrait"===AppState.layout.mode;UI.els.players.childNodes.forEach(t=>t.style.transform=`translate(-50%,-50%) rotate(${e?-90:0}deg)`)},clientToBoard(e){const t=UI.els.boardViewport.getBoundingClientRect(),n=e.clientX-t.left,s=e.clientY-t.top;if("portrait"===AppState.layout.mode){const a=n-t.width/2,o=s-t.height/2;return{x:Math.max(0,Math.min(1200,600+o/AppState.layout.scale)),y:Math.max(0,Math.min(700,350+-a/AppState.layout.scale))}}const i=1200*AppState.layout.scale,l=700*AppState.layout.scale;return{x:Math.max(0,Math.min(1200,(n-(t.width-i)/2)/AppState.layout.scale)),y:Math.max(0,Math.min(700,(s-(t.height-l)/2)/AppState.layout.scale))}},deltaToBoard(e,t){return"portrait"===AppState.layout.mode?{dx:t/AppState.layout.scale,dy:-e/AppState.layout.scale}:{dx:e/AppState.layout.scale,dy:t/AppState.layout.scale}},renderDraw(){UI.els.draw.innerHTML="";const e=(e,t)=>{const n=document.createElementNS("http://www.w3.org/2000/svg",e);for(const s in t)n.setAttribute(s,t[s]);return n};const{arrows:t,strokes:n,notes:s}=AppState.drawings;t.forEach(t=>UI.els.draw.appendChild(e("line",{x1:t.x1,y1:t.y1,x2:t.x2,y2:t.y2,stroke:t.color,"stroke-width":t.width,"stroke-dasharray":t.dashed?"8 8":"none","stroke-linecap":"round"}))),n.forEach(t=>UI.els.draw.appendChild(e("polyline",{points:t.points.join(" "),fill:"none",stroke:t.color,"stroke-width":t.width,"stroke-dasharray":t.dashed?"8 8":"none","stroke-linecap":"round","stroke-linejoin":"round"}))),s.forEach(t=>{const n=e("text",{x:t.x,y:t.y,fill:t.color,"font-size":"24","font-weight":"bold","text-anchor":"middle","paint-order":"stroke",stroke:"#000","stroke-width":"4px"});n.textContent=t.text,UI.els.draw.appendChild(n)})},renderGrid(){UI.els.grid.innerHTML=Array.from({length:Math.floor(1200/24)},(e,t)=>`<line x1="${24*(t+1)}" y1="0" x2="${24*(t+1)}" y2="700"/>`).join("")+Array.from({length:Math.floor(700/24)},(e,t)=>`<line x1="0" y1="${24*(t+1)}" x2="1200" y2="${24*(t+1)}"/>`).join("")},initInteractions(){let e=null;const t=t=>{if("coach"===AppState.userRole&&0===t.button){const n=t.target,s=n.closest(".player"),a=n.closest("#ball");if(e={type:null,start:this.clientToBoard(t),clientStart:{x:t.clientX,y:t.clientY}},s)t.preventDefault(),t.ctrlKey||s.classList.contains("selected")||(AppState.selectedPlayers.forEach(e=>e.classList.remove("selected")),AppState.selectedPlayers.clear()),s.classList.toggle("selected",!t.ctrlKey||!s.classList.contains("selected")),s.classList.contains("selected")?AppState.selectedPlayers.add(s):AppState.selectedPlayers.delete(s),e.type="player",e.offsets=new Map([...AppState.selectedPlayers].map(e=>[e,{x:parseFloat(e.style.left),y:parseFloat(e.style.top)}]));else if(a)t.preventDefault(),e.type="ball";else if(["arrows","pen"].includes(AppState.currentTool))e.type="drawing";else{e.type="selection",t.ctrlKey||(AppState.selectedPlayers.forEach(e=>e.classList.remove("selected")),AppState.selectedPlayers.clear());const o=UI.els.selectionBox;o.style.left=`${e.start.x}px`,o.style.top=`${e.start.y}px`,o.style.display="block"}document.addEventListener("pointermove",n),document.addEventListener("pointerup",s)}},n=n=>{if(e){n.preventDefault();const s=this.clientToBoard(n),{dx:a,dy:o}=this.deltaToBoard(n.clientX-e.clientStart.x,n.clientY-e.clientStart.y);"player"===e.type?e.offsets.forEach((e,t)=>{const n=e.x+a,s=e.y+o;t.style.left=`${n}px`,t.style.top=`${s}px`,AppState.ballCarrier===t&&this.placeBall(n,s)}):"ball"===e.type?(this.placeBall(s.x,s.y),AppState.ballCarrier=null):"drawing"===e.type?(e.drawing||(()=>{const t={color:UI.els.strokeColor.value,width:UI.els.strokeWidth.value,dashed:UI.els.dashed.checked};"arrows"===AppState.currentTool?e.drawing={...t,x1:e.start.x,y1:e.start.y,x2:e.start.x,y2:e.start.y}:e.drawing={...t,points:[`${e.start.x},${e.start.y}`]},AppState.drawings["arrows"===AppState.currentTool?"arrows":"strokes"].push(e.drawing)})(),"arrows"===AppState.currentTool?(e.drawing.x2=s.x,e.drawing.y2=s.y):"pen"===AppState.currentTool&&e.drawing.points.push(`${s.x},${s.y}`),this.renderDraw()):"selection"===e.type&&(()=>{const{x:t,y:n}=e.start,a=s.x-t,o=s.y-n,i=UI.els.selectionBox;i.style.transform=`scale(${a<0?-1:1}, ${o<0?-1:1})`,i.style.width=`${Math.abs(a)}px`,i.style.height=`${Math.abs(o)}px`})()}},s=t=>{if(e){if("selection"===e.type){const n=UI.els.selectionBox.getBoundingClientRect();UI.els.players.childNodes.forEach(e=>{const t=e.getBoundingClientRect();t.left<n.right&&t.right>n.left&&t.top<n.bottom&&t.bottom>n.top&&(e.classList.add("selected"),AppState.selectedPlayers.add(e))}),UI.els.selectionBox.style.display="none",UI.els.selectionBox.style.width="0",UI.els.selectionBox.style.height="0"}"text"===AppState.currentTool&&"player"!==e.type&&"ball"!==e.type&&Math.hypot(t.clientX-e.clientStart.x,t.clientY-e.clientStart.y)<10&&(()=>{const e=prompt("Ingresa el texto:");e&& (AppState.drawings.notes.push({x:e.start.x,y:e.start.y,text:e,color:UI.els.strokeColor.value}),this.renderDraw())})(),("player"===e.type||"ball"===e.type)&&UI.els.autoRec.checked&&Timeline.recordFrame(),document.removeEventListener("pointermove",n),document.removeEventListener("pointerup",s),e=null}},a=t=>{const n=t.target.closest(".player");n&&(AppState.ballCarrier=AppState.ballCarrier===n?null:n,AppState.ballCarrier&&this.placeBall(parseFloat(n.style.left),parseFloat(n.style.top)))};UI.els.board.addEventListener("pointerdown",t),UI.els.players.addEventListener("dblclick",a)}};
-
-    const Timeline = { /* ... unchanged ... */ recordFrame(){this.stopAnimation(),AppState.playIdx<AppState.timeline.length-1&&AppState.timeline.splice(AppState.playIdx+1),AppState.timeline.push({players:[...UI.els.players.children].map(e=>({team:e.dataset.team,number:+e.dataset.number,x:parseFloat(e.style.left),y:parseFloat(e.style.top)})),ball:{...AppState.currentBallPos}}),AppState.playIdx=AppState.timeline.length-1,this.updateScrub()},updateScrub(){UI.els.scrubber.max=Math.max(0,AppState.timeline.length-1),UI.els.scrubber.value=AppState.playIdx,UI.els.scrubLbl.textContent=`${AppState.playIdx}/${UI.els.scrubber.max}`},gotoFrame(e){AppState.timeline.length&&(AppState.playIdx=Math.max(0,Math.min(AppState.timeline.length-1,e)),this.updateScrub(),Board.applyFrame(AppState.timeline[AppState.playIdx]))},startAnimation(){if(!(AppState.timeline.length<2||AppState.playing)){AppState.playIdx=parseInt(UI.els.scrubber.value)>=AppState.timeline.length-1?0:parseInt(UI.els.scrubber.value),this.gotoFrame(AppState.playIdx),AppState.playing=!0,UI.els.btnPlayPause.textContent="Pausa";let e=0;const t=n=>{if(AppState.playing){0===e&&(e=n);const s=Math.min((n-e)/(parseInt(UI.els.speed.value)||800),1),a=AppState.timeline[AppState.playIdx],o=AppState.timeline[AppState.playIdx+1];a&&o&&Board.applyFrame(this.getInterpolatedFrame(a,o,s)),s>=1&&(AppState.playIdx++,e=n,AppState.playIdx>=AppState.timeline.length-1&&(this.stopAnimation(),this.gotoFrame(AppState.playIdx),0)),AppState.rafId=requestAnimationFrame(t)}};AppState.rafId=requestAnimationFrame(t)}},stopAnimation(){AppState.rafId&&(cancelAnimationFrame(AppState.rafId),AppState.rafId=null),AppState.playing=!1,UI.els.btnPlayPause.textContent="Reproducir"},getInterpolatedFrame(e,t,n){return{players:e.players.map(e=>{const s=t.players.find(t=>t.team===e.team&&t.number===e.number)||e;return{...e,x:e.x+(s.x-e.x)*n,y:e.y+(s.y-e.y)*n}}),ball:{x:e.ball.x+(t.ball.x-e.ball.x)*n,y:e.ball.y+(t.ball.y-e.ball.y)*n}}}};
-
-    document.addEventListener('DOMContentLoaded', () => {
-        UI.assignDOMElements(); Auth.init(); Board.init(); const { els } = UI;
-        els.btnAuthAction.addEventListener('click', () => AppState.isAuthorized ? Auth.logout() : els.loginModal.style.display = 'grid');
-        els.btnLogin.addEventListener('click', () => Auth.login(els.loginEmail.value, els.loginPassword.value));
-        els.btnCloseLogin.addEventListener('click', () => els.loginModal.style.display = 'none');
-        els.btnSavePlay.addEventListener('click', () => DB.savePlay(els.playName.value));
-        els.btnLoadPlay.addEventListener('click', () => els.playList.value && DB.loadPlay(els.playList.value));
-        els.btnDelete.addEventListener('click', () => els.playList.value && DB.deletePlay(els.playList.value));
-        els.btnExportJpg.addEventListener('click', () => Export.exportJpg());
-        els.btnExportWebm.addEventListener('click', () => Export.recordVideo('webm'));
-        els.btnExportMp4.addEventListener('click', () => Export.recordVideo('mp4'));
-        els.btnReset.addEventListener('click', () => { if (confirm('¿Reiniciar?')) { Timeline.stopAnimation(); Board.createPlayers(); Board.placeBall(WIDTH/2, HEIGHT/2); AppState.drawings = { arrows: [], strokes: [], notes: [] }; AppState.timeline = []; Timeline.recordFrame(); Board.renderDraw(); UI.showStatus('Tablero reiniciado', 'var(--accent)'); }});
-        els.btnRecord.addEventListener('click', () => { Timeline.recordFrame(); UI.showStatus('Paso grabado', 'var(--accent2)'); });
-        els.scrubber.addEventListener('input', e => { Timeline.stopAnimation(); Timeline.gotoFrame(parseInt(e.target.value)); });
-        els.btnPlayPause.addEventListener('click', () => AppState.playing ? Timeline.stopAnimation() : Timeline.startAnimation());
-        els.btnStop.addEventListener('click', () => { Timeline.stopAnimation(); Timeline.gotoFrame(0); });
-        els.btnClrTl.addEventListener('click', () => { if (confirm('¿Limpiar animación?')) { Timeline.stopAnimation(); AppState.timeline = []; Timeline.recordFrame(); UI.showStatus('Animación limpiada', 'var(--accent)'); }});
-        els.btnMenuOpen.addEventListener('click', () => UI.openMobileMenu()); els.btnCloseMenu.addEventListener('click', () => UI.closeMobileMenu()); els.menuOverlay.addEventListener('click', () => UI.closeMobileMenu());
-        els.btnLandscape.addEventListener('click', () => { AppState.forcePortrait = false; Board.fitBoard(); UI.closeMobileMenu(); });
-        els.btnPortrait.addEventListener('click', () => { AppState.forcePortrait = true; Board.fitBoard(); UI.closeMobileMenu(); });
-        ['toolArrows', 'toolPen', 'toolText'].forEach(id => els[id].addEventListener('click', () => {
-            const toolName = id.replace('tool', '').toLowerCase();
-            if (els[id].classList.contains('active')) {
-                AppState.currentTool = 'select'; // Deseleccionar
-                els[id].classList.remove('active');
-            } else {
-                AppState.currentTool = toolName;
-                document.querySelectorAll('#toolSeg button').forEach(b => b.classList.remove('active'));
-                els[id].classList.add('active');
-            }
-        }));
-        els.showGrid.addEventListener('change', () => els.grid.classList.toggle('on', els.showGrid.checked));
-        els.btnClear.addEventListener('click', () => { if (confirm('¿Borrar todos los dibujos?')) { AppState.drawings = { arrows: [], strokes: [], notes: [] }; Board.renderDraw(); } });
-        els.btnUndo.addEventListener('click', () => { const lastKey = Object.keys(AppState.drawings).reverse().find(key => AppState.drawings[key].length > 0); if (lastKey) { AppState.drawings[lastKey].pop(); Board.renderDraw(); } });
-        window.addEventListener('resize', () => Board.fitBoard());
-    });
+    const Export={async exportJpg(){UI.showStatus("Generando JPG...","var(--warn)");try{const e=await html2canvas(UI.els.boardWrap,{backgroundColor:"#137a46",useCORS:!0}),t=document.createElement("a");t.href=e.toDataURL("image/jpeg",.9),t.download="rugbyboard-play.jpg",t.click(),UI.showStatus("JPG Exportado","var(--accent2)")}catch(n){UI.showStatus("Error al exportar JPG","var(--red)"),console.error(n)}},async recordVideo(e){if(AppState.timeline.length<2)return UI.showStatus("Graba al menos 2 pasos para un video.","var(--red)");if(!AppState.ffmpeg)try{UI.showStatus("Cargando FFmpeg por primera vez... (puede tardar)","var(--warn)",1e4),AppState.ffmpeg=new FFmpeg.FFmpeg,await AppState.ffmpeg.load()}catch(t){return UI.showStatus("Error al cargar FFmpeg.","var(--red)")}UI.showStatus("Iniciando exportación de video...","var(--warn)");const t=AppState.ffmpeg;t.on("progress",({progress:e})=>UI.showStatus(`Codificando: ${(100*e).toFixed(0)}%`,"var(--warn)"));try{const n=24;for(let s=0;s<AppState.timeline.length-1;s++)for(let a=0;a<n;a++){const o=Timeline.getInterpolatedFrame(AppState.timeline[s],AppState.timeline[s+1],a/n),i=await this.renderFrameToCanvas(o),l=`f-${String(s).padStart(3,"0")}-${String(a).padStart(2,"0")}.png`,r=await fetch(i.toDataURL()).then(e=>e.arrayBuffer());await t.writeFile(l,new Uint8Array(r))}const c=`rugbyboard-play.${e}`;await t.exec(["-framerate",`${n}`,"-i","f-%03d-%02d.png","-c:v","libx264","-pix_fmt","yuv420p",c]);const d=await t.readFile(c),u=new Blob([d.buffer],{type:`video/${e}`}),p=document.createElement("a");p.href=URL.createObjectURL(u),p.download=c,p.click(),URL.revokeObjectURL(p.href),UI.showStatus("Video exportado!","var(--accent2)")}catch(g){UI.showStatus("Error durante la exportación","var(--red)"),console.error(g)}t.on("progress",null)},async renderFrameToCanvas(e){return Board.applyFrame(e),await new Promise(e=>requestAnimationFrame(e)),html2canvas(UI.els.boardWrap,{backgroundColor:"#137a46",useCORS:!0})}};
+    const Board={init(){this.createPlayers(),this.placeBall(600,350),this.renderGrid(),Timeline.recordFrame(),this.fitBoard(),this.initInteractions(),this.renderDraw()},createPlayers(){UI.els.players.innerHTML="",AppState.selectedPlayers.clear(),initialPositions.forEach(e=>UI.els.players.insertAdjacentHTML("beforeend",`<div class="player team-${"team-1"===e.team?1:2}" data-team="${e.team}" data-number="${e.number}" style="left: ${e.x}px; top: ${e.y}px;">${e.number}</div>`))},placeBall(e,t){AppState.currentBallPos={x:e,y:t},UI.els.ball.style.left=`${e}px`,UI.els.ball.style.top=`${t}px`},applyFrame(e){e.players.forEach(t=>{const n=UI.els.players.querySelector(`[data-team="${t.team}"][data-number="${t.number}"]`);n&&(n.style.left=`${t.x}px`,n.style.top=`${t.y}px`)}),this.placeBall(e.ball.x,e.ball.y),AppState.ballCarrier&&this.placeBall(parseFloat(AppState.ballCarrier.style.left),parseFloat(AppState.ballCarrier.style.top))},fitBoard(){const e=UI.els.boardViewport.getBoundingClientRect(),t=window.innerWidth<=999;AppState.layout.mode=AppState.forcePortrait||t?"portrait":"landscape",AppState.layout.scale="portrait"===AppState.layout.mode?Math.min(e.width/700,e.height/1200):Math.min(e.width/1200,e.height/700),UI.els.boardWrap.style.transform=`rotate(${"portrait"===AppState.layout.mode?90:0}deg) scale(${AppState.layout.scale})`,this.applyUprightTransforms()},applyUprightTransforms(){const e="portrait"===AppState.layout.mode;UI.els.players.childNodes.forEach(t=>t.style.transform=`translate(-50%,-50%) rotate(${e?-90:0}deg)`)},clientToBoard(e){const t=UI.els.boardViewport.getBoundingClientRect(),n=e.clientX-t.left,s=e.clientY-t.top;if("portrait"===AppState.layout.mode){const a=n-t.width/2,o=s-t.height/2;return{x:Math.max(0,Math.min(1200,600+o/AppState.layout.scale)),y:Math.max(0,Math.min(700,350+-a/AppState.layout.scale))}}const i=1200*AppState.layout.scale,l=700*AppState.layout.scale;return{x:Math.max(0,Math.min(1200,(n-(t.width-i)/2)/AppState.layout.scale)),y:Math.max(0,Math.min(700,(s-(t.height-l)/2)/AppState.layout.scale))}},deltaToBoard(e,t){return"portrait"===AppState.layout.mode?{dx:t/AppState.layout.scale,dy:-e/AppState.layout.scale}:{dx:e/AppState.layout.scale,dy:t/AppState.layout.scale}},renderDraw(){UI.els.draw.innerHTML="";const e=(e,t)=>{const n=document.createElementNS("http://www.w3.org/2000/svg",e);for(const s in t)n.setAttribute(s,t[s]);return n};const{arrows:t,strokes:n,notes:s}=AppState.drawings;t.forEach(t=>UI.els.draw.appendChild(e("line",{x1:t.x1,y1:t.y1,x2:t.x2,y2:t.y2,stroke:t.color,"stroke-width":t.width,"stroke-dasharray":t.dashed?"8 8":"none","stroke-linecap":"round"}))),n.forEach(t=>UI.els.draw.appendChild(e("polyline",{points:t.points.join(" "),fill:"none",stroke:t.color,"stroke-width":t.width,"stroke-dasharray":t.dashed?"8 8":"none","stroke-linecap":"round","stroke-linejoin":"round"}))),s.forEach(t=>{const n=e("text",{x:t.x,y:t.y,fill:t.color,"font-size":"24","font-weight":"bold","text-anchor":"middle","paint-order":"stroke",stroke:"#000","stroke-width":"4px"});n.textContent=t.text,UI.els.draw.appendChild(n)})},renderGrid(){UI.els.grid.innerHTML=Array.from({length:Math.floor(1200/24)},(e,t)=>`<line x1="${24*(t+1)}" y1="0" x2="${24*(t+1)}" y2="700"/>`).join("")+Array.from({length:Math.floor(700/24)},(e,t)=>`<line x1="0" y1="${24*(t+1)}" x2="1200" y2="${24*(t+1)}"/>`).join("")},initInteractions(){let e=null;const t=t=>{if("coach"===AppState.userRole&&0===t.button){const n=t.target,s=n.closest(".player"),a=n.closest("#ball");if(e={type:null,start:this.clientToBoard(t),clientStart:{x:t.clientX,y:t.clientY}},s)t.preventDefault(),t.ctrlKey||s.classList.contains("selected")||(AppState.selectedPlayers.forEach(e=>e.classList.remove("selected")),AppState.selectedPlayers.clear()),s.classList.toggle("selected",!t.ctrlKey||!s.classList.contains("selected")),s.classList.contains("selected")?AppState.selectedPlayers.add(s):AppState.selectedPlayers.delete(s),e.type="player",e.offsets=new Map([...AppState.selectedPlayers].map(e=>[e,{x:parseFloat(e.style.left),y:parseFloat(e.style.top)}]));else if(a)t.preventDefault(),e.type="ball";else if(["arrows","pen"].includes(AppState.currentTool))e.type="drawing";else{e.type="selection",t.ctrlKey||(AppState.selectedPlayers.forEach(e=>e.classList.remove("selected")),AppState.selectedPlayers.clear());const o=UI.els.selectionBox;o.style.left=`${e.start.x}px`,o.style.top=`${e.start.y}px`,o.style.display="block"}document.addEventListener("pointermove",n),document.addEventListener("pointerup",s)}},n=n=>{if(e){n.preventDefault();const s=this.clientToBoard(n),{dx:a,dy:o}=this.deltaToBoard(n.clientX-e.clientStart.x,n.clientY-e.clientStart.y);"player"===e.type?e.offsets.forEach((e,t)=>{const n=e.x+a,s=e.y+o;t.style.left=`${n}px`,t.style.top=`${s}px`,AppState.ballCarrier===t&&this.placeBall(n,s)}):"ball"===e.type?(this.placeBall(s.x,s.y),AppState.ballCarrier=null):"drawing"===e.type?(e.drawing||(()=>{const t={color:UI.els.strokeColor.value,width:UI.els.strokeWidth.value,dashed:UI.els.dashed.checked};"arrows"===AppState.currentTool?e.drawing={...t,x1:e.start.x,y1:e.start.y,x2:e.start.x,y2:e.start.y}:e.drawing={...t,points:[`${e.start.x},${e.start.y}`]},AppState.drawings["arrows"===AppState.currentTool?"arrows":"strokes"].push(e.drawing)})(),"arrows"===AppState.currentTool?(e.drawing.x2=s.x,e.drawing.y2=s.y):"pen"===AppState.currentTool&&e.drawing.points.push(`${s.x},${s.y}`),this.renderDraw()):"selection"===e.type&&(()=>{const{x:t,y:n}=e.start,a=s.x-t,o=s.y-n,i=UI.els.selectionBox;i.style.transform=`scale(${a<0?-1:1}, ${o<0?-1:1})`,i.style.width=`${Math.abs(a)}px`,i.style.height=`${Math.abs(o)}px`})()}},s=t=>{if(e){if("selection"===e.type){const n=UI.els.selectionBox.getBoundingClientRect();UI.els.players.childNodes.forEach(e=>{const t=e.getBoundingClientRect();t.left<n.right&&t.right>n.left&&t.top<n.bottom&&t.bottom>n.top&&(e.classList.add("selected"),AppState.selectedPlayers.add(e))}),UI.els.selectionBox.style.display="none",UI.els.selectionBox.style.width="0",UI.els.selectionBox.style.height="0"}"text"===AppState.currentTool&&"player"!==e.type&&"ball"!==e.type&&Math.hypot(t.clientX-e.clientStart.x,t.clientY-e.clientStart.y)<10&&(()=>{const e=prompt("Ingresa el texto:");e&& (AppState.drawings.notes.push({x:e.start.x,y:e.start.y,text:e,color:UI.els.strokeColor.value}),this.renderDraw())})(),("player"===e.type||"ball"===e.type)&&UI.els.autoRec.checked&&Timeline.recordFrame(),document.removeEventListener("pointermove",n),document.removeEventListener("pointerup",s),e=null}},a=t=>{const n=t.target.closest(".player");n&&(AppState.ballCarrier=AppState.ballCarrier===n?null:n,AppState.ballCarrier&&this.placeBall(parseFloat(n.style.left),parseFloat(n.style.top)))};UI.els.board.addEventListener("pointerdown",t),UI.els.players.addEventListener("dblclick",a)}};
+    const Timeline={recordFrame(){this.stopAnimation(),AppState.playIdx<AppState.timeline.length-1&&AppState.timeline.splice(AppState.playIdx+1),AppState.timeline.push({players:[...UI.els.players.children].map(e=>({team:e.dataset.team,number:+e.dataset.number,x:parseFloat(e.style.left),y:parseFloat(e.style.top)})),ball:{...AppState.currentBallPos}}),AppState.playIdx=AppState.timeline.length-1,this.updateScrub()},updateScrub(){UI.els.scrubber.max=Math.max(0,AppState.timeline.length-1),UI.els.scrubber.value=AppState.playIdx,UI.els.scrubLbl.textContent=`${AppState.playIdx}/${UI.els.scrubber.max}`},gotoFrame(e){AppState.timeline.length&&(AppState.playIdx=Math.max(0,Math.min(AppState.timeline.length-1,e)),this.updateScrub(),Board.applyFrame(AppState.timeline[AppState.playIdx]))},startAnimation(){if(!(AppState.timeline.length<2||AppState.playing)){AppState.playIdx=parseInt(UI.els.scrubber.value)>=AppState.timeline.length-1?0:parseInt(UI.els.scrubber.value),this.gotoFrame(AppState.playIdx),AppState.playing=!0,UI.els.btnPlayPause.textContent="Pausa";let e=0;const t=n=>{if(AppState.playing){0===e&&(e=n);const s=Math.min((n-e)/(parseInt(UI.els.speed.value)||800),1),a=AppState.timeline[AppState.playIdx],o=AppState.timeline[AppState.playIdx+1];a&&o&&Board.applyFrame(this.getInterpolatedFrame(a,o,s)),s>=1&&(AppState.playIdx++,e=n,AppState.playIdx>=AppState.timeline.length-1&&(this.stopAnimation(),this.gotoFrame(AppState.playIdx),0)),AppState.rafId=requestAnimationFrame(t)}};AppState.rafId=requestAnimationFrame(t)}},stopAnimation(){AppState.rafId&&(cancelAnimationFrame(AppState.rafId),AppState.rafId=null),AppState.playing=!1,UI.els.btnPlayPause.textContent="Reproducir"},getInterpolatedFrame:(e,t,n)=>({players:e.players.map(e=>{const s=t.players.find(t=>t.team===e.team&&t.number===e.number)||e;return{...e,x:e.x+(s.x-e.x)*n,y:e.y+(s.y-e.y)*n}}),ball:{x:e.ball.x+(t.ball.x-e.ball.x)*n,y:e.ball.y+(t.ball.y-e.ball.y)*n}})};
+    document.addEventListener('DOMContentLoaded',()=>{UI.assignDOMElements(),Auth.init(),Functions.init(),Board.init();const{els:e}=UI;e.btnAuthAction.addEventListener("click",()=>AppState.isAuthorized?Auth.logout():e.loginModal.style.display="grid"),e.btnLogin.addEventListener("click",()=>Auth.login(e.loginEmail.value,e.loginPassword.value)),e.btnCloseLogin.addEventListener("click",()=>e.loginModal.style.display="none"),e.btnInvitePlayer.addEventListener("click",()=>Functions.sendInvitation(e.inviteEmail.value,e.inviteRole.value)),e.btnCloseInviteResult.addEventListener("click",()=>e.inviteResultModal.style.display="none"),e.inviteResultLink.addEventListener("click",()=>{navigator.clipboard.writeText(e.inviteResultLink.textContent),UI.showStatus("Enlace copiado!","var(--accent2)")}),e.btnSavePlay.addEventListener("click",()=>DB.savePlay(e.playName.value)),e.btnLoadPlay.addEventListener("click",()=>e.playList.value&&DB.loadPlay(e.playList.value)),e.btnDelete.addEventListener("click",()=>e.playList.value&&DB.deletePlay(e.playList.value)),e.btnExportJpg.addEventListener("click",()=>Export.exportJpg()),e.btnExportWebm.addEventListener("click",()=>Export.recordVideo("webm")),e.btnExportMp4.addEventListener("click",()=>Export.recordVideo("mp4")),e.btnReset.addEventListener("click",()=>{confirm("¿Reiniciar?")&&(Timeline.stopAnimation(),Board.createPlayers(),Board.placeBall(600,350),AppState.drawings={arrows:[],strokes:[],notes:[]},AppState.timeline=[],Timeline.recordFrame(),Board.renderDraw(),UI.showStatus("Tablero reiniciado","var(--accent)"))}),e.btnRecord.addEventListener("click",()=>{Timeline.recordFrame(),UI.showStatus("Paso grabado","var(--accent2)")}),e.scrubber.addEventListener("input",t=>{Timeline.stopAnimation(),Timeline.gotoFrame(parseInt(t.target.value))}),e.btnPlayPause.addEventListener("click",()=>AppState.playing?Timeline.stopAnimation():Timeline.startAnimation()),e.btnStop.addEventListener("click",()=>{Timeline.stopAnimation(),Timeline.gotoFrame(0)}),e.btnClrTl.addEventListener("click",()=>{confirm("¿Limpiar animación?")&&(Timeline.stopAnimation(),AppState.timeline=[],Timeline.recordFrame(),UI.showStatus("Animación limpiada","var(--accent)"))}),e.btnMenuOpen.addEventListener("click",()=>UI.openMobileMenu()),e.btnCloseMenu.addEventListener("click",()=>UI.closeMobileMenu()),e.menuOverlay.addEventListener("click",()=>UI.closeMobileMenu()),e.btnLandscape.addEventListener("click",()=>{AppState.forcePortrait=!1,Board.fitBoard(),UI.closeMobileMenu()}),e.btnPortrait.addEventListener("click",()=>{AppState.forcePortrait=!0,Board.fitBoard(),UI.closeMobileMenu()}),["toolArrows","toolPen","toolText"].forEach(t=>{e[t].addEventListener("click",()=>{const n=t.replace("tool","").toLowerCase();e[t].classList.contains("active")?(AppState.currentTool="select",e[t].classList.remove("active")):(AppState.currentTool=n,document.querySelectorAll("#toolSeg button").forEach(e=>e.classList.remove("active")),e[t].classList.add("active"))})}),e.showGrid.addEventListener("change",()=>e.grid.classList.toggle("on",e.showGrid.checked)),e.btnClear.addEventListener("click",()=>{confirm("¿Borrar todos los dibujos?")&&(AppState.drawings={arrows:[],strokes:[],notes:[]},Board.renderDraw())}),e.btnUndo.addEventListener("click",()=>{const e=Object.keys(AppState.drawings).reverse().find(e=>AppState.drawings[e].length>0);e&&(AppState.drawings[e].pop(),Board.renderDraw())}),window.addEventListener("resize",()=>Board.fitBoard())});
 })();
 </script>
 </body>
