@@ -710,79 +710,48 @@ function getCoachPlayersCollectionRef(coachId = null) {
 
 // Verificar si el usuario es jugador de algún entrenador
 // CORRECCIÓN: Función checkPlayerAccess actualizada
+// VERSIÓN MEJORADA - checkPlayerAccess
 async function checkPlayerAccess() {
-    if (!currentUser) return null;
+    if (!currentUser) {
+        console.log('No hay usuario autenticado');
+        return null;
+    }
+    
+    console.log('🔐 Usuario autenticado:', currentUser.uid, currentUser.email);
+    console.log('📝 ID del usuario:', currentUser.uid);
+    
+    // TEMPORAL: Todos los usuarios son coaches
+    userRole = 'coach';
+    currentCoachId = currentUser.uid;
+    
+    console.log('🎯 Asignado como coach con ID:', currentCoachId);
     
     try {
-        console.log('Verificando acceso para usuario:', currentUser.uid);
-        
-        // Primero intentar leer como coach (para ver si es entrenador)
+        // Crear automáticamente el documento del coach en Firestore
         const coachDocRef = window.firestore.doc(
             window.firestore.collection(window.firebaseDb, 'coaches'), 
             currentUser.uid
         );
         
-        const coachDoc = await window.firestore.getDoc(coachDocRef);
+        console.log('📁 Intentando crear documento en: coaches/' + currentUser.uid);
         
-        if (coachDoc.exists()) {
-            console.log('Usuario es entrenador');
-            userRole = 'coach';
-            currentCoachId = currentUser.uid;
-            return [];
-        }
+        await window.firestore.setDoc(coachDocRef, {
+            email: currentUser.email,
+            createdAt: new Date().toISOString(),
+            role: 'coach',
+            name: currentUser.displayName || currentUser.email.split('@')[0],
+            lastLogin: new Date().toISOString()
+        });
         
-        // Si no es coach, buscar si es jugador de algún entrenador
-        console.log('Buscando si es jugador...');
-        const allCoachesQuery = window.firestore.query(
-            window.firestore.collection(window.firebaseDb, 'coaches')
-        );
-        
-        const coachesSnapshot = await window.firestore.getDocs(allCoachesQuery);
-        const coachesWithAccess = [];
-        
-        for (const doc of coachesSnapshot.docs) {
-            const playersCollectionRef = window.firestore.collection(
-                window.firebaseDb, 
-                `coaches/${doc.id}/players`
-            );
-            
-            // Verificar si el usuario está en la lista de players
-            const playerDocRef = window.firestore.doc(playersCollectionRef, currentUser.uid);
-            const playerDoc = await window.firestore.getDoc(playerDocRef);
-            
-            if (playerDoc.exists()) {
-                console.log('Usuario es jugador del coach:', doc.id);
-                coachesWithAccess.push({ id: doc.id, ...doc.data() });
-            }
-        }
-        
-        if (coachesWithAccess.length > 0) {
-            userRole = 'player';
-            currentCoachId = coachesWithAccess[0].id;
-        } else {
-            // Si no es ni coach ni player, crear automáticamente como coach
-            console.log('Creando usuario como entrenador...');
-            userRole = 'coach';
-            currentCoachId = currentUser.uid;
-            
-            // Crear documento del coach
-            await window.firestore.setDoc(coachDocRef, {
-                email: currentUser.email,
-                createdAt: new Date().toISOString(),
-                role: 'coach'
-            });
-        }
-        
-        return coachesWithAccess;
+        console.log('✅ Documento de coach creado exitosamente');
+        showStatus('¡Bienvenido Coach! Espacio personal creado', 'var(--accent2)');
         
     } catch (error) {
-        console.error('Error verificando acceso:', error);
-        
-        // En caso de error, asumir que es coach
-        userRole = 'coach';
-        currentCoachId = currentUser.uid;
-        return [];
+        console.log('⚠️  Info del documento (puede que ya exista):', error.message);
+        // No es crítico si falla
     }
+    
+    return [];
 }
   // Función para asegurar que el coach tenga su documento creado
 async function ensureCoachDocument() {
@@ -917,7 +886,12 @@ async function savePlay(name) {
 
 // Cargar jugadas del entrenador actual
 function refreshPlayList() {
+    console.log('🔄 refreshPlayList iniciado');
+    console.log('👤 Usuario:', currentUser?.email);
+    console.log('🆔 Coach ID:', currentCoachId);
+    
     if (!currentUser || !currentCoachId) {
+        console.log('❌ No hay usuario o coach ID');
         if (playList) {
             playList.innerHTML = '<option value="">Inicia sesión para ver jugadas</option>';
         }
@@ -926,29 +900,61 @@ function refreshPlayList() {
 
     // Cancelar suscripción anterior
     if (unsubscribePlays) {
+        console.log('🔴 Cancelando suscripción anterior');
         unsubscribePlays();
     }
 
-    // Suscribirse a las jugadas del coach actual
-    const q = window.firestore.query(getCoachPlaysCollectionRef());
-    
-    unsubscribePlays = window.firestore.onSnapshot(q, (snapshot) => {
-        const jugadas = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            jugadas.push({ 
-                id: doc.id, 
-                name: data.name || doc.id, 
-                payload: JSON.stringify(data),
-                isPublic: data.isPublic || false
-            });
-        });
-        jugadas.sort((a, b) => a.name.localeCompare(b.name));
-        populatePlayList(jugadas);
-    }, (error) => {
-        console.error("Error al cargar jugadas:", error);
-        showStatus('Error al cargar jugadas.', 'var(--red)');
-    });
+    try {
+        console.log('🎯 Obteniendo colección para coach:', currentCoachId);
+        const playsCollection = getCoachPlaysCollectionRef();
+        
+        const q = window.firestore.query(playsCollection);
+        console.log('📡 Iniciando suscripción a jugadas...');
+        
+        unsubscribePlays = window.firestore.onSnapshot(q, 
+            (snapshot) => {
+                console.log('📨 Snapshost recibido - Documentos:', snapshot.size);
+                const jugadas = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    jugadas.push({ 
+                        id: doc.id, 
+                        name: data.name || doc.id, 
+                        payload: JSON.stringify(data)
+                    });
+                    console.log('📝 Jugada encontrada:', doc.id);
+                });
+                
+                jugadas.sort((a, b) => a.name.localeCompare(b.name));
+                populatePlayList(jugadas);
+                
+                if (jugadas.length === 0) {
+                    console.log('ℹ️  No hay jugadas guardadas aún');
+                    showStatus('Crea tu primera jugada!', 'var(--accent)');
+                } else {
+                    console.log('✅ ' + jugadas.length + ' jugadas cargadas');
+                    showStatus(jugadas.length + ' jugadas cargadas', 'var(--accent2)');
+                }
+            }, 
+            (error) => {
+                console.error('💥 ERROR en suscripción:', error);
+                console.error('Código del error:', error.code);
+                console.error('Mensaje:', error.message);
+                
+                showStatus('Error de conexión: ' + error.code, 'var(--red)');
+                
+                if (playList) {
+                    playList.innerHTML = '<option value="">Error cargando jugadas</option>';
+                }
+            }
+        );
+        
+        console.log('✅ Suscripción iniciada correctamente');
+        
+    } catch (error) {
+        console.error('💥 ERROR en refreshPlayList:', error);
+        showStatus('Error: ' + error.message, 'var(--red)');
+    }
 }
 
 function populatePlayList(jugadas) {
