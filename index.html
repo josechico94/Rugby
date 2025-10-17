@@ -709,47 +709,121 @@ function getCoachPlayersCollectionRef(coachId = null) {
 }
 
 // Verificar si el usuario es jugador de algún entrenador
+// CORRECCIÓN: Función checkPlayerAccess actualizada
 async function checkPlayerAccess() {
     if (!currentUser) return null;
     
     try {
-        // Buscar en qué coaches está este jugador como player
-        const coachesQuery = window.firestore.query(
-            window.firestore.collection(window.firebaseDb, 'coaches'),
-            window.firestore.where(`players.${currentUser.uid}.status`, '==', 'accepted')
+        console.log('Verificando acceso para usuario:', currentUser.uid);
+        
+        // Primero intentar leer como coach (para ver si es entrenador)
+        const coachDocRef = window.firestore.doc(
+            window.firestore.collection(window.firebaseDb, 'coaches'), 
+            currentUser.uid
         );
         
-        const snapshot = await window.firestore.getDocs(coachesQuery);
-        const coaches = [];
-        snapshot.forEach(doc => {
-            coaches.push({ id: doc.id, ...doc.data() });
-        });
+        const coachDoc = await window.firestore.getDoc(coachDocRef);
         
-        return coaches;
+        if (coachDoc.exists()) {
+            console.log('Usuario es entrenador');
+            userRole = 'coach';
+            currentCoachId = currentUser.uid;
+            return [];
+        }
+        
+        // Si no es coach, buscar si es jugador de algún entrenador
+        console.log('Buscando si es jugador...');
+        const allCoachesQuery = window.firestore.query(
+            window.firestore.collection(window.firebaseDb, 'coaches')
+        );
+        
+        const coachesSnapshot = await window.firestore.getDocs(allCoachesQuery);
+        const coachesWithAccess = [];
+        
+        for (const doc of coachesSnapshot.docs) {
+            const playersCollectionRef = window.firestore.collection(
+                window.firebaseDb, 
+                `coaches/${doc.id}/players`
+            );
+            
+            // Verificar si el usuario está en la lista de players
+            const playerDocRef = window.firestore.doc(playersCollectionRef, currentUser.uid);
+            const playerDoc = await window.firestore.getDoc(playerDocRef);
+            
+            if (playerDoc.exists()) {
+                console.log('Usuario es jugador del coach:', doc.id);
+                coachesWithAccess.push({ id: doc.id, ...doc.data() });
+            }
+        }
+        
+        if (coachesWithAccess.length > 0) {
+            userRole = 'player';
+            currentCoachId = coachesWithAccess[0].id;
+        } else {
+            // Si no es ni coach ni player, crear automáticamente como coach
+            console.log('Creando usuario como entrenador...');
+            userRole = 'coach';
+            currentCoachId = currentUser.uid;
+            
+            // Crear documento del coach
+            await window.firestore.setDoc(coachDocRef, {
+                email: currentUser.email,
+                createdAt: new Date().toISOString(),
+                role: 'coach'
+            });
+        }
+        
+        return coachesWithAccess;
+        
     } catch (error) {
         console.error('Error verificando acceso:', error);
-        return null;
+        
+        // En caso de error, asumir que es coach
+        userRole = 'coach';
+        currentCoachId = currentUser.uid;
+        return [];
+    }
+}
+  // Función para asegurar que el coach tenga su documento creado
+async function ensureCoachDocument() {
+    if (userRole !== 'coach' || !currentUser) return;
+    
+    try {
+        const coachDocRef = window.firestore.doc(
+            window.firestore.collection(window.firebaseDb, 'coaches'), 
+            currentUser.uid
+        );
+        
+        const coachDoc = await window.firestore.getDoc(coachDocRef);
+        
+        if (!coachDoc.exists()) {
+            await window.firestore.setDoc(coachDocRef, {
+                email: currentUser.email,
+                createdAt: new Date().toISOString(),
+                role: 'coach',
+                name: currentUser.displayName || currentUser.email.split('@')[0]
+            });
+            console.log('Documento de coach creado automáticamente');
+        }
+    } catch (error) {
+        console.error('Error creando documento de coach:', error);
     }
 }
 
 // Determinar el rol del usuario
+// CORRECCIÓN: Función determineUserRole actualizada
 async function determineUserRole() {
     if (!currentUser) {
         userRole = 'spectator';
         return;
     }
 
-    // Verificar si es jugador de algún entrenador
-    const playerAccess = await checkPlayerAccess();
-    if (playerAccess && playerAccess.length > 0) {
-        userRole = 'player';
-        currentCoachId = playerAccess[0].id; // Usar el primer entrenador encontrado
-        return;
+    await checkPlayerAccess();
+    
+    // Si es coach, asegurar que tenga su documento
+    if (userRole === 'coach') {
+        await ensureCoachDocument();
     }
-
-    // Si no es jugador, es entrenador (puede crear su propio espacio)
-    userRole = 'coach';
-    currentCoachId = currentUser.uid;
 }
 
 // Invitar jugador
