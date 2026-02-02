@@ -17,8 +17,8 @@
             --panel: #0f1720;
             --panel-2: #111923;
             --border: #1f2a36;
-            --shadow: 0 4px 16px rgba(0,0,0, ...25);
-            --grid: rgba(255,255,255, ...08);
+            --shadow: 0 4px 16px rgba(0,0,0,.25);
+            --grid: rgba(255,255,255,.08);
             --yellow: #ffd400;
             --accent: #00c2ff;
             --accent2: #7ef29a;
@@ -118,16 +118,16 @@
 
         small.note { opacity:.8 }
         .legend { display:flex; align-items:center; gap:8px; font-size: 13px; }
-        .swatch { width: .9em; height: .9em; border-radius: 50%; display:inline-block; border:1px solid rgba(255,255,255, ...7); }
+        .swatch { width: .9em; height: .9em; border-radius: 50%; display:inline-block; border:1px solid rgba(255,255,255,.7); }
 
         .stage { position: relative; display: grid; place-items: center; padding: 16px; overflow: hidden; }
         .board-viewport { position: relative; width:100%; height:100%; contain: layout paint; }
         .board-wrap { position: absolute; width: 1200px; height: 700px; transform-origin: top left; }
-        .board { position: absolute; inset: 0; background: #137a46; overflow: hidden; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0, ...4); }
+        .board { position: absolute; inset: 0; background: #137a46; overflow: hidden; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
 
         .board::before {
             content:""; position:absolute; inset:0; pointer-events:none;
-            background-image: linear-gradient(90deg, rgba(255,255,255, ...02) 0 5%, transparent 5 10%, rgba(255,255,255, ...02) 10 15%, transparent 15 20%, rgba(255,255,255, ...02) 20 25%, transparent 25 30%, rgba(255,255,255, ...02) 30 35%, transparent 35 40%, rgba(255,255,255, ...02) 40 45%, transparent 45 50%, rgba(255,255,255, ...02) 50 55%, transparent 55 60%, rgba(255,255,255, ...02) 60 65%, transparent 65 70%, rgba(255,255,255, ...02) 70 75%, transparent 75 80%, rgba(255,255,255, ...02) 80 85%, transparent 85 90%, rgba(255,255,255, ...02) 90 95%, transparent 95 100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255,.02) 0 5%, transparent 5 10%, rgba(255,255,255,.02) 10 15%, transparent 15 20%, rgba(255,255,255,.02) 20 25%, transparent 25 30%, rgba(255,255,255,.02) 30 35%, transparent 35 40%, rgba(255,255,255,.02) 40 45%, transparent 45 50%, rgba(255,255,255,.02) 50 55%, transparent 55 60%, rgba(255,255,255,.02) 60 65%, transparent 65 70%, rgba(255,255,255,.02) 70 75%, transparent 75 80%, rgba(255,255,255,.02) 80 85%, transparent 85 90%, rgba(255,255,255,.02) 90 95%, transparent 95 100%);
         }
         .grid-overlay { position:absolute; inset:0; pointer-events:none; opacity:.6; display:none; }
         .grid-overlay.active { display:block; }
@@ -159,9 +159,9 @@
         
         #ball { position:absolute; z-index:4; }
 
-        .ball { width:30px; height:15px; background: var(--yellow); border: 2px solid #fff; border-radius: 50% / 60%; transform: translate(-50%,-50%) rotate(-15deg); box-shadow: 0 3px 12px rgba(0,0,0, ...35); cursor: grab; }
-        .ball::after { content:""; position:absolute; inset:6px 18px; border-radius:50% / 60%; border:2px dashed rgba(0,0,0, ...25); }
-        .label { font-size:12px; font-weight:700; fill:#fff; text-shadow: 0 1px 2px rgba(0,0,0, ...6); }
+        .ball { width:30px; height:15px; background: var(--yellow); border: 2px solid #fff; border-radius: 50% / 60%; transform: translate(-50%,-50%) rotate(-15deg); box-shadow: 0 3px 12px rgba(0,0,0,.35); cursor: grab; }
+        .ball::after { content:""; position:absolute; inset:6px 18px; border-radius:50% / 60%; border:2px dashed rgba(0,0,0,.25); }
+        .label { font-size:12px; font-weight:700; fill:#fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 
         /* LOGO DEL EQUIPO EN EL CENTRO */
         .team-logo {
@@ -173,7 +173,7 @@
             max-width:25%;
             opacity:0.18;
             pointer-events:none;
-            filter: drop-shadow(0 0 10px rgba(0,0,0, ...5));
+            filter: drop-shadow(0 0 10px rgba(0,0,0,.5));
         }
 
         .hamburger { 
@@ -212,7 +212,7 @@
         .scrim { 
             position: fixed; 
             inset: 0; 
-            background: rgba(0,0,0, ...45); 
+            background: rgba(0,0,0,.45); 
             opacity: 0; 
             pointer-events: none; 
             transition: opacity .2s ease; 
@@ -291,9 +291,9 @@
             margin-top: 10px;
         }
         .google-btn:hover { filter: brightness(0.95); }
-        .login-btn:disabled, ...google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-btn:disabled, .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .separator { display: flex; align-items: center; text-align: center; color: var(--ink); opacity: 0.5; font-size: 12px; }
-        .separator::before, ...separator::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+        .separator::before, .separator::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
         .separator:not(:empty)::before { margin-right: .5em; }
         .separator:not(:empty)::after { margin-left: .5em; }
         .login-message { text-align: center; font-size: 0.85rem; margin: 0; min-height: 20px; }
@@ -377,7 +377,8 @@
             .stage { padding: 0; }
             .board-viewport { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; background: #0b1720; }
         }
-        @media (max-width: 900px) { ...hamburger { display: grid !important; }
+        @media (max-width: 900px) {
+            .hamburger { display: grid !important; }
             .main-app-visible .hamburger { display: grid !important; }
         }
     </style>
@@ -591,8 +592,8 @@
 <svg class="grid-overlay" id="grid" preserveaspectratio="none" viewbox="0 0 1200 700"></svg>
 <svg aria-hidden="true" class="lines" preserveaspectratio="none" viewbox="0 0 1200 700">
 <rect fill="none" height="690" stroke="#fff" stroke-width="6" width="1190" x="5" y="5"></rect>
-<rect fill="rgba(255,255,255, ...07)" height="700" width="80" x="0" y="0"></rect>
-<rect fill="rgba(255,255,255, ...07)" height="700" width="80" x="1120" y="0"></rect>
+<rect fill="rgba(255,255,255,.07)" height="700" width="80" x="0" y="0"></rect>
+<rect fill="rgba(255,255,255,.07)" height="700" width="80" x="1120" y="0"></rect>
 <line stroke="#fff" stroke-width="4" x1="80" x2="80" y1="0" y2="700"></line>
 <line stroke="#fff" stroke-width="4" x1="1120" x2="1120" y1="0" y2="700"></line>
 <line stroke="#fff" stroke-width="3" x1="309" x2="309" y1="0" y2="700"></line>
@@ -637,7 +638,7 @@
         let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
         const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
         const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
-        const LEMON_CHECKOUT_URL = "https://rugbycoach.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab";
+        const STRIPE_URL = "https://buy.stripe.com/00w9AV2B9dohgpw1XxaR200";
 
         let appState = {
             isPremium: false,
@@ -784,17 +785,12 @@
                             this.showStatus(`Benvenuto ${user.email}!`, 'success');
                             const buyBtn = document.getElementById('btnBuyPremium');
                             if (buyBtn) {
-buyBtn.onclick = () => {
-
-    const url = new URL(LEMON_CHECKOUT_URL);
-
-    url.searchParams.set("checkout[email]", user.email);
-
-    url.searchParams.set("checkout[custom][uid]", user.uid);
-
-    window.open(url.toString(), "_blank");
-
-};
+                                buyBtn.onclick = () => {
+                                    const url = new URL(LEMON_CHECKOUT_URL);
+            url.searchParams.set('checkout[email]', user.email);
+            url.searchParams.set('checkout[custom][uid]', user.uid);
+            window.open(url.toString(), '_blank');
+                                };
                             }
                             const userRef = doc(db, "users", user.uid);
                             try {
@@ -1580,7 +1576,7 @@ buyBtn.onclick = () => {
                 on(dom.btnGoogle, 'click', () => AuthManager.loginWithGoogle());
                 on(dom.loginPassword, 'keypress', (e) => { if (e.key === 'Enter') AuthManager.login(); });
                 on(dom.btnAuthAction, 'click', () => AuthManager.logout());
-                on(window, 'resize', () => { LayoutManager.fitBoard(); if (window.innerWidth <= 900 && dom.mainApp.style.display !== 'none') dom.menuBtn.style.display = 'grid'; else dom.menuBtn.style.display = 'none'; });
+                window.addEventListener('resize', () => { LayoutManager.fitBoard(); if (window.innerWidth <= 900 && dom.mainApp.style.display !== 'none') dom.menuBtn.style.display = 'grid'; else dom.menuBtn.style.display = 'none'; });
                 on(dom.verticalFieldChk, 'change', () => { appState.layout.forceVertical = dom.verticalFieldChk.checked; LayoutManager.fitBoard(); });
                 on(dom.menuBtn, 'click', () => { dom.sidebar.classList.add('open'); dom.scrim.classList.add('show'); });
                 const closeM = () => { dom.sidebar.classList.remove('open'); dom.scrim.classList.remove('show'); };
@@ -1744,7 +1740,7 @@ buyBtn.onclick = () => {
             "alert.invalid_name": "Nome non valido",
             "alert.save_local_error": "Errore salvataggio locale.",
             "popup.loaded": "Caricato!",
-            "alert.load_error": "Errore caricamento",
+            "alert.load_error": "Errore caricamento",,
             "alert.login_required": "Login richiesto",
             "alert.no_animation": "Nessuna animazione",
             "alert.firebase_off": "Firebase off",
@@ -1752,7 +1748,7 @@ buyBtn.onclick = () => {
             "alert.not_found": "Non trovato",
             "alert.invalid_data": "Dati invalidi",
             "alert.upload_error": "Errore upload",
-            "prompt.new_name": "Nuovo nome:",
+            "prompt.new_name": "Nuovo nome:
             "default.play_name": "Giocata",
 
             "sidebar.animation": "Animazione",
@@ -1869,7 +1865,7 @@ buyBtn.onclick = () => {
             "alert.invalid_name": "Invalid name",
             "alert.save_local_error": "Local save error.",
             "popup.loaded": "Loaded!",
-            "alert.load_error": "Load error",
+            "alert.load_error": "Load error",,
             "alert.login_required": "Login required",
             "alert.no_animation": "No animation",
             "alert.firebase_off": "Firebase offline",
@@ -1877,8 +1873,8 @@ buyBtn.onclick = () => {
             "alert.not_found": "Not found",
             "alert.invalid_data": "Invalid data",
             "alert.upload_error": "Upload error",
-            "prompt.new_name": "New name:",
-"default.play_name": "Play",
+            "prompt.new_name": "New name:
+            "default.play_name": "Play",
 
             "sidebar.animation": "Animation",
             "animation.record_step": "Record step 👑",
