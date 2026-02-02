@@ -6,7 +6,6 @@
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <title>RugbyBoard Pro - Lavagna Tattica</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-<link rel="icon" href="favicon.ico">
 <style>
         :root {
             --sidebar-w: 360px;
@@ -18,8 +17,8 @@
             --panel: #0f1720;
             --panel-2: #111923;
             --border: #1f2a36;
-            --shadow: 0 4px 16px rgba(0,0,0,.25);
-            --grid: rgba(255,255,255,.08);
+            --shadow: 0 4px 16px rgba(0,0,0, ...25);
+            --grid: rgba(255,255,255, ...08);
             --yellow: #ffd400;
             --accent: #00c2ff;
             --accent2: #7ef29a;
@@ -119,16 +118,16 @@
 
         small.note { opacity:.8 }
         .legend { display:flex; align-items:center; gap:8px; font-size: 13px; }
-        .swatch { width: .9em; height: .9em; border-radius: 50%; display:inline-block; border:1px solid rgba(255,255,255,.7); }
+        .swatch { width: .9em; height: .9em; border-radius: 50%; display:inline-block; border:1px solid rgba(255,255,255, ...7); }
 
         .stage { position: relative; display: grid; place-items: center; padding: 16px; overflow: hidden; }
         .board-viewport { position: relative; width:100%; height:100%; contain: layout paint; }
         .board-wrap { position: absolute; width: 1200px; height: 700px; transform-origin: top left; }
-        .board { position: absolute; inset: 0; background: #137a46; overflow: hidden; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+        .board { position: absolute; inset: 0; background: #137a46; overflow: hidden; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0, ...4); }
 
         .board::before {
             content:""; position:absolute; inset:0; pointer-events:none;
-            background-image: linear-gradient(90deg, rgba(255,255,255,.02) 0 5%, transparent 5 10%, rgba(255,255,255,.02) 10 15%, transparent 15 20%, rgba(255,255,255,.02) 20 25%, transparent 25 30%, rgba(255,255,255,.02) 30 35%, transparent 35 40%, rgba(255,255,255,.02) 40 45%, transparent 45 50%, rgba(255,255,255,.02) 50 55%, transparent 55 60%, rgba(255,255,255,.02) 60 65%, transparent 65 70%, rgba(255,255,255,.02) 70 75%, transparent 75 80%, rgba(255,255,255,.02) 80 85%, transparent 85 90%, rgba(255,255,255,.02) 90 95%, transparent 95 100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, ...02) 0 5%, transparent 5 10%, rgba(255,255,255, ...02) 10 15%, transparent 15 20%, rgba(255,255,255, ...02) 20 25%, transparent 25 30%, rgba(255,255,255, ...02) 30 35%, transparent 35 40%, rgba(255,255,255, ...02) 40 45%, transparent 45 50%, rgba(255,255,255, ...02) 50 55%, transparent 55 60%, rgba(255,255,255, ...02) 60 65%, transparent 65 70%, rgba(255,255,255, ...02) 70 75%, transparent 75 80%, rgba(255,255,255, ...02) 80 85%, transparent 85 90%, rgba(255,255,255, ...02) 90 95%, transparent 95 100%);
         }
         .grid-overlay { position:absolute; inset:0; pointer-events:none; opacity:.6; display:none; }
         .grid-overlay.active { display:block; }
@@ -160,9 +159,9 @@
         
         #ball { position:absolute; z-index:4; }
 
-        .ball { width:30px; height:15px; background: var(--yellow); border: 2px solid #fff; border-radius: 50% / 60%; transform: translate(-50%,-50%) rotate(-15deg); box-shadow: 0 3px 12px rgba(0,0,0,.35); cursor: grab; }
-        .ball::after { content:""; position:absolute; inset:6px 18px; border-radius:50% / 60%; border:2px dashed rgba(0,0,0,.25); }
-        .label { font-size:12px; font-weight:700; fill:#fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+        .ball { width:30px; height:15px; background: var(--yellow); border: 2px solid #fff; border-radius: 50% / 60%; transform: translate(-50%,-50%) rotate(-15deg); box-shadow: 0 3px 12px rgba(0,0,0, ...35); cursor: grab; }
+        .ball::after { content:""; position:absolute; inset:6px 18px; border-radius:50% / 60%; border:2px dashed rgba(0,0,0, ...25); }
+        .label { font-size:12px; font-weight:700; fill:#fff; text-shadow: 0 1px 2px rgba(0,0,0, ...6); }
 
         /* LOGO DEL EQUIPO EN EL CENTRO */
         .team-logo {
@@ -174,7 +173,7 @@
             max-width:25%;
             opacity:0.18;
             pointer-events:none;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,.5));
+            filter: drop-shadow(0 0 10px rgba(0,0,0, ...5));
         }
 
         .hamburger { 
@@ -213,7 +212,7 @@
         .scrim { 
             position: fixed; 
             inset: 0; 
-            background: rgba(0,0,0,.45); 
+            background: rgba(0,0,0, ...45); 
             opacity: 0; 
             pointer-events: none; 
             transition: opacity .2s ease; 
@@ -292,9 +291,9 @@
             margin-top: 10px;
         }
         .google-btn:hover { filter: brightness(0.95); }
-        .login-btn:disabled, .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-btn:disabled, ...google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .separator { display: flex; align-items: center; text-align: center; color: var(--ink); opacity: 0.5; font-size: 12px; }
-        .separator::before, .separator::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+        .separator::before, ...separator::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
         .separator:not(:empty)::before { margin-right: .5em; }
         .separator:not(:empty)::after { margin-left: .5em; }
         .login-message { text-align: center; font-size: 0.85rem; margin: 0; min-height: 20px; }
@@ -378,8 +377,7 @@
             .stage { padding: 0; }
             .board-viewport { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; background: #0b1720; }
         }
-        @media (max-width: 900px) {
-            .hamburger { display: grid !important; }
+        @media (max-width: 900px) { ...hamburger { display: grid !important; }
             .main-app-visible .hamburger { display: grid !important; }
         }
     </style>
@@ -593,8 +591,8 @@
 <svg class="grid-overlay" id="grid" preserveaspectratio="none" viewbox="0 0 1200 700"></svg>
 <svg aria-hidden="true" class="lines" preserveaspectratio="none" viewbox="0 0 1200 700">
 <rect fill="none" height="690" stroke="#fff" stroke-width="6" width="1190" x="5" y="5"></rect>
-<rect fill="rgba(255,255,255,.07)" height="700" width="80" x="0" y="0"></rect>
-<rect fill="rgba(255,255,255,.07)" height="700" width="80" x="1120" y="0"></rect>
+<rect fill="rgba(255,255,255, ...07)" height="700" width="80" x="0" y="0"></rect>
+<rect fill="rgba(255,255,255, ...07)" height="700" width="80" x="1120" y="0"></rect>
 <line stroke="#fff" stroke-width="4" x1="80" x2="80" y1="0" y2="700"></line>
 <line stroke="#fff" stroke-width="4" x1="1120" x2="1120" y1="0" y2="700"></line>
 <line stroke="#fff" stroke-width="3" x1="309" x2="309" y1="0" y2="700"></line>
@@ -1746,7 +1744,7 @@ buyBtn.onclick = () => {
             "alert.invalid_name": "Nome non valido",
             "alert.save_local_error": "Errore salvataggio locale.",
             "popup.loaded": "Caricato!",
-            "alert.load_error": "Errore caricamento",,
+            "alert.load_error": "Errore caricamento",
             "alert.login_required": "Login richiesto",
             "alert.no_animation": "Nessuna animazione",
             "alert.firebase_off": "Firebase off",
@@ -1871,7 +1869,7 @@ buyBtn.onclick = () => {
             "alert.invalid_name": "Invalid name",
             "alert.save_local_error": "Local save error.",
             "popup.loaded": "Loaded!",
-            "alert.load_error": "Load error",,
+            "alert.load_error": "Load error",
             "alert.login_required": "Login required",
             "alert.no_animation": "No animation",
             "alert.firebase_off": "Firebase offline",
