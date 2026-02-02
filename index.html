@@ -638,7 +638,7 @@
         let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
         const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
         const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
-        const STRIPE_URL = "https://buy.stripe.com/00w9AV2B9dohgpw1XxaR200";
+        const LEMON_CHECKOUT_URL = "https://rugbycoach.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab";
 
         let appState = {
             isPremium: false,
@@ -787,9 +787,9 @@
                             if (buyBtn) {
                                 buyBtn.onclick = () => {
                                     const url = new URL(LEMON_CHECKOUT_URL);
-            url.searchParams.set('checkout[email]', user.email);
-            url.searchParams.set('checkout[custom][uid]', user.uid);
-            window.open(url.toString(), '_blank');
+                                    url.searchParams.set("checkout[email]", user.email);
+                                    url.searchParams.set("checkout[custom][uid]", user.uid);
+                                    window.open(url.toString(), '_blank');
                                 };
                             }
                             const userRef = doc(db, "users", user.uid);
@@ -1568,36 +1568,34 @@
                 });
             },
             setupEventListeners() {
-            const on = (el, ev, fn, opts) => { if (el) el.addEventListener(ev, fn, opts); };
-
                 this.initAccordion();
-                on(dom.btnLogin, 'click', () => AuthManager.login());
-                on(dom.btnRegister, 'click', () => AuthManager.registerWithEmail());
-                on(dom.btnGoogle, 'click', () => AuthManager.loginWithGoogle());
-                on(dom.loginPassword, 'keypress', (e) => { if (e.key === 'Enter') AuthManager.login(); });
-                on(dom.btnAuthAction, 'click', () => AuthManager.logout());
+                dom.btnLogin.addEventListener('click', () => AuthManager.login());
+                dom.btnRegister.addEventListener('click', () => AuthManager.registerWithEmail());
+                dom.btnGoogle.addEventListener('click', () => AuthManager.loginWithGoogle());
+                dom.loginPassword.addEventListener('keypress', (e) => { if (e.key === 'Enter') AuthManager.login(); });
+                dom.btnAuthAction.addEventListener('click', () => AuthManager.logout());
                 window.addEventListener('resize', () => { LayoutManager.fitBoard(); if (window.innerWidth <= 900 && dom.mainApp.style.display !== 'none') dom.menuBtn.style.display = 'grid'; else dom.menuBtn.style.display = 'none'; });
-                on(dom.verticalFieldChk, 'change', () => { appState.layout.forceVertical = dom.verticalFieldChk.checked; LayoutManager.fitBoard(); });
-                on(dom.menuBtn, 'click', () => { dom.sidebar.classList.add('open'); dom.scrim.classList.add('show'); });
+                dom.verticalFieldChk.addEventListener('change', () => { appState.layout.forceVertical = dom.verticalFieldChk.checked; LayoutManager.fitBoard(); });
+                dom.menuBtn.addEventListener('click', () => { dom.sidebar.classList.add('open'); dom.scrim.classList.add('show'); });
                 const closeM = () => { dom.sidebar.classList.remove('open'); dom.scrim.classList.remove('show'); };
-                on(dom.closeMenuBtn, 'click', closeM); on(dom.scrim, 'click', closeM);
-                on(dom.addPlayerBtn, 'click', () => UnitsManager.addPlayer());
-                on(dom.resetBtn, 'click', () => { UnitsManager.createPlayers(); UnitsManager.placeBall(); DrawManager.clearDraw(); StorageManager.savePositions(); StorageManager.saveBall(); });
-                on(dom.snapToggle, 'change', () => LayoutManager.renderGrid());
-                on(dom.toggleLabelsBtn, 'click', (e) => { e.target.classList.toggle('active'); [...dom.playersLayer.children].forEach(el => el.style.fontSize = e.target.classList.contains('active') ? 'var(--player-font)' : '0'); });
-                on(dom.toolSelectBtn, 'click', () => ToolManager.setTool('select')); on(dom.toolArrowsBtn, 'click', () => ToolManager.setTool('arrows')); on(dom.toolPenBtn, 'click', () => ToolManager.setTool('pen'));
-                on(dom.undoGenericBtn, 'click', () => DrawManager.undoLast()); on(dom.clearArrowsBtn, 'click', () => DrawManager.clearArrows()); on(dom.clearAllBtn, 'click', () => { if (confirm('Clear?')) DrawManager.clearDraw(); });
-                on(dom.savePlayBtn, 'click', () => StorageManager.savePlay()); on(dom.btnLoadPlay, 'click', () => { if (dom.loadPlaySel.value) StorageManager.loadPlay(dom.loadPlaySel.value); });
-                on(dom.deletePlayBtn, 'click', () => StorageManager.deletePlay()); on(dom.duplicatePlayBtn, 'click', () => StorageManager.duplicatePlay());
-                on(dom.recordStepBtn, 'click', () => { if (!PremiumManager.checkAndShowModal()) return; TimelineManager.recordFrame(); });
-                on(dom.scrubber, 'input', TimelineManager.handleScrubberChange);
-                on(dom.prevFrameBtn, 'click', () => TimelineManager.loadFrame(Math.max(0, appState.playIndex - 1)));
-                on(dom.nextFrameBtn, 'click', () => TimelineManager.loadFrame(Math.min(appState.timeline.length - 1, appState.playIndex + 1)));
-                on(dom.playBtn, 'click', () => TimelineManager.startPlay()); on(dom.pauseBtn, 'click', () => TimelineManager.pausePlay()); on(dom.stopBtn, 'click', () => TimelineManager.stopPlay());
-                on(dom.clearTimelineBtn, 'click', () => TimelineManager.clearTimeline()); on(dom.exportTimelineBtn, 'click', () => StorageManager.exportTimeline()); on(dom.importTimelineBtn, 'click', () => StorageManager.importTimeline()); on(dom.duplicateFrameBtn, 'click', () => TimelineManager.duplicateFrame());
-                on(dom.speedSlowBtn, 'click', () => { dom.speedInput.value = 1200; appState.segmentDuration = 1200; }); on(dom.speedMediumBtn, 'click', () => { dom.speedInput.value = 800; appState.segmentDuration = 800; }); on(dom.speedFastBtn, 'click', () => { dom.speedInput.value = 400; appState.segmentDuration = 400; });
-                if (dom.frameNote) on(dom.frameNote, 'input', () => { const f = appState.timeline[appState.playIndex]; if (f) { f.note = dom.frameNote.value; StorageManager.saveTimeline(); } });
-                on(dom.sharePlayBtn, 'click', () => StorageManager.createShareLink()); on(dom.presentationModeBtn, 'click', () => UIManager.togglePresentationMode());
+                dom.closeMenuBtn.addEventListener('click', closeM); dom.scrim.addEventListener('click', closeM);
+                dom.addPlayerBtn.addEventListener('click', () => UnitsManager.addPlayer());
+                dom.resetBtn.addEventListener('click', () => { UnitsManager.createPlayers(); UnitsManager.placeBall(); DrawManager.clearDraw(); StorageManager.savePositions(); StorageManager.saveBall(); });
+                dom.snapToggle.addEventListener('change', () => LayoutManager.renderGrid());
+                dom.toggleLabelsBtn.addEventListener('click', (e) => { e.target.classList.toggle('active'); [...dom.playersLayer.children].forEach(el => el.style.fontSize = e.target.classList.contains('active') ? 'var(--player-font)' : '0'); });
+                dom.toolSelectBtn.addEventListener('click', () => ToolManager.setTool('select')); dom.toolArrowsBtn.addEventListener('click', () => ToolManager.setTool('arrows')); dom.toolPenBtn.addEventListener('click', () => ToolManager.setTool('pen'));
+                dom.undoGenericBtn.addEventListener('click', () => DrawManager.undoLast()); dom.clearArrowsBtn.addEventListener('click', () => DrawManager.clearArrows()); dom.clearAllBtn.addEventListener('click', () => { if (confirm('Clear?')) DrawManager.clearDraw(); });
+                dom.savePlayBtn.addEventListener('click', () => StorageManager.savePlay()); dom.btnLoadPlay.addEventListener('click', () => { if (dom.loadPlaySel.value) StorageManager.loadPlay(dom.loadPlaySel.value); });
+                dom.deletePlayBtn.addEventListener('click', () => StorageManager.deletePlay()); dom.duplicatePlayBtn.addEventListener('click', () => StorageManager.duplicatePlay());
+                dom.recordStepBtn.addEventListener('click', () => { if (!PremiumManager.checkAndShowModal()) return; TimelineManager.recordFrame(); });
+                dom.scrubber.addEventListener('input', TimelineManager.handleScrubberChange);
+                dom.prevFrameBtn.addEventListener('click', () => TimelineManager.loadFrame(Math.max(0, appState.playIndex - 1)));
+                dom.nextFrameBtn.addEventListener('click', () => TimelineManager.loadFrame(Math.min(appState.timeline.length - 1, appState.playIndex + 1)));
+                dom.playBtn.addEventListener('click', () => TimelineManager.startPlay()); dom.pauseBtn.addEventListener('click', () => TimelineManager.pausePlay()); dom.stopBtn.addEventListener('click', () => TimelineManager.stopPlay());
+                dom.clearTimelineBtn.addEventListener('click', () => TimelineManager.clearTimeline()); dom.exportTimelineBtn.addEventListener('click', () => StorageManager.exportTimeline()); dom.importTimelineBtn.addEventListener('click', () => StorageManager.importTimeline()); dom.duplicateFrameBtn.addEventListener('click', () => TimelineManager.duplicateFrame());
+                dom.speedSlowBtn.addEventListener('click', () => { dom.speedInput.value = 1200; appState.segmentDuration = 1200; }); dom.speedMediumBtn.addEventListener('click', () => { dom.speedInput.value = 800; appState.segmentDuration = 800; }); dom.speedFastBtn.addEventListener('click', () => { dom.speedInput.value = 400; appState.segmentDuration = 400; });
+                if (dom.frameNote) dom.frameNote.addEventListener('input', () => { const f = appState.timeline[appState.playIndex]; if (f) { f.note = dom.frameNote.value; StorageManager.saveTimeline(); } });
+                dom.sharePlayBtn.addEventListener('click', () => StorageManager.createShareLink()); dom.presentationModeBtn.addEventListener('click', () => UIManager.togglePresentationMode());
                 if (window.innerWidth <= 900) { dom.verticalFieldChk.checked = true; appState.layout.forceVertical = true; }
                 ExportManager.setupExportUI(); UIManager.setupHotkeys();
             },
@@ -1740,7 +1738,7 @@
             "alert.invalid_name": "Nome non valido",
             "alert.save_local_error": "Errore salvataggio locale.",
             "popup.loaded": "Caricato!",
-            "alert.load_error": "Errore caricamento",,
+            "alert.load_error": "Errore caricamento",
             "alert.login_required": "Login richiesto",
             "alert.no_animation": "Nessuna animazione",
             "alert.firebase_off": "Firebase off",
@@ -1748,7 +1746,7 @@
             "alert.not_found": "Non trovato",
             "alert.invalid_data": "Dati invalidi",
             "alert.upload_error": "Errore upload",
-            "prompt.new_name": "Nuovo nome:
+            "prompt.new_name": "Nuovo nome",
             "default.play_name": "Giocata",
 
             "sidebar.animation": "Animazione",
@@ -1865,7 +1863,7 @@
             "alert.invalid_name": "Invalid name",
             "alert.save_local_error": "Local save error.",
             "popup.loaded": "Loaded!",
-            "alert.load_error": "Load error",,
+            "alert.load_error": "Load error",
             "alert.login_required": "Login required",
             "alert.no_animation": "No animation",
             "alert.firebase_off": "Firebase offline",
@@ -1873,7 +1871,7 @@
             "alert.not_found": "Not found",
             "alert.invalid_data": "Invalid data",
             "alert.upload_error": "Upload error",
-            "prompt.new_name": "New name:
+            "prompt.new_name": "New name",
             "default.play_name": "Play",
 
             "sidebar.animation": "Animation",
@@ -1979,9 +1977,7 @@
     let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
-    // ✅ LemonSqueezy Checkout URL (tu link)
     const LEMON_CHECKOUT_URL = "https://rugbycoach.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab";
-
 
     let appState = {
         isPremium: false,
@@ -2125,86 +2121,73 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 console.log('✅ Firebase inizializzato correttamente');
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-
-  if (user) {
-    isAuthorized = true;
-    this.showApp();
-    this.updateUI(true);
-    this.showStatus(t("status.welcome", { email: user.email }), "success");
-
-    // ✅ BOTÓN BUY PREMIUM (LEMON)
-    const buyBtn = document.getElementById("btnBuyPremium");
-    if (buyBtn) {
-      buyBtn.onclick = () => {
-        const url = new URL(LEMON_CHECKOUT_URL);
-        url.searchParams.set("checkout[email]", user.email);
-        url.searchParams.set("checkout[custom][uid]", user.uid);
-        window.open(url.toString(), "_blank");
-      };
-    }
-
-    // ✅ Mantener la lógica Firestore isPremium como ya la tenés
-    const userRef = doc(db, "users", user.uid);
-    try {
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        await setDoc(userRef, { email: user.email, isPremium: false, createdAt: new Date() });
-      }
-    } catch (e) {
-      console.log("Errore controllo utente", e);
-    }
-
-    onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        appState.isPremium = data.isPremium === true;
-
-        const sidebarBtn = document.getElementById("btnSidebarPro");
-        if (appState.isPremium) {
-          document.getElementById("premiumOverlay").style.display = "none";
-          if (sidebarBtn) sidebarBtn.style.display = "none";
-        } else {
-          if (sidebarBtn) sidebarBtn.style.display = "flex";
-        }
-      }
-    });
-
-    await this.testFirebaseConnection();
-    InteractionManager.enableSelectionBox();
-    InteractionManager.reinitializePlayerInteractions();
-
-    UnitsManager.enableDragBall(() => {
-      StorageManager.saveBall();
-      if (dom.autoRecordChk.checked) {
-        if (!PremiumManager.checkAndShowModal()) {
-          dom.autoRecordChk.checked = false;
-          return;
-        }
-        TimelineManager.recordFrame();
-      }
-    });
-
-    StorageManager.updatePlaySelect();
-    DrawManager.enableDrawing();
-
-    const params = new URLSearchParams(window.location.search);
-    const sharedId = params.get("shared");
-    if (sharedId) {
-      appState.isSharedView = true;
-      appState.readOnly = true;
-      UIManager.applyReadOnlyMode();
-      StorageManager.loadSharedPlay(sharedId);
-    }
-  } else {
-    isAuthorized = false;
-    firebaseConnected = false;
-    this.showLogin();
-    this.updateUI(false);
-  }
-});
-
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    if (user) {
+                        isAuthorized = true;
+                        this.showApp();
+                        this.updateUI(true);
+                        this.showStatus(t('status.welcome', { email: user.email }), 'success');
+                        const buyBtn = document.getElementById('btnBuyPremium');
+                        if (buyBtn) {
+                            buyBtn.onclick = () => {
+                                const url = new URL(LEMON_CHECKOUT_URL);
+                                    url.searchParams.set("checkout[email]", user.email);
+                                    url.searchParams.set("checkout[custom][uid]", user.uid);
+                                    window.open(url.toString(), '_blank');
+                            };
+                        }
+                        const userRef = doc(db, "users", user.uid);
+                        try {
+                            const userSnap = await getDoc(userRef);
+                            if (!userSnap.exists()) {
+                                await setDoc(userRef, { email: user.email, isPremium: false, createdAt: new Date() });
+                            }
+                        } catch (e) { console.log("Errore controllo utente", e); }
+                        onSnapshot(userRef, (docSnap) => {
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                appState.isPremium = data.isPremium === true;
+                                const sidebarBtn = document.getElementById('btnSidebarPro');
+                                if (appState.isPremium) {
+                                    document.getElementById('premiumOverlay').style.display = 'none';
+                                    if (sidebarBtn) sidebarBtn.style.display = 'none';
+                                } else {
+                                    if (sidebarBtn) sidebarBtn.style.display = 'flex';
+                                }
+                            }
+                        });
+                        await this.testFirebaseConnection();
+                        InteractionManager.enableSelectionBox();
+                        InteractionManager.reinitializePlayerInteractions();
+                        // 👑 PREMIUM: AutoRecord al mover la pelota
+                        UnitsManager.enableDragBall(() => {
+                            StorageManager.saveBall();
+                            if (dom.autoRecordChk.checked) {
+                                if (!PremiumManager.checkAndShowModal()) {
+                                    dom.autoRecordChk.checked = false;
+                                    return;
+                                }
+                                TimelineManager.recordFrame();
+                            }
+                        });
+                        StorageManager.updatePlaySelect();
+                        DrawManager.enableDrawing();
+                        const params = new URLSearchParams(window.location.search);
+                        const sharedId = params.get('shared');
+                        if (sharedId) {
+                            appState.isSharedView = true;
+                            appState.readOnly = true;
+                            UIManager.applyReadOnlyMode();
+                            StorageManager.loadSharedPlay(sharedId);
+                        }
+                    } else {
+                        isAuthorized = false;
+                        firebaseConnected = false;
+                        this.showLogin();
+                        this.updateUI(false);
+                    }
+                });
             } catch (error) {
                 console.error("Firebase fallito:", error);
                 this.showLogin();
