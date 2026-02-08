@@ -401,9 +401,6 @@
 }
 .whatsapp-float:hover{ transform: translateY(-2px); }
 .whatsapp-float i{ font-size: 28px; }
-
-/* PRO ATTIVO button style */
-#btnSidebarPro.pro-attivo{ background: linear-gradient(45deg,#22c55e,#16a34a) !important; color:#000 !important; }
 </style>
 </head>
 <body>
@@ -979,6 +976,14 @@
         }
     }
 
+// ejemplo cuando cargás el user
+const userDoc = await getDoc(doc(db, "users", user.uid));
+
+if (userDoc.exists()) {
+  const userData = userDoc.data();
+  applyPremiumUI(!!userData.isPremium);
+}
+
     let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
@@ -1102,19 +1107,36 @@
 
 
     const PremiumManager = {
+        open() {
+            const overlay = document.getElementById('premiumOverlay');
+            if (overlay) overlay.style.display = 'flex';
+        },
+        close() {
+            const overlay = document.getElementById('premiumOverlay');
+            if (overlay) overlay.style.display = 'none';
+        },
         checkAndShowModal() {
             if (appState.isPremium) return true;
-            document.getElementById('premiumOverlay').style.display = 'flex';
+            this.open();
             return false;
         },
         initListeners() {
-            document.getElementById('closePremium').addEventListener('click', () => {
-                document.getElementById('premiumOverlay').style.display = 'none';
+            const overlay = document.getElementById('premiumOverlay');
+            const card = overlay ? overlay.querySelector('.premium-card') : null;
+            const closeBtn = document.getElementById('closePremium');
+
+            closeBtn?.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.close();
             });
-            document.getElementById('premiumOverlay').addEventListener('click', (e) => {
-                if (e.target.id === 'premiumOverlay') {
-                    e.target.style.display = 'none';
-                }
+
+            overlay?.addEventListener('click', (e) => {
+                if (e.target === overlay) this.close();
+            });
+
+            // Prevent closing when clicking inside the modal card
+            card?.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
         }
     };
@@ -1154,39 +1176,19 @@
                             }
                         } catch (e) { console.log("Errore controllo utente", e); }
                         onSnapshot(userRef, (docSnap) => {
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        appState.isPremium = data.isPremium === true;
-
-        const overlay = document.getElementById('premiumOverlay');
-        const sidebarBtn = document.getElementById('btnSidebarPro');
-
-        // UI: mostra "PRO ATTIVO" se premium, altrimenti lascia "PASSA A PRO"
-        if (sidebarBtn) {
-            sidebarBtn.style.display = 'flex';
-
-            if (appState.isPremium) {
-                // premium attivo: niente popup e bottone informativo
-                if (overlay) overlay.style.display = 'none';
-                sidebarBtn.textContent = '👑 PRO ATTIVO';
-                sidebarBtn.style.cursor = 'default';
-                sidebarBtn.style.opacity = '0.95';
-                sidebarBtn.classList.add('pro-attivo');
-                // disabilita click
-                sidebarBtn.onclick = (e) => { e.preventDefault(); return false; };
-            } else {
-                // non premium: il bottone apre il popup
-                sidebarBtn.textContent = '👑 PASSA A PRO';
-                sidebarBtn.style.cursor = 'pointer';
-                sidebarBtn.style.opacity = '1';
-                sidebarBtn.classList.remove('pro-attivo');
-                sidebarBtn.onclick = () => {
-                    if (overlay) overlay.style.display = 'flex';
-                };
-            }
-        }
-    }
-});await this.testFirebaseConnection();
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                appState.isPremium = data.isPremium === true;
+                                const sidebarBtn = document.getElementById('btnSidebarPro');
+                                if (appState.isPremium) {
+                                    document.getElementById('premiumOverlay').style.display = 'none';
+                                    if (sidebarBtn) sidebarBtn.style.display = 'none';
+                                } else {
+                                    if (sidebarBtn) sidebarBtn.style.display = 'flex';
+                                }
+                            }
+                        });
+                        await this.testFirebaseConnection();
                         InteractionManager.enableSelectionBox();
                         InteractionManager.reinitializePlayerInteractions();
                         // 👑 PREMIUM: AutoRecord al mover la pelota
@@ -2177,17 +2179,6 @@
 
     const ro = new ResizeObserver(e => { for (let en of e) if (en.contentRect.width > 0) LayoutManager.fitBoard(); });
     ro.observe(document.getElementById('boardViewport'));
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const premiumOverlay = document.getElementById("premiumOverlay");
-    const closePremiumBtn = document.getElementById("closePremium");
-    const buyPremiumBtn = document.getElementById("btnBuyPremium");
-
-    // Cerrar modal con la X
-    closePremiumBtn?.addEventListener("click", () => {
-      premiumOverlay.style.display = "none";
-    });
-
     // Cerrar haciendo click fuera de la tarjeta
     premiumOverlay?.addEventListener("click", (e) => {
       if (e.target === premiumOverlay) {
@@ -2212,32 +2203,6 @@
    * - Si isPremium === false:
    *    - permitir popup
    */
-
-  function applyPremiumUI(isPremium) {
-    const btnSidebarPro = document.getElementById("btnSidebarPro");
-    const premiumOverlay = document.getElementById("premiumOverlay");
-
-    if (!btnSidebarPro) return;
-
-    if (isPremium) {
-      // Usuario PRO
-      btnSidebarPro.innerHTML = "👑 PRO ATTIVO";
-      btnSidebarPro.style.background =
-        "linear-gradient(45deg, #22c55e, #16a34a)";
-      btnSidebarPro.style.color = "#000";
-      btnSidebarPro.style.cursor = "default";
-      btnSidebarPro.style.boxShadow = "0 4px 15px rgba(34,197,94,0.4)";
-
-      // Evita que abra el popup
-      btnSidebarPro.onclick = (e) => {
-        e.preventDefault();
-        return false;
-      };
-
-      // Asegura que el modal esté cerrado
-      if (premiumOverlay) {
-        premiumOverlay.style.display = "none";
-      }
     } else {
       // Usuario NO PRO
       btnSidebarPro.innerHTML = "👑 PASSA A PRO";
