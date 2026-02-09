@@ -1354,15 +1354,20 @@ updateFirebaseStatus(connected, err) {
 },
 
 async testFirebaseConnection() {
-    try {
-        await getDocs(collection(db, "users"));
-        this.updateFirebaseStatus(true);
-        return true;
-    } catch (e) {
-        console.error("Firebase connection failed", e);
-        this.updateFirebaseStatus(false, e);
-        return false;
+  try {
+    if (!currentUser) {
+      this.updateFirebaseStatus(false);
+      return false;
     }
+    // Lectura SOLO de tu propio documento (permitido por tus reglas)
+    await getDoc(doc(db, "users", currentUser.uid));
+    this.updateFirebaseStatus(true);
+    return true;
+  } catch (e) {
+    console.error("Firebase connection failed", e);
+    this.updateFirebaseStatus(false, e);
+    return false;
+  }
 }
 };
 
