@@ -519,7 +519,7 @@
 <button class="btn danger" data-i18n="plays.delete" id="deletePlay">Elimina</button>
 <button class="btn" data-i18n="plays.load" id="btnLoadPlay">Carica</button>
 </div>
-</input></div>
+</div>
 </div>
 <div class="group">
 <div class="group-header">
@@ -542,7 +542,7 @@
 <button class="btn alt" data-i18n="animation.fast" id="speedFastBtn">Veloce</button>
 </div>
 <div class="row" style="grid-template-columns: auto 1fr; align-items:center; margin-top:4px;"><span data-i18n="animation.speed">Velocità</span> <input id="speedInput" min="100" step="100" type="number" value="800">
-</input></div>
+</div>
 <div class="row" style="grid-template-columns: 1fr; gap:8px;">
 <label><span data-i18n="animation.scrubber">Scrubber</span><input id="scrubber" max="0" min="0" type="range" value="0"/></label>
 <div style="display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;">
@@ -961,9 +961,17 @@
 let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
-    const LEMON_CHECKOUT_URL = "https://rugbycoach.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab"; // (temporarily unused)
+    //const LEMON_CHECKOUT_URL = "https://rugbyboard.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab"; // (temporarily unused)
+    const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/6oU00j5ATc7r3gwcLweEo00";
 
-    let appState = {
+    // Dentro de la lógica de tu botón:
+    const userEmail = currentUser ? currentUser.email : "";
+    // Usamos client_reference_id para identificar al usuario internamente si fuera necesario,
+    // pero prefilled_email es lo que le ahorra trabajo al socio.
+    const finalUrl = `${STRIPE_CHECKOUT_URL}?prefilled_email=${encodeURIComponent(userEmail)}`;
+
+    window.open(finalUrl, "_blank", "noopener,noreferrer");
+        let appState = {
         isPremium: false,
         layout: { mode: 'landscape', scale: 1, tx: 0, ty: 0, forceVertical: false },
         tool: 'select',
@@ -1115,179 +1123,261 @@ let app = null, db = null, auth = null, isAuthorized = false, currentUser = null
         }
     };
 
-    const AuthManager = {
-        async init() {
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                console.log('✅ Firebase inizializzato correttamente');
+const AuthManager = {
+    previousPremiumStatus: null,
+
+    // Wait for first auth state so init() can await deterministically
+    async init() {
+        try {
+            if (!app) app = initializeApp(firebaseConfig);
+            if (!db) db = getFirestore(app);
+            if (!auth) auth = getAuth(app);
+
+            return await new Promise((resolve) => {
+                let first = true;
+
                 onAuthStateChanged(auth, async (user) => {
                     currentUser = user;
+
                     if (user) {
                         isAuthorized = true;
                         this.showApp();
                         this.updateUI(true);
                         this.showStatus(t('status.welcome', { email: user.email }), 'success');
+
+                        // Stripe checkout
                         const buyBtn = document.getElementById('btnBuyPremium');
                         if (buyBtn) {
                             buyBtn.onclick = () => {
-                                // Lemon Squeezy checkout
-                                window.open(LEMON_CHECKOUT_URL, "_blank", "noopener,noreferrer");
+                                const finalUrl = `${STRIPE_CHECKOUT_URL}?prefilled_email=${encodeURIComponent(user.email)}`;
+                                window.open(finalUrl, "_blank", "noopener,noreferrer");
                             };
                         }
+
                         const userRef = doc(db, "users", user.uid);
+
+                        // Ensure user doc exists
                         try {
                             const userSnap = await getDoc(userRef);
                             if (!userSnap.exists()) {
-                                await setDoc(userRef, { email: user.email, isPremium: false, createdAt: new Date() });
+                                await setDoc(userRef, {
+                                    email: user.email,
+                                    isPremium: false,
+                                    createdAt: new Date()
+                                });
                             }
-                        } catch (e) { console.log("Errore controllo utente", e); }
-                        onSnapshot(userRef, (docSnap) => {
-                            if (docSnap.exists()) {
-                                const data = docSnap.data();
-                                appState.isPremium = data.isPremium === true;
-                                const sidebarBtn = document.getElementById('btnSidebarPro');
-                                if (appState.isPremium) {
-                                    document.getElementById('premiumOverlay').style.display = 'none';
-                                    if (sidebarBtn) sidebarBtn.style.display = 'none';
-                                } else {
-                                    if (sidebarBtn) sidebarBtn.style.display = 'flex';
-                                }
-                            }
-                        });
-                        await this.testFirebaseConnection();
-                        InteractionManager.enableSelectionBox();
-                        InteractionManager.reinitializePlayerInteractions();
-                        // 👑 PREMIUM: AutoRecord al mover la pelota
-                        UnitsManager.enableDragBall(() => {
-                            StorageManager.saveBall();
-                            if (dom.autoRecordChk.checked) {
-                                if (!PremiumManager.checkAndShowModal()) {
-                                    dom.autoRecordChk.checked = false;
-                                    return;
-                                }
-                                TimelineManager.recordFrame();
-                            }
-                        });
-                        StorageManager.updatePlaySelect();
-                        DrawManager.enableDrawing();
-                        const params = new URLSearchParams(window.location.search);
-                        const sharedId = params.get('shared');
-                        if (sharedId) {
-                            appState.isSharedView = true;
-                            appState.readOnly = true;
-                            UIManager.applyReadOnlyMode();
-                            StorageManager.loadSharedPlay(sharedId);
+                        } catch (e) {
+                            console.log("Errore controllo utente", e);
                         }
+
+                        // Premium realtime
+                        onSnapshot(userRef, (docSnap) => {
+                            if (!docSnap.exists()) return;
+                            const data = docSnap.data() || {};
+                            const isNowPremium = data.isPremium === true;
+
+                            // Seed on first snapshot
+                            if (this.previousPremiumStatus === null) {
+                                this.previousPremiumStatus = isNowPremium;
+                            } else if (this.previousPremiumStatus === false && isNowPremium === true) {
+                                this.showStatus("👑 PRO attivato! Benvenuto, Coach.", "success");
+                                const overlay = document.getElementById('premiumOverlay');
+                                if (overlay) overlay.style.display = 'none';
+                                this.previousPremiumStatus = true;
+                            } else {
+                                this.previousPremiumStatus = isNowPremium;
+                            }
+
+                            appState.isPremium = isNowPremium;
+
+                            const sidebarBtn = document.getElementById('btnSidebarPro');
+                            const premiumOverlay = document.getElementById('premiumOverlay');
+
+                            if (appState.isPremium) {
+                                if (premiumOverlay) premiumOverlay.style.display = 'none';
+                                if (sidebarBtn) sidebarBtn.style.display = 'none';
+                            } else {
+                                if (premiumOverlay) premiumOverlay.style.display = 'flex';
+                                if (sidebarBtn) sidebarBtn.style.display = 'flex';
+                            }
+                        });
+
+                        await this.testFirebaseConnection();
                     } else {
                         isAuthorized = false;
                         firebaseConnected = false;
+                        this.previousPremiumStatus = null;
                         this.showLogin();
                         this.updateUI(false);
+                        this.showStatus(t('auth.not_authenticated'), 'danger');
+                    }
+
+                    if (first) {
+                        first = false;
+                        resolve(Boolean(user));
                     }
                 });
-            } catch (error) {
-                console.error("Firebase fallito:", error);
-                this.showLogin();
-                this.showStatus(t('error.connection'), 'error');
-                this.updateFirebaseStatus(false);
+            });
+        } catch (error) {
+            console.error("Init Error (AuthManager):", error);
+            this.showLogin();
+            this.updateUI(false);
+            return false;
+        }
+    },
+
+    // Email/password login
+    async login() {
+        try {
+            if (!auth) auth = getAuth(app);
+            const email = (dom.loginEmail?.value || '').trim();
+            const pass = (dom.loginPassword?.value || '').trim();
+            if (!email || !pass) {
+                this.setLoginMessage("Inserisci email e password", true);
+                return;
             }
-        },
-        async testFirebaseConnection() {
-            try {
-                const user = auth.currentUser;
-                if (!user) return false;
-                const testQuery = query(collection(db, "users", user.uid, "plays"));
-                await getDocs(testQuery);
-                firebaseConnected = true;
-                this.updateFirebaseStatus(true);
-                return true;
-            } catch (error) {
-                firebaseConnected = false;
-                this.updateFirebaseStatus(false, error);
-                return false;
+            this.setLoginMessage("", false);
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (err) {
+            console.error(err);
+            this.setLoginMessage("Errore login. Controlla credenziali.", true);
+            this.showStatus(t('status.connecting'), 'danger');
+        }
+    },
+
+    async registerWithEmail() {
+        try {
+            if (!auth) auth = getAuth(app);
+            const email = (dom.loginEmail?.value || '').trim();
+            const pass = (dom.loginPassword?.value || '').trim();
+            if (!email || !pass) {
+                this.setLoginMessage("Inserisci email e password", true);
+                return;
             }
-        },
-        updateFirebaseStatus(connected, error = null) {
-            firebaseConnected = connected;
-            if (connected) {
-                dom.firebaseStatus.textContent = t('firebase.connected');
-                dom.firebaseStatus.className = 'firebase-status connected';
-            } else {
-                let errorMessage = t('firebase.connection_issue');
-                if (error) errorMessage += ` - ${error.code || 'Error'}`;
-                dom.firebaseStatus.innerHTML = `${errorMessage}`;
-                dom.firebaseStatus.className = 'firebase-status disconnected';
-            }
-        },
-        showLogin() {
-            dom.loginOverlay.style.display = 'flex';
-            dom.mainApp.style.display = 'none';
-            dom.menuBtn.style.display = 'none';
-        },
-        showApp() {
-            dom.loginOverlay.style.display = 'none';
-            dom.mainApp.style.display = 'grid';
-            if (window.innerWidth <= 900) dom.menuBtn.style.display = 'grid';
-            document.body.classList.add('main-app-visible');
-        },
-        updateUI(isLoggedIn) {
-            if (isLoggedIn && currentUser) {
-                dom.btnAuthAction.style.display = 'block';
-                dom.btnAuthAction.textContent = t('auth.logout');
-                dom.statusDot.className = 'status-dot';
-                dom.statusText.textContent = currentUser.email;
-                this.setControlsEnabled(true);
-            } else {
-                dom.btnAuthAction.style.display = 'none';
-                dom.statusDot.className = 'status-dot error';
-                dom.statusText.textContent = t('auth.not_authenticated');
-                this.setControlsEnabled(false);
-            }
-        },
-        setControlsEnabled(enabled) {
-            const controls = [dom.resetBtn, dom.toolSelectBtn, dom.toolArrowsBtn, dom.toolPenBtn, dom.undoGenericBtn, dom.clearArrowsBtn, dom.clearAllBtn, dom.recordStepBtn, dom.savePlayBtn, dom.duplicatePlayBtn, dom.deletePlayBtn, dom.btnLoadPlay, dom.addPlayerBtn, dom.duplicateFrameBtn, dom.clearTimelineBtn, dom.exportTimelineBtn, dom.importTimelineBtn, dom.sharePlayBtn];
-            controls.forEach(control => { if (control) control.disabled = !enabled; });
-            if (dom.strokeColorSel) dom.strokeColorSel.disabled = !enabled;
-            if (dom.strokeWidthSel) dom.strokeWidthSel.disabled = !enabled;
-            if (dom.dashedToggle) dom.dashedToggle.disabled = !enabled;
-        },
-        async loginWithGoogle() {
+            this.setLoginMessage("", false);
+            await createUserWithEmailAndPassword(auth, email, pass);
+            this.setLoginMessage("Account creato! Ora sei loggato.", false);
+        } catch (err) {
+            console.error(err);
+            const code = err?.code ? String(err.code) : 'unknown';
+            this.setLoginMessage(t('error.registration', { code }), true);
+        }
+    },
+
+    async loginWithGoogle() {
+        try {
+            if (!auth) auth = getAuth(app);
             const provider = new GoogleAuthProvider();
-            try { await signInWithPopup(auth, provider); this.showMessage("Accesso Google riuscito", 'success'); } 
-            catch (error) { this.showMessage(t('error.google_login', { message: error.message }), 'error'); }
-        },
-        async registerWithEmail() {
-            const email = dom.loginEmail.value;
-            const password = dom.loginPassword.value;
-            if (!email || !password) { this.showMessage("Inserisci email e password.", 'error'); return; }
-            dom.btnLogin.disabled = true; dom.btnRegister.disabled = true;
-            try { await createUserWithEmailAndPassword(auth, email, password); this.showMessage("Account creato!", 'success'); } 
-            catch (error) { this.showMessage(t('error.registration', { code: error.code }), 'error'); } 
-            finally { dom.btnLogin.disabled = false; dom.btnRegister.disabled = false; }
-        },
-        async login() {
-            const email = dom.loginEmail.value;
-            const password = dom.loginPassword.value;
-            if (!email || !password) { this.showMessage("Inserisci email e password.", 'error'); return; }
-            dom.btnLogin.disabled = true;
-            this.showMessage("Accesso in corso...", 'info');
-            try { await signInWithEmailAndPassword(auth, email, password); this.showMessage("", 'success'); } 
-            catch (error) { this.showMessage("Credenziali non valide.", 'error'); } 
-            finally { dom.btnLogin.disabled = false; }
-        },
-        async logout() {
-            try { await signOut(auth); this.showMessage('Sessione chiusa', 'info'); this.showLogin(); } catch (error) { console.error(error); }
-        },
-        showMessage(message, type = 'info') {
-            dom.loginMessage.textContent = message;
-            dom.loginMessage.className = 'login-message';
-            if (type === 'error') dom.loginMessage.classList.add('login-error');
-            if (type === 'success') dom.loginMessage.classList.add('login-success');
-        },
-        showStatus(message, type = 'info') { console.log(`[${type.toUpperCase()}] ${message}`); }
-    };
+            await signInWithPopup(auth, provider);
+        } catch (err) {
+            console.error(err);
+            const msg = err?.message ? String(err.message) : 'unknown';
+            this.setLoginMessage(t('error.google_login', { message: msg }), true);
+        }
+    },
+
+    async logout() {
+        try {
+            if (!auth) auth = getAuth(app);
+            await signOut(auth);
+            // onAuthStateChanged will flip UI
+        } catch (err) {
+            console.error(err);
+        }
+    },
+
+    showLogin() {
+        const login = document.getElementById('loginOverlay');
+        const appEl = document.getElementById('mainApp');
+        if (login) login.style.display = 'flex';
+        if (appEl) appEl.style.display = 'none';
+        document.body.classList.remove('main-app-visible');
+    },
+
+    showApp() {
+        const login = document.getElementById('loginOverlay');
+        const appEl = document.getElementById('mainApp');
+        if (login) login.style.display = 'none';
+        if (appEl) appEl.style.display = 'grid';
+        document.body.classList.add('main-app-visible');
+        // show hamburger on mobile
+        if (window.innerWidth <= 900 && dom.menuBtn) dom.menuBtn.style.display = 'grid';
+    },
+
+    updateUI(isLoggedIn) {
+        const authBtn = document.getElementById('btnAuthAction');
+        if (!authBtn) return;
+
+        if (isLoggedIn) {
+            authBtn.textContent = t('auth.logout') || 'Logout';
+            authBtn.onclick = (e) => { e.preventDefault(); this.logout(); };
+        } else {
+            authBtn.textContent = t('login.signin') || 'Login';
+            authBtn.onclick = (e) => { e.preventDefault(); this.login(); };
+        }
+    },
+
+    showStatus(message, type) {
+        // Prefer status indicator in sidebar if exists
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+
+        if (statusText) statusText.textContent = message;
+
+        if (statusDot) {
+            statusDot.classList.remove('offline', 'error');
+            if (type === 'danger') statusDot.classList.add('error');
+        }
+    },
+
+    setLoginMessage(msg, isError) {
+        const el = document.getElementById('loginMessage');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.classList.toggle('login-error', Boolean(isError));
+        el.classList.toggle('login-success', Boolean(!isError && msg));
+    },
+
+    updateFirebaseStatus(connected, err) {
+        firebaseConnected = Boolean(connected);
+        const el = document.getElementById('firebaseStatus');
+        if (!el) return;
+        el.classList.toggle('connected', connected);
+        el.classList.toggle('disconnected', !connected);
+        if (connected) {
+            el.textContent = t('firebase.connected');
+        } else {
+            // permission-denied is the common one
+            el.textContent = t('firebase.connection_issue');
+            if (err && err.code === 'permission-denied') {
+                el.textContent = t('firebase.security_rules');
+            }
+        }
+    },
+
+    async testFirebaseConnection() {
+        try {
+            await getDocs(collection(db, "users"));
+            this.updateFirebaseStatus(true);
+            return true;
+        } catch (e) {
+            console.error("Firebase connection failed", e);
+            this.updateFirebaseStatus(false, e);
+            return false;
+        }
+    }
+};
+
+    async testFirebaseConnection() {
+        try {
+            await getDocs(collection(db, "users"));
+            firebaseConnected = true;
+        } catch (e) {
+            firebaseConnected = false;
+            console.error("Firebase connection failed", e);
+        }
+    }
+};
 
     // 🔒 SANEAMOS INPUTS DE TEXTO
     function sanitizeInput(value) {
