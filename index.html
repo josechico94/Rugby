@@ -1162,7 +1162,6 @@ const AuthManager = {
                             if (!userSnap.exists()) {
                                 await setDoc(userRef, {
                                     email: user.email,
-                                    isPremium: false,
                                     createdAt: new Date()
                                 });
                             }
