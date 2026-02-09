@@ -963,15 +963,7 @@ let app = null, db = null, auth = null, isAuthorized = false, currentUser = null
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
     //const LEMON_CHECKOUT_URL = "https://rugbyboard.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab"; // (temporarily unused)
     const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/6oU00j5ATc7r3gwcLweEo00";
-
-    // Dentro de la lógica de tu botón:
-    const userEmail = currentUser ? currentUser.email : "";
-    // Usamos client_reference_id para identificar al usuario internamente si fuera necesario,
-    // pero prefilled_email es lo que le ahorra trabajo al socio.
-    const finalUrl = `${STRIPE_CHECKOUT_URL}?prefilled_email=${encodeURIComponent(userEmail)}`;
-
-    window.open(finalUrl, "_blank", "noopener,noreferrer");
-        let appState = {
+let appState = {
         isPremium: false,
         layout: { mode: 'landscape', scale: 1, tx: 0, ty: 0, forceVertical: false },
         tool: 'select',
