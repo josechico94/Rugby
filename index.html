@@ -1317,66 +1317,53 @@ const AuthManager = {
         }
     },
 
-    showStatus(message, type) {
-        // Prefer status indicator in sidebar if exists
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
+   showStatus(message, type) {
+    const statusText = document.getElementById('statusText');
+    const statusDot = document.getElementById('statusDot');
 
-        if (statusText) statusText.textContent = message;
+    if (statusText) statusText.textContent = message;
 
-        if (statusDot) {
-            statusDot.classList.remove('offline', 'error');
-            if (type === 'danger') statusDot.classList.add('error');
-        }
-    },
+    if (statusDot) {
+        statusDot.classList.remove('offline', 'error');
+        if (type === 'danger') statusDot.classList.add('error');
+    }
+},
 
-    setLoginMessage(msg, isError) {
-        const el = document.getElementById('loginMessage');
-        if (!el) return;
-        el.textContent = msg || '';
-        el.classList.toggle('login-error', Boolean(isError));
-        el.classList.toggle('login-success', Boolean(!isError && msg));
-    },
+setLoginMessage(msg, isError) {
+    const el = document.getElementById('loginMessage');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.classList.toggle('login-error', Boolean(isError));
+    el.classList.toggle('login-success', Boolean(!isError && msg));
+},
 
-    updateFirebaseStatus(connected, err) {
-        firebaseConnected = Boolean(connected);
-        const el = document.getElementById('firebaseStatus');
-        if (!el) return;
-        el.classList.toggle('connected', connected);
-        el.classList.toggle('disconnected', !connected);
-        if (connected) {
-            el.textContent = t('firebase.connected');
-        } else {
-            // permission-denied is the common one
-            el.textContent = t('firebase.connection_issue');
-            if (err && err.code === 'permission-denied') {
-                el.textContent = t('firebase.security_rules');
-            }
-        }
-    },
-
-    async testFirebaseConnection() {
-        try {
-            await getDocs(collection(db, "users"));
-            this.updateFirebaseStatus(true);
-            return true;
-        } catch (e) {
-            console.error("Firebase connection failed", e);
-            this.updateFirebaseStatus(false, e);
-            return false;
+updateFirebaseStatus(connected, err) {
+    firebaseConnected = Boolean(connected);
+    const el = document.getElementById('firebaseStatus');
+    if (!el) return;
+    el.classList.toggle('connected', connected);
+    el.classList.toggle('disconnected', !connected);
+    if (connected) {
+        el.textContent = t('firebase.connected');
+    } else {
+        el.textContent = t('firebase.connection_issue');
+        if (err && err.code === 'permission-denied') {
+            el.textContent = t('firebase.security_rules');
         }
     }
-};
+},
 
-    async testFirebaseConnection() {
-        try {
-            await getDocs(collection(db, "users"));
-            firebaseConnected = true;
-        } catch (e) {
-            firebaseConnected = false;
-            console.error("Firebase connection failed", e);
-        }
+async testFirebaseConnection() {
+    try {
+        await getDocs(collection(db, "users"));
+        this.updateFirebaseStatus(true);
+        return true;
+    } catch (e) {
+        console.error("Firebase connection failed", e);
+        this.updateFirebaseStatus(false, e);
+        return false;
     }
+}
 };
 
     // 🔒 SANEAMOS INPUTS DE TEXTO
