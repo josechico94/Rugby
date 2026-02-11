@@ -428,55 +428,13 @@
 <div class="group-header">
 <strong data-i18n="sidebar.status">Status</strong> <i class="fas fa-chevron-down group-icon"></i>
 </div>
-<div class="group">
-  <div class="group-header">
-    <strong data-i18n="sidebar.status">Status</strong>
-    <i class="fas fa-chevron-down group-icon"></i>
-  </div>
-
-  <div class="group-content">
-
-    <!-- ROW 1: Title + Language -->
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h1 style="margin:0;">RugbyBoard Pro</h1>
-
-      <select class="btn alt"
-              id="langSelect"
-              data-i18n-aria="aria.language"
-              style="padding:.35rem .5rem;
-                     font-size:12px;
-                     box-shadow:none;
-                     border-radius:8px;">
-        <option value="it">IT</option>
-        <option value="en">EN</option>
-      </select>
-    </div>
-
-    <!-- ROW 2: Welcome -->
-    <div class="status-indicator" id="authStatus" style="margin-top:10px;">
-      <span class="status-dot" id="statusDot"></span>
-      <span data-i18n="status.connecting" id="statusText">
-        Connessione...
-      </span>
-    </div>
-
-    <!-- Firebase status -->
-    <div class="firebase-status disconnected"
-         id="firebaseStatus"
-         data-i18n="firebase.security_rules"
-         style="margin-top:10px;">
-      ⚠️ Configura regole di sicurezza
-    </div>
-
-    <!-- Logout -->
-    <button class="btn primary"
-            id="btnAuthAction"
-            data-i18n="auth.logout"
-            style="margin-top:12px;">
-      Logout
-    </button>
-
-  </div>
+<div class="group-content">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1>RugbyBoard Pro</h1><select class="btn alt" data-i18n-aria="aria.language" id="langSelect" style="padding:.35rem .5rem;font-size:12px;box-shadow:none;border-radius:8px;"><option value="it">IT</option><option value="en">EN</option></select> 
+<div class="status-indicator" id="authStatus">
+<span class="status-dot" id="statusDot"></span>
+<span data-i18n="status.connecting" id="statusText">Connessione...</span>
+</div>
 </div>
 <div class="firebase-status disconnected" data-i18n="firebase.security_rules" id="firebaseStatus">⚠️ Configura regole di sicurezza</div>
 <button class="btn primary" data-i18n="auth.logout" id="btnAuthAction">Esci</button>
