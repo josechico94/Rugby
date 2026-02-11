@@ -116,6 +116,36 @@
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn.active { background: var(--blue); border-color: var(--blue); }
 
+        .lang-switch {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid #263443;
+  background: #15202b;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.lang-chip {
+  width: 34px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.lang-chip:hover { filter: brightness(1.12); }
+.lang-chip.active {
+  background: rgba(0, 194, 255, 0.18);
+  border-color: rgba(0, 194, 255, 0.55);
+}
+
         small.note { opacity:.8 }
         .legend { display:flex; align-items:center; gap:8px; font-size: 13px; }
         .swatch { width: .9em; height: .9em; border-radius: 50%; display:inline-block; border:1px solid rgba(255,255,255,.7); }
@@ -434,8 +464,13 @@
     <!-- ROW 1: Title + Language -->
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h1 style="margin:0;">RugbyBoard Pro</h1>
+            <div class="lang-switch" role="group" aria-label="Language">
+                  <button class="lang-chip" id="langIt" type="button" title="Italiano">🇮🇹</button>
+                  <button class="lang-chip" id="langEn" type="button" title="English">🇬🇧</button>
+                  <button class="lang-chip" id="langEs" type="button" title="Español">🇪🇸</button>
+            </div>
 
-      <select class="btn alt"
+     <!-- <select class="btn alt"
               id="langSelect"
               data-i18n-aria="aria.language"
               style="padding:.35rem .5rem;
@@ -445,7 +480,7 @@
         <option value="it">IT</option>
         <option value="en">EN</option>
         <option value="es">ES</option>
-      </select>
+      </select>-->
     </div>
 
     <!-- ROW 2: Welcome -->
@@ -1044,9 +1079,19 @@
         });
 
         // special case: the play selector placeholder option is built in JS too
-        if (document.getElementById('langSelect')) {
-            document.getElementById('langSelect').value = currentLang;
-        }
+        //if (document.getElementById('langSelect')) {
+           // document.getElementById('langSelect').value = currentLang;
+        //}
+            // highlight chips
+                const itBtn = document.getElementById('langIt');
+                const enBtn = document.getElementById('langEn');
+                const esBtn = document.getElementById('langEs');
+
+                [itBtn, enBtn, esBtn].forEach(b => b && b.classList.remove('active'));
+                if (currentLang === 'it') itBtn?.classList.add('active');
+                if (currentLang === 'en') enBtn?.classList.add('active');
+                if (currentLang === 'es') esBtn?.classList.add('active');
+            
     }
 
     function setLang(lang) {
@@ -1185,8 +1230,11 @@ let appState = {
 
     // Apply initial language + wire language selector
     applyI18n();
-    const __langSel = document.getElementById('langSelect');
-    if (__langSel) __langSel.addEventListener('change', (e) => setLang(e.target.value));
+    //const __langSel = document.getElementById('langSelect');
+    //if (__langSel) __langSel.addEventListener('change', (e) => setLang(e.target.value));
+        document.getElementById('langIt')?.addEventListener('click', () => setLang('it'));
+        document.getElementById('langEn')?.addEventListener('click', () => setLang('en'));
+        document.getElementById('langEs')?.addEventListener('click', () => setLang('es'));
 
 
     const PremiumManager = {
