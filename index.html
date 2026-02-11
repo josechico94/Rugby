@@ -1115,10 +1115,8 @@ async function setLang(lang) {
     currentLang = lang;
     applyI18n();
 
-    // 🔹 Guardar en localStorage
     localStorage.setItem('rb_lang', lang);
 
-    // 🔹 Guardar en Firestore si está logueado
     if (currentUser && db) {
         try {
             await setDoc(
@@ -1127,19 +1125,20 @@ async function setLang(lang) {
                 { merge: true }
             );
         } catch (e) {
-            console.log("No se pudo guardar idioma en Firestore", e);
+            console.log("No se pudo guardar idioma", e);
         }
     }
 
-    // refrescar UI dinámica
+    // 🔥 RE-APLICAR STATUS DINÁMICO
+    if (currentUser) {
+        AuthManager.showStatus(
+            t('status.welcome', { email: currentUser.email }),
+            'success'
+        );
+    }
+
     if (typeof AuthManager !== 'undefined' && AuthManager.updateUI) {
         AuthManager.updateUI(Boolean(currentUser));
-    }
-    if (typeof UIManager !== 'undefined' && UIManager.refreshToggleLabelsText) {
-        UIManager.refreshToggleLabelsText();
-    }
-    if (typeof StorageManager !== 'undefined' && StorageManager.updatePlaySelect) {
-        StorageManager.updatePlaySelect();
     }
 }
 
