@@ -466,7 +466,7 @@
       <h1 style="margin:0;">RugbyBoard Pro</h1>
             <div class="lang-switch" role="group" aria-label="Language">
                   <button class="lang-chip" id="langIt" type="button" title="Italiano">🇮🇹</button>
-                  <button class="lang-chip" id="langEn" type="button" title="English">🇬🇧</button>
+                  <button class="lang-chip" id="langEn" type="button" title="English">us</button>
                   <button class="lang-chip" id="langEs" type="button" title="Español">🇪🇸</button>
             </div>
 
@@ -1094,7 +1094,7 @@
             
     }
 
-    function setLang(lang) {
+    /* function setLang(lang) {
         if (!translations[lang]) return;
         currentLang = lang;
         applyI18n();
@@ -1108,7 +1108,40 @@
         if (typeof StorageManager !== 'undefined' && StorageManager.updatePlaySelect) {
             StorageManager.updatePlaySelect();
         }
+    } */
+async function setLang(lang) {
+    if (!translations[lang]) return;
+
+    currentLang = lang;
+    applyI18n();
+
+    // 🔹 Guardar en localStorage
+    localStorage.setItem('rb_lang', lang);
+
+    // 🔹 Guardar en Firestore si está logueado
+    if (currentUser && db) {
+        try {
+            await setDoc(
+                doc(db, "users", currentUser.uid),
+                { lang: lang },
+                { merge: true }
+            );
+        } catch (e) {
+            console.log("No se pudo guardar idioma en Firestore", e);
+        }
     }
+
+    // refrescar UI dinámica
+    if (typeof AuthManager !== 'undefined' && AuthManager.updateUI) {
+        AuthManager.updateUI(Boolean(currentUser));
+    }
+    if (typeof UIManager !== 'undefined' && UIManager.refreshToggleLabelsText) {
+        UIManager.refreshToggleLabelsText();
+    }
+    if (typeof StorageManager !== 'undefined' && StorageManager.updatePlaySelect) {
+        StorageManager.updatePlaySelect();
+    }
+}
 
 let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
@@ -1348,6 +1381,11 @@ const userRef = doc(db, "users", user.uid);
                         onSnapshot(userRef, (docSnap) => {
                             if (!docSnap.exists()) return;
                             const data = docSnap.data() || {};
+                                // 🔹 Cargar idioma guardado
+                                if (data.lang && translations[data.lang]) {
+                                    currentLang = data.lang;
+                                    applyI18n();
+                                }
                             const isNowPremium = data.isPremium === true;
 
                             // Seed on first snapshot
