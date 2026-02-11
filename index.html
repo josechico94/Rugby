@@ -962,7 +962,8 @@ let app = null, db = null, auth = null, isAuthorized = false, currentUser = null
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
     //const LEMON_CHECKOUT_URL = "https://rugbyboard.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab"; // (temporarily unused)
-    const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/6oU00j5ATc7r3gwcLweEo00";
+    const FUNCTIONS_CREATE_SESSION_URL = "https://us-central1-bologna-rugby-club.cloudfunctions.net/createCheckoutSession";
+    const STRIPE_PRICE_ID = "price_1SytD9Etf9lT6LrSgOVpgE4x";
 let appState = {
         isPremium: false,
         layout: { mode: 'landscape', scale: 1, tx: 0, ty: 0, forceVertical: false },
@@ -1137,16 +1138,42 @@ const AuthManager = {
                         this.updateUI(true);
                         this.showStatus(t('status.welcome', { email: user.email }), 'success');
 
-                        // Stripe checkout
+                        // Stripe checkout (via Firebase Function -> metadata.uid)
                         const buyBtn = document.getElementById('btnBuyPremium');
                         if (buyBtn) {
-                            buyBtn.onclick = () => {
-                                const finalUrl = `${STRIPE_CHECKOUT_URL}?prefilled_email=${encodeURIComponent(user.email)}`;
-                                window.open(finalUrl, "_blank", "noopener,noreferrer");
+                            buyBtn.onclick = async () => {
+                                try {
+                                    buyBtn.disabled = true;
+
+                                    const payload = {
+                                        uid: user.uid,
+                                        priceId: STRIPE_PRICE_ID,
+                                        email: user.email,
+                                        success_url: `${window.location.origin}${window.location.pathname}?premium=success`,
+                                        cancel_url: `${window.location.origin}${window.location.pathname}?premium=cancel`
+                                    };
+
+                                    const resp = await fetch(FUNCTIONS_CREATE_SESSION_URL, {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify(payload)
+                                    });
+
+                                    if (!resp.ok) throw new Error(await resp.text());
+                                    const data = await resp.json();
+
+                                    if (!data?.url) throw new Error("Checkout URL non ricevuta.");
+                                    window.location.href = data.url;
+                                } catch (e) {
+                                    console.error(e);
+                                    alert("Errore avvio checkout: " + (e?.message || e));
+                                } finally {
+                                    buyBtn.disabled = false;
+                                }
                             };
                         }
 
-                        const userRef = doc(db, "users", user.uid);
+const userRef = doc(db, "users", user.uid);
 
                         // Ensure user doc exists
                         try {
