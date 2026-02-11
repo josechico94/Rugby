@@ -430,11 +430,20 @@
 </div>
 <div class="group-content">
 <div style="display: flex; justify-content: space-between; align-items: center;">
-<h1>RugbyBoard Pro</h1><br>
-<select class="btn alt" data-i18n-aria="aria.language" id="langSelect" style="padding:.35rem .5rem;font-size:12px;box-shadow:none;border-radius:8px;"><option value="it">IT</option><option value="en">EN</option></select> 
-<div class="status-indicator" id="authStatus">
-<span class="status-dot" id="statusDot"></span>
-<span data-i18n="status.connecting" id="statusText">Connessione...</span>
+    
+    <div>
+        <h1 style="margin: 0; line-height: 1.2;">RugbyBoard Pro</h1>
+        <select class="btn alt" data-i18n-aria="aria.language" id="langSelect" style="padding:.35rem .5rem;font-size:12px;box-shadow:none;border-radius:8px; margin-top: 5px;">
+            <option value="it">IT</option>
+            <option value="en">EN</option>
+        </select>
+    </div>
+
+    <div class="status-indicator" id="authStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span data-i18n="status.connecting" id="statusText">Connessione...</span>
+    </div>
+
 </div>
 </div>
 <div class="firebase-status disconnected" data-i18n="firebase.security_rules" id="firebaseStatus">⚠️ Configura regole di sicurezza</div>
