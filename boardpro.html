@@ -425,20 +425,55 @@
 <aside class="sidebar" id="sidebar">
 <button aria-label="Chiudi" class="close-drawer" data-i18n-aria="aria.close_panel" id="closeMenu">✕</button>
 <div class="group">
-<div class="group-header">
-<strong data-i18n="sidebar.status">Status</strong> <i class="fas fa-chevron-down group-icon"></i>
-</div>
-<div class="group-content">
-<div style="display: flex; justify-content: space-between; align-items: center;">
-<h1>RugbyBoard Pro</h1><select class="btn alt" data-i18n-aria="aria.language" id="langSelect" style="padding:.35rem .5rem;font-size:12px;box-shadow:none;border-radius:8px;"><option value="it">IT</option><option value="en">EN</option></select> 
-<div class="status-indicator" id="authStatus">
-<span class="status-dot" id="statusDot"></span>
-<span data-i18n="status.connecting" id="statusText">Connessione...</span>
-</div>
-</div>
-<div class="firebase-status disconnected" data-i18n="firebase.security_rules" id="firebaseStatus">⚠️ Configura regole di sicurezza</div>
-<button class="btn primary" data-i18n="auth.logout" id="btnAuthAction">Esci</button>
-</div>
+  <div class="group-header">
+    <strong data-i18n="sidebar.status">Status</strong>
+    <i class="fas fa-chevron-down group-icon"></i>
+  </div>
+
+  <div class="group-content">
+
+    <!-- ROW 1: Title + Language -->
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h1 style="margin:0;">RugbyBoard Pro</h1>
+
+      <select class="btn alt"
+              id="langSelect"
+              data-i18n-aria="aria.language"
+              style="padding:.35rem .5rem;
+                     font-size:12px;
+                     box-shadow:none;
+                     border-radius:8px;">
+        <option value="it">IT</option>
+<option value="en">EN</option>
+<option value="es">ES</option>
+      </select>
+    </div>
+
+    <!-- ROW 2: Welcome -->
+    <div class="status-indicator" id="authStatus" style="margin-top:10px;">
+      <span class="status-dot" id="statusDot"></span>
+      <span data-i18n="status.connecting" id="statusText">
+        Connessione...
+      </span>
+    </div>
+
+    <!-- Firebase Status -->
+    <div class="firebase-status disconnected"
+         id="firebaseStatus"
+         data-i18n="firebase.security_rules"
+         style="margin-top:10px;">
+      ⚠️ Configura regole di sicurezza
+    </div>
+
+    <!-- Logout -->
+    <button class="btn primary"
+            id="btnAuthAction"
+            data-i18n="auth.logout"
+            style="margin-top:12px;">
+      Esci
+    </button>
+
+  </div>
 </div>
 <button id="btnSidebarPro" style="width: 100%; background: linear-gradient(45deg, #ffd400, #ffca00); color: #000; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(255, 212, 0, 0.3);">
 <span data-i18n="pro.cta">👑 PASSA A PRO</span>
@@ -764,6 +799,78 @@
 
             "confirm.delete_play": "Eliminare?"
         },
+            es: {
+    "premium.title": "Conviértete en Entrenador PRO",
+    "premium.desc": "Desbloquea todo el potencial de tu pizarra táctica.",
+    "premium.features.animation.title": "Animación y Video",
+    "premium.features.animation.desc": "Crea, graba y comparte.",
+    "premium.features.saves.title": "Guardado Ilimitado",
+    "premium.features.saves.desc": "Sin límites.",
+    "premium.features.support.title": "Soporte Prioritario",
+    "premium.features.support.desc": "Asistencia directa.",
+    "premium.cta": "Ir al Checkout",
+    "premium.secure": "Pago seguro con Stripe.",
+
+    "login.subtitle": "Inicia sesión para usar la pizarra",
+    "login.email": "Correo electrónico",
+    "login.password": "Contraseña",
+    "login.signin": "Iniciar sesión",
+    "login.signup": "Registrarse",
+    "login.or": "o continúa con",
+    "login.google": "Google",
+
+    "popup.success": "¡Éxito!",
+
+    "sidebar.status": "Estado",
+    "status.connecting": "Conectando...",
+    "firebase.security_rules": "⚠️ Configura reglas de seguridad",
+    "auth.logout": "Cerrar sesión",
+    "auth.not_authenticated": "No autenticado",
+    "status.welcome": "Bienvenido {email}!",
+
+    "sidebar.controls": "Controles",
+    "controls.show_labels": "Mostrar etiquetas",
+    "controls.hide_labels": "Ocultar etiquetas",
+    "controls.reset_positions": "Restablecer posiciones",
+    "controls.snap_grid": "Ajustar a la cuadrícula",
+    "controls.vertical_field": "Campo vertical",
+    "controls.players": "Jugadores",
+    "controls.add_player": "+ Jugador",
+    "controls.color_a": "Color Equipo A",
+    "controls.color_b": "Color Equipo B",
+    "controls.logo": "Logo",
+    "controls.team_a": "Equipo A",
+    "controls.team_b": "Equipo B",
+
+    "sidebar.tools": "Herramientas",
+    "tools.select": "Seleccionar",
+    "tools.arrows": "Flechas",
+    "tools.pen": "Lápiz",
+    "tools.color": "Color",
+    "tools.thickness": "Grosor",
+    "tools.undo": "Deshacer",
+    "tools.clear_arrows": "Borrar flechas",
+    "tools.clear_all": "Borrar todo",
+
+    "sidebar.plays": "Jugadas",
+    "plays.name": "Nombre de la jugada",
+    "plays.save": "Guardar",
+    "plays.duplicate": "Duplicar",
+    "plays.delete": "Eliminar",
+    "plays.load": "Cargar",
+
+    "sidebar.animation": "Animación",
+    "animation.record_step": "Grabar paso 👑",
+    "animation.play": "Reproducir",
+    "animation.pause": "Pausa",
+    "animation.stop": "Detener",
+    "animation.speed": "Velocidad",
+    "animation.frames": "Frames",
+
+    "sidebar.export": "Exportar",
+    "export.jpg": "Exportar imagen (JPG)",
+    "export.share": "Compartir jugada"
+},
         en: {
             "premium.title": "Become a PRO Coach",
             "premium.desc": "Unlock the full power of your tactical board.",
