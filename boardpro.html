@@ -707,7 +707,7 @@
             "auth.not_authenticated": "Non autenticato",
             "status.welcome": "Benvenuto {email}!",
             "error.connection": "Errore di connessione.",
-            "firebase.connected": "✅ Firebase: Connesso",
+            "firebase.connected": "✅ DB: Connesso",
             "firebase.connection_issue": "⚠️ Problema di connessione",
             "error.google_login": "Errore login Google: {message}",
             "error.registration": "Errore registrazione: {code}",
@@ -904,7 +904,7 @@
             "auth.not_authenticated": "Not authenticated",
             "status.welcome": "Welcome {email}!",
             "error.connection": "Connection error.",
-            "firebase.connected": "✅ Firebase: Connected",
+            "firebase.connected": "✅ DB: Connected",
             "firebase.connection_issue": "⚠️ Connection issue",
             "error.google_login": "Google sign-in error: {message}",
             "error.registration": "Sign-up error: {code}",
@@ -2083,7 +2083,7 @@ async testFirebaseConnection() {
                 email: currentUser.email
             };
             if (firebaseConnected && db) {
-                try { await setDoc(doc(db, "users", currentUser.uid, "plays", name), playData); PopupManager.showSuccess(`✅ Saved to Firebase!`); this.updatePlaySelect(); return; } 
+                try { await setDoc(doc(db, "users", currentUser.uid, "plays", name), playData); PopupManager.showSuccess(`✅ Saved to DB!`); this.updatePlaySelect(); return; } 
                 catch (error) { if (error.code === 'permission-denied') { firebaseConnected = false; AuthManager.updateFirebaseStatus(false, error); } }
             }
             try { localStorage.setItem(PLAY_PREFIX + name, JSON.stringify(playData)); PopupManager.showSuccess(`💾 Saved Locally`); } catch (e) { alert(t('alert.save_local_error')); return; }
