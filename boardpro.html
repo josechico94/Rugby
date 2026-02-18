@@ -1092,6 +1092,7 @@ let appState = {
         fromFrame: null,
         toFrame: null,
         selectedPlayers: new Set(),
+        selectedBall: false,
         playerCounter: { blue: 0, red: 0 },
         isSharedView: false,
         readOnly: false,
@@ -1860,17 +1861,52 @@ async testFirebaseConnection() {
             });
         },
         selectPlayersInArea(left, top, right, bottom, additive = false) {
-            if (!additive) { appState.selectedPlayers.forEach(player => player.classList.remove('selected')); appState.selectedPlayers.clear(); }
-            [...dom.playersLayer.children].forEach(player => {
-                const px = parseFloat(player.style.left), py = parseFloat(player.style.top), r = 20;
-                if (px + r >= left && px - r <= right && py + r >= top && py - r <= bottom) {
-                    if (!player.classList.contains('selected')) { player.classList.add('selected'); appState.selectedPlayers.add(player); }
-                } else if (!additive) {
-                    if (player.classList.contains('selected')) { player.classList.remove('selected'); appState.selectedPlayers.delete(player); }
-                }
-            });
-        },
-        clearSelection() { appState.selectedPlayers.forEach(player => player.classList.remove('selected')); appState.selectedPlayers.clear(); },
+  if (!additive) {
+    appState.selectedPlayers.forEach(player => player.classList.remove('selected'));
+    appState.selectedPlayers.clear();
+
+    // limpiar pelota si no es aditivo
+    dom.ball.classList.remove('selected');
+    appState.selectedBall = false;
+  }
+
+  // --- jugadores (igual que ya tenías) ---
+  [...dom.playersLayer.children].forEach(player => {
+    const px = parseFloat(player.style.left), py = parseFloat(player.style.top), r = 20;
+    if (px + r >= left && px - r <= right && py + r >= top && py - r <= bottom) {
+      if (!player.classList.contains('selected')) {
+        player.classList.add('selected');
+        appState.selectedPlayers.add(player);
+      }
+    } else if (!additive) {
+      if (player.classList.contains('selected')) {
+        player.classList.remove('selected');
+        appState.selectedPlayers.delete(player);
+      }
+    }
+  });
+
+  // --- pelota (NUEVO) ---
+  // OJO: dom.ball se posiciona con left/top en coordenadas de board, así que usamos centerOf()
+  const b = centerOf(dom.ball);
+  const brx = 18;  // “radio” aprox del balón en X (30px ancho / 2 + margen)
+  const bry = 12;  // “radio” aprox del balón en Y (15px alto / 2 + margen)
+
+  const ballInside =
+    (b.x + brx >= left && b.x - brx <= right &&
+     b.y + bry >= top  && b.y - bry <= bottom);
+
+  if (ballInside) {
+    dom.ball.classList.add('selected');
+    appState.selectedBall = true;
+  } else if (!additive) {
+    dom.ball.classList.remove('selected');
+    appState.selectedBall = false;
+  }
+},
+        clearSelection() { appState.selectedPlayers.forEach(player => player.classList.remove('selected')); appState.selectedPlayers.clear();
+                                 dom.ball.classList.remove('selected');
+                                  appState.selectedBall = false;},
         reinitializePlayerInteractions() {
             if (!isAuthorized) return;
             [...dom.playersLayer.children].forEach(player => {
