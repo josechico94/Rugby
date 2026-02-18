@@ -2337,32 +2337,98 @@ async testFirebaseConnection() {
         }
     };
 
+    function getSharedIdFromUrl() {
+  const p = new URLSearchParams(window.location.search);
+  return p.get('shared');
+}
+
+async function initSharedView(sharedId) {
+  // Firebase app/db sin login
+  if (!app) app = initializeApp(firebaseConfig);
+  if (!db) db = getFirestore(app);
+
+  // Modo compartido (solo lectura)
+  appState.isSharedView = true;
+  appState.readOnly = true;
+
+  // Mostrar app y ocultar login
+  AuthManager.showApp();
+  AuthManager.showStatus("🔗 Shared play (read-only)", "success");
+  AuthManager.updateFirebaseStatus(true);
+
+  // Deshabilitar botones de edición
+  UIManager.applyReadOnlyMode();
+
+  // Cargar jugada desde /shared_plays/{sid}
+  await StorageManager.loadSharedPlay(sharedId);
+
+  // Layout
+  LayoutManager.renderGrid();
+  LayoutManager.fitBoard();
+}
+
     // INIT
     async function init() {
-        try {
-            await AuthManager.init();
-            if (isAuthorized && currentUser) {
-                LayoutManager.renderGrid(); ToolManager.setTool('select'); TeamVisualManager.init();
-                UnitsManager.createPlayers(); StorageManager.loadPositions(); StorageManager.loadArrows(); StorageManager.loadStrokes(); DrawManager.renderDraw();
-                UnitsManager.placeBall(WIDTH / 2, HEIGHT / 2); StorageManager.loadBall(); StorageManager.loadTimeline();
-                if (!appState.timeline.length) { TimelineManager.recordFrame(); appState.playIndex = 0; TimelineManager.updateScrubber(); StorageManager.saveTimeline(); }
-                DrawManager.enableDrawing();
-                // 👑 PREMIUM: AutoRecord al mover pelota (mismo callback que en AuthManager.init)
-                UnitsManager.enableDragBall(() => {
-                    StorageManager.saveBall();
-                    if (dom.autoRecordChk.checked) {
-                        if (!PremiumManager.checkAndShowModal()) {
-                            dom.autoRecordChk.checked = false;
-                            return;
-                        }
-                        TimelineManager.recordFrame();
-                    }
-                });
-                StorageManager.updatePlaySelect(); LayoutManager.fitBoard(); InteractionManager.enableSelectionBox();
-            } else TeamVisualManager.init();
-            UIManager.setupEventListeners();
-        } catch (e) { console.error('Init Error', e); }
+  try {
+    const sharedId = getSharedIdFromUrl();
+
+    // ✅ Si viene link compartido, NO pedir login
+    if (sharedId) {
+      await initSharedView(sharedId);
+      UIManager.setupEventListeners(); // el UI sigue funcionando pero en readOnly
+      return;
     }
+
+    // ✅ Caso normal (con login)
+    await AuthManager.init();
+
+    if (isAuthorized && currentUser) {
+      LayoutManager.renderGrid();
+      ToolManager.setTool('select');
+      TeamVisualManager.init();
+
+      UnitsManager.createPlayers();
+      StorageManager.loadPositions();
+      StorageManager.loadArrows();
+      StorageManager.loadStrokes();
+      DrawManager.renderDraw();
+
+      UnitsManager.placeBall(WIDTH / 2, HEIGHT / 2);
+      StorageManager.loadBall();
+      StorageManager.loadTimeline();
+
+      if (!appState.timeline.length) {
+        TimelineManager.recordFrame();
+        appState.playIndex = 0;
+        TimelineManager.updateScrubber();
+        StorageManager.saveTimeline();
+      }
+
+      DrawManager.enableDrawing();
+
+      UnitsManager.enableDragBall(() => {
+        StorageManager.saveBall();
+        if (dom.autoRecordChk.checked) {
+          if (!PremiumManager.checkAndShowModal()) {
+            dom.autoRecordChk.checked = false;
+            return;
+          }
+          TimelineManager.recordFrame();
+        }
+      });
+
+      StorageManager.updatePlaySelect();
+      LayoutManager.fitBoard();
+      InteractionManager.enableSelectionBox();
+    } else {
+      TeamVisualManager.init();
+    }
+
+    UIManager.setupEventListeners();
+  } catch (e) {
+    console.error('Init Error', e);
+  }
+}
     init();
 
     const ro = new ResizeObserver(e => { for (let en of e) if (en.contentRect.width > 0) LayoutManager.fitBoard(); });
