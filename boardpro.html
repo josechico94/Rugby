@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="it">
@@ -43,14 +42,12 @@
             -webkit-overflow-scrolling: touch; 
         }
         
-        /* Scrollbar styling */
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track { background: var(--panel-2); }
         .sidebar::-webkit-scrollbar-thumb { background: #263443; border-radius: 3px; }
 
         .sidebar h1 { font-size: 18px; margin: 0 0 8px 0; }
 
-        /* --- ESTILOS ACORDEON --- */
         .group { 
             border: 1px solid var(--border); 
             background: var(--panel); 
@@ -72,7 +69,7 @@
         }
         
         .group:not(.closed) .group-header {
-            padding-bottom: 12px; /* Espacio solo cuando está abierto */
+            padding-bottom: 12px;
         }
 
         .group strong { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .9; }
@@ -96,7 +93,6 @@
         .group.closed .group-icon {
             transform: rotate(-90deg);
         }
-        /* ------------------------ */
 
         .row { display: grid; gap: 8px; }
 
@@ -165,7 +161,6 @@
         .ball::after { content:""; position:absolute; inset:6px 18px; border-radius:50% / 60%; border:2px dashed rgba(0,0,0,.25); }
         .label { font-size:12px; font-weight:700; fill:#fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 
-        /* LOGO DEL EQUIPO EN EL CENTRO */
         .team-logo {
             position:absolute;
             left:50%;
@@ -225,7 +220,6 @@
             pointer-events: auto; 
         }
 
-        /* --- ESTILOS LOGIN --- */
         .login-overlay { 
             position: fixed; 
             inset: 0; 
@@ -324,41 +318,12 @@
 
         .btn.selection-tool { background: var(--blue); border-color: var(--blue); }
 
-        /* --- STILI DEL MODAL PREMIUM --- */
         .premium-overlay {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 4000; padding: 20px; animation: fadeIn 0.3s ease;
+            display: none !important;
         }
-        .premium-card {
-            background: linear-gradient(145deg, #1a2634, #111923); border: 1px solid #ffd400; 
-            box-shadow: 0 0 30px rgba(255, 212, 0, 0.15); padding: 2.5rem; border-radius: 16px;
-            width: 100%; max-width: 450px; text-align: center; position: relative;
-        }
-        .premium-icon { font-size: 3rem; margin-bottom: 1rem; display: inline-block; filter: drop-shadow(0 0 10px rgba(255, 212, 0, 0.5)); }
-        .premium-title {
-            font-size: 1.8rem; color: #fff; margin: 0 0 10px 0;
-            background: -webkit-linear-gradient(#ffd400, #ffa500); -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; font-weight: 800;
-        }
-        .premium-desc { color: #a0aec0; margin-bottom: 20px; line-height: 1.5; }
-        .premium-features { text-align: left; margin: 20px 0; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; }
-        .premium-features li { list-style: none; margin-bottom: 8px; color: #e6edf3; display: flex; align-items: center; gap: 10px; }
-        .premium-btn {
-            background: #ffd400; color: #000; font-weight: 800; font-size: 1.1rem; padding: 14px 30px;
-            border: none; border-radius: 30px; cursor: pointer; width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .premium-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 212, 0, 0.4); }
-        .close-premium {
-            position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff;
-            font-size: 1.5rem; cursor: pointer; opacity: 0.5;
-        }
-        .close-premium:hover { opacity: 1; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Modalidad presentación */
         body.presentation-mode .sidebar { display: none; }
         body.presentation-mode .hamburger { display: none !important; }
         body.presentation-mode .stage { padding: 0; }
@@ -387,6 +352,8 @@
 </style>
 </head>
 <body>
+<!-- Premium disattivato -->
+<!--
 <div class="premium-overlay" id="premiumOverlay">
 <div class="premium-card">
 <button class="close-premium" id="closePremium">✕</button>
@@ -402,6 +369,7 @@
 <p data-i18n="premium.secure" style="font-size: 11px; opacity: 0.5; margin-top: 10px;">Attivazione manuale via WhatsApp.</p>
 </div>
 </div>
+-->
 <div class="login-overlay" id="loginOverlay">
 <div class="login-container">
 <div class="login-header">
@@ -433,7 +401,6 @@
 
   <div class="group-content">
 
-    <!-- ROW 1: Title + Language -->
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h1 style="margin:0;">RugbyBoard Pro</h1>
 
@@ -450,7 +417,6 @@
       </select>
     </div>
 
-    <!-- ROW 2: Welcome -->
     <div class="status-indicator" id="authStatus" style="margin-top:10px;">
       <span class="status-dot" id="statusDot"></span>
       <span data-i18n="status.connecting" id="statusText">
@@ -458,7 +424,6 @@
       </span>
     </div>
 
-    <!-- Firebase Status -->
     <div class="firebase-status disconnected"
          id="firebaseStatus"
          data-i18n="firebase.security_rules"
@@ -466,7 +431,6 @@
       ⚠️ Configura regole di sicurezza
     </div>
 
-    <!-- Logout -->
     <button class="btn primary"
             id="btnAuthAction"
             data-i18n="auth.logout"
@@ -476,9 +440,14 @@
 
   </div>
 </div>
+
+<!-- Botón PRO desactivado -->
+<!--
 <button id="btnSidebarPro" style="width: 100%; background: linear-gradient(45deg, #ffd400, #ffca00); color: #000; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(255, 212, 0, 0.3);">
 <span data-i18n="pro.cta">👑 PASSA A PRO</span>
 </button>
+-->
+
 <div class="group">
 <div class="group-header">
 <strong data-i18n="sidebar.controls">Controlli</strong> <i class="fas fa-chevron-down group-icon"></i>
@@ -563,7 +532,7 @@
 </div>
 <div class="group-content">
 <div class="row" style="grid-template-columns: 1fr 1fr; gap:8px;">
-<button class="btn" data-i18n="animation.record_step" id="recordStepBtn">Registra passo 👑</button>
+<button class="btn" data-i18n="animation.record_step" id="recordStepBtn">Registra passo</button>
 <label class="chk" style="display:flex;align-items:center;gap:8px;border:none;background:transparent;padding:.4rem .6rem;box-shadow:none">
 <input id="autoRecord" type="checkbox"/> <span data-i18n="animation.auto_rec">Auto-REC</span></label>
 </div>
@@ -607,7 +576,6 @@
 <div class="row" style="grid-template-columns: 1fr;">
 <button class="btn" data-i18n="export.jpg" id="exportJpgBtn">Esporta immagine (JPG)</button>
 <button class="btn alt" data-i18n="export.share" id="sharePlayBtn">Condividi giocata</button>
-<!--<button class="btn" id="presentationModeBtn">Modalità Presentazione</button>-->
 </div>
 </div>
 </div>
@@ -662,7 +630,6 @@
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, query, onSnapshot, getDoc, getDocs, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // CONFIGURAZIONE FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyACU3QfuTpW6PNRt3hHl9m1dy4Vso0GPoI",
         authDomain: "bologna-rugby-club.firebaseapp.com",
@@ -673,19 +640,18 @@
         measurementId: "G-9C66KXJ561"
     };
 
-    // --- i18n (IT/EN) ---
     const translations = {
         it: {
-            "premium.title": "Diventa Allenatore PRO",
-            "premium.desc": "Sblocca tutto il potenziale della tua lavagna tattica.",
+            "premium.title": "Tutte le funzioni attive",
+            "premium.desc": "Tutte le funzioni sono disponibili gratuitamente.",
             "premium.features.animation.title": "Animazione e Video",
-            "premium.features.animation.desc": "Crea, registra e condivide.",
+            "premium.features.animation.desc": "Crea, registra e condividi.",
             "premium.features.saves.title": "Salvataggio Illimitato",
             "premium.features.saves.desc": "Nessun limite.",
-            "premium.features.support.title": "Priorità Supporto",
-            "premium.features.support.desc": "Assistenza diretta.",
-            "premium.cta": "Vai al Checkout",
-            "premium.secure": "Pagamento sicuro con Lemon Squeezy.",
+            "premium.features.support.title": "Supporto",
+            "premium.features.support.desc": "Assistenza disponibile.",
+            "premium.cta": "Funzioni attive",
+            "premium.secure": "Versione gratuita attiva.",
 
             "login.subtitle": "Accedi per utilizzare la lavagna",
             "login.email": "Email",
@@ -713,7 +679,7 @@
             "error.google_login": "Errore login Google: {message}",
             "error.registration": "Errore registrazione: {code}",
 
-            "pro.cta": "👑 PASSA A PRO",
+            "pro.cta": "Tutte le funzioni attive",
 
             "sidebar.controls": "Controlli",
             "controls.show_labels": "Mostra etichette",
@@ -772,7 +738,7 @@
             "default.play_name": "Giocata",
 
             "sidebar.animation": "Animazione",
-            "animation.record_step": "Registra passo 👑",
+            "animation.record_step": "Registra passo",
             "animation.auto_rec": "Auto-REC",
             "animation.play": "Play",
             "animation.pause": "Pause",
@@ -800,89 +766,89 @@
 
             "confirm.delete_play": "Eliminare?"
         },
-            es: {
-    "premium.title": "Conviértete en Entrenador PRO",
-    "premium.desc": "Desbloquea todo el potencial de tu pizarra táctica.",
-    "premium.features.animation.title": "Animación y Video",
-    "premium.features.animation.desc": "Crea, graba y comparte.",
-    "premium.features.saves.title": "Guardado Ilimitado",
-    "premium.features.saves.desc": "Sin límites.",
-    "premium.features.support.title": "Soporte Prioritario",
-    "premium.features.support.desc": "Asistencia directa.",
-    "premium.cta": "Ir al Checkout",
-    "premium.secure": "Pago seguro con Stripe.",
+        es: {
+            "premium.title": "Todas las funciones activas",
+            "premium.desc": "Todas las funciones están disponibles gratis.",
+            "premium.features.animation.title": "Animación y Video",
+            "premium.features.animation.desc": "Crea, graba y comparte.",
+            "premium.features.saves.title": "Guardado Ilimitado",
+            "premium.features.saves.desc": "Sin límites.",
+            "premium.features.support.title": "Soporte",
+            "premium.features.support.desc": "Asistencia disponible.",
+            "premium.cta": "Funciones activas",
+            "premium.secure": "Versión gratuita activa.",
 
-    "login.subtitle": "Inicia sesión para usar la pizarra",
-    "login.email": "Correo electrónico",
-    "login.password": "Contraseña",
-    "login.signin": "Iniciar sesión",
-    "login.signup": "Registrarse",
-    "login.or": "o continúa con",
-    "login.google": "Google",
+            "login.subtitle": "Inicia sesión para usar la pizarra",
+            "login.email": "Correo electrónico",
+            "login.password": "Contraseña",
+            "login.signin": "Iniciar sesión",
+            "login.signup": "Registrarse",
+            "login.or": "o continúa con",
+            "login.google": "Google",
 
-    "popup.success": "¡Éxito!",
+            "popup.success": "¡Éxito!",
 
-    "sidebar.status": "Estado",
-    "status.connecting": "Conectando...",
-    "firebase.security_rules": "⚠️ Configura reglas de seguridad",
-    "auth.logout": "Cerrar sesión",
-    "auth.not_authenticated": "No autenticado",
-    "status.welcome": "Bienvenido {email}!",
+            "sidebar.status": "Estado",
+            "status.connecting": "Conectando...",
+            "firebase.security_rules": "⚠️ Configura reglas de seguridad",
+            "auth.logout": "Cerrar sesión",
+            "auth.not_authenticated": "No autenticado",
+            "status.welcome": "Bienvenido {email}!",
 
-    "sidebar.controls": "Controles",
-    "controls.show_labels": "Mostrar etiquetas",
-    "controls.hide_labels": "Ocultar etiquetas",
-    "controls.reset_positions": "Restablecer posiciones",
-    "controls.snap_grid": "Ajustar a la cuadrícula",
-    "controls.vertical_field": "Campo vertical",
-    "controls.players": "Jugadores",
-    "controls.add_player": "+ Jugador",
-    "controls.color_a": "Color Equipo A",
-    "controls.color_b": "Color Equipo B",
-    "controls.logo": "Logo",
-    "controls.team_a": "Equipo A",
-    "controls.team_b": "Equipo B",
+            "sidebar.controls": "Controles",
+            "controls.show_labels": "Mostrar etiquetas",
+            "controls.hide_labels": "Ocultar etiquetas",
+            "controls.reset_positions": "Restablecer posiciones",
+            "controls.snap_grid": "Ajustar a la cuadrícula",
+            "controls.vertical_field": "Campo vertical",
+            "controls.players": "Jugadores",
+            "controls.add_player": "+ Jugador",
+            "controls.color_a": "Color Equipo A",
+            "controls.color_b": "Color Equipo B",
+            "controls.logo": "Logo",
+            "controls.team_a": "Equipo A",
+            "controls.team_b": "Equipo B",
 
-    "sidebar.tools": "Herramientas",
-    "tools.select": "Seleccionar",
-    "tools.arrows": "Flechas",
-    "tools.pen": "Lápiz",
-    "tools.color": "Color",
-    "tools.thickness": "Grosor",
-    "tools.undo": "Deshacer",
-    "tools.clear_arrows": "Borrar flechas",
-    "tools.clear_all": "Borrar todo",
+            "sidebar.tools": "Herramientas",
+            "tools.select": "Seleccionar",
+            "tools.arrows": "Flechas",
+            "tools.pen": "Lápiz",
+            "tools.color": "Color",
+            "tools.thickness": "Grosor",
+            "tools.undo": "Deshacer",
+            "tools.clear_arrows": "Borrar flechas",
+            "tools.clear_all": "Borrar todo",
 
-    "sidebar.plays": "Jugadas",
-    "plays.name": "Nombre de la jugada",
-    "plays.save": "Guardar",
-    "plays.duplicate": "Duplicar",
-    "plays.delete": "Eliminar",
-    "plays.load": "Cargar",
+            "sidebar.plays": "Jugadas",
+            "plays.name": "Nombre de la jugada",
+            "plays.save": "Guardar",
+            "plays.duplicate": "Duplicar",
+            "plays.delete": "Eliminar",
+            "plays.load": "Cargar",
 
-    "sidebar.animation": "Animación",
-    "animation.record_step": "Grabar paso 👑",
-    "animation.play": "Reproducir",
-    "animation.pause": "Pausa",
-    "animation.stop": "Detener",
-    "animation.speed": "Velocidad",
-    "animation.frames": "Frames",
+            "sidebar.animation": "Animación",
+            "animation.record_step": "Grabar paso",
+            "animation.play": "Reproducir",
+            "animation.pause": "Pausa",
+            "animation.stop": "Detener",
+            "animation.speed": "Velocidad",
+            "animation.frames": "Frames",
 
-    "sidebar.export": "Exportar",
-    "export.jpg": "Exportar imagen (JPG)",
-    "export.share": "Compartir jugada"
-},
+            "sidebar.export": "Exportar",
+            "export.jpg": "Exportar imagen (JPG)",
+            "export.share": "Compartir jugada"
+        },
         en: {
-            "premium.title": "Become a PRO Coach",
-            "premium.desc": "Unlock the full power of your tactical board.",
+            "premium.title": "All features enabled",
+            "premium.desc": "All features are available for free.",
             "premium.features.animation.title": "Animation & Video",
             "premium.features.animation.desc": "Create, record, and share.",
             "premium.features.saves.title": "Unlimited Saves",
             "premium.features.saves.desc": "No limits.",
-            "premium.features.support.title": "Priority Support",
-            "premium.features.support.desc": "Direct assistance.",
-            "premium.cta": "Go to Checkout",
-            "premium.secure": "Secure payment with Lemon Squeezy.",
+            "premium.features.support.title": "Support",
+            "premium.features.support.desc": "Assistance available.",
+            "premium.cta": "All features enabled",
+            "premium.secure": "Free version enabled.",
 
             "login.subtitle": "Sign in to use the board",
             "login.email": "Email",
@@ -910,7 +876,7 @@
             "error.google_login": "Google sign-in error: {message}",
             "error.registration": "Sign-up error: {code}",
 
-            "pro.cta": "👑 GO PRO",
+            "pro.cta": "All features enabled",
 
             "sidebar.controls": "Controls",
             "controls.show_labels": "Show labels",
@@ -969,7 +935,7 @@
             "default.play_name": "Play",
 
             "sidebar.animation": "Animation",
-            "animation.record_step": "Record step 👑",
+            "animation.record_step": "Record step",
             "animation.auto_rec": "Auto-REC",
             "animation.play": "Play",
             "animation.pause": "Pause",
@@ -1044,7 +1010,6 @@
             if (key) el.setAttribute('aria-label', t(key));
         });
 
-        // special case: the play selector placeholder option is built in JS too
         if (document.getElementById('langSelect')) {
             document.getElementById('langSelect').value = currentLang;
         }
@@ -1054,7 +1019,6 @@
         if (!translations[lang]) return;
         currentLang = lang;
         applyI18n();
-        // refresh UI bits that depend on state
         if (typeof AuthManager !== 'undefined' && AuthManager.updateUI) {
             AuthManager.updateUI(Boolean(currentUser));
         }
@@ -1069,12 +1033,11 @@
 let app = null, db = null, auth = null, isAuthorized = false, currentUser = null, firebaseConnected = false;
     const WIDTH = 1200, HEIGHT = 700, GRID_SIZE = 24;
     const TL_KEY = 'rugby-timeline-v2', POS_KEY = 'rugby-positions-v3', ARROW_KEY = 'rugby-arrows-v3', STROKE_KEY = 'rugby-strokes-v1', BALL_KEY = 'rugby-ball-v1', PLAY_PREFIX = 'play-v3-', TEAM_COLORS_KEY = 'rugby-team-colors-v1', TEAM_LOGO_KEY = 'rugby-team-logo-v1';
-    //const LEMON_CHECKOUT_URL = "https://rugbyboard.lemonsqueezy.com/checkout/buy/b442e332-3942-40b5-bcf9-dc88004d9bab"; // (temporarily unused)
     const FUNCTIONS_CREATE_SESSION_URL = "https://us-central1-bologna-rugby-club.cloudfunctions.net/createCheckoutSession";
     const STRIPE_PRICE_ID = "price_1T02fWEtf9lT6LrSx5oDnpyR"; 
 let appState = {
         isPremium: true,
-        proModalAutoOpen: false, // do not auto-open PRO modal on app start
+        proModalAutoOpen: false,
         layout: { mode: 'landscape', scale: 1, tx: 0, ty: 0, forceVertical: false },
         tool: 'select',
         arrows: [],
@@ -1184,51 +1147,31 @@ let appState = {
         teamLogoInput: document.getElementById('teamLogoInput')
     };
 
-    // Apply initial language + wire language selector
     applyI18n();
     const __langSel = document.getElementById('langSelect');
     if (__langSel) __langSel.addEventListener('change', (e) => setLang(e.target.value));
 
-
     const PremiumManager = {
         open() {
-            const overlay = document.getElementById('premiumOverlay');
-            if (overlay) overlay.style.display = 'flex';
+            return true;
         },
         close() {
-            const overlay = document.getElementById('premiumOverlay');
-            if (overlay) overlay.style.display = 'none';
+            return true;
         },
         checkAndShowModal() {
-            if (appState.isPremium) return true;
-            this.open();
-            return false;
+            return true;
         },
         initListeners() {
             const overlay = document.getElementById('premiumOverlay');
-            const card = overlay ? overlay.querySelector('.premium-card') : null;
-            const closeBtn = document.getElementById('closePremium');
-
-            closeBtn?.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.close();
-            });
-
-            overlay?.addEventListener('click', (e) => {
-                if (e.target === overlay) this.close();
-            });
-
-            // Prevent closing when clicking inside the modal card
-            card?.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+            const btnSidebarPro = document.getElementById('btnSidebarPro');
+            if (overlay) overlay.style.display = 'none';
+            if (btnSidebarPro) btnSidebarPro.style.display = 'none';
         }
     };
 
 const AuthManager = {
     previousPremiumStatus: null,
 
-    // Wait for first auth state so init() can await deterministically
     async init() {
         try {
             if (!app) app = initializeApp(firebaseConfig);
@@ -1247,44 +1190,15 @@ const AuthManager = {
                         this.updateUI(true);
                         this.showStatus(t('status.welcome', { email: user.email }), 'success');
 
-                        // Stripe checkout (via Firebase Function -> metadata.uid)
                         const buyBtn = document.getElementById('btnBuyPremium');
                         if (buyBtn) {
                             buyBtn.onclick = async () => {
-                                try {
-                                    buyBtn.disabled = true;
-
-                                    const payload = {
-                                        uid: user.uid,
-                                        priceId: STRIPE_PRICE_ID,
-                                        email: user.email,
-                                        success_url: `${window.location.origin}${window.location.pathname}?premium=success`,
-                                        cancel_url: `${window.location.origin}${window.location.pathname}?premium=cancel`
-                                    };
-
-                                    const resp = await fetch(FUNCTIONS_CREATE_SESSION_URL, {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify(payload)
-                                    });
-
-                                    if (!resp.ok) throw new Error(await resp.text());
-                                    const data = await resp.json();
-
-                                    if (!data?.url) throw new Error("Checkout URL non ricevuta.");
-                                    window.location.href = data.url;
-                                } catch (e) {
-                                    console.error(e);
-                                    alert("Errore avvio checkout: " + (e?.message || e));
-                                } finally {
-                                    buyBtn.disabled = false;
-                                }
+                                return true;
                             };
                         }
 
-const userRef = doc(db, "users", user.uid);
+                        const userRef = doc(db, "users", user.uid);
 
-                        // Ensure user doc exists
                         try {
                             const userSnap = await getDoc(userRef);
                             if (!userSnap.exists()) {
@@ -1297,17 +1211,15 @@ const userRef = doc(db, "users", user.uid);
                             console.log("Errore controllo utente", e);
                         }
 
-                        // Premium realtime
                         onSnapshot(userRef, (docSnap) => {
                             if (!docSnap.exists()) return;
                             const data = docSnap.data() || {};
-                            const isNowPremium = data.isPremium === true;
+                            const isNowPremium = true;
 
-                            // Seed on first snapshot
                             if (this.previousPremiumStatus === null) {
                                 this.previousPremiumStatus = isNowPremium;
                             } else if (this.previousPremiumStatus === false && isNowPremium === true) {
-                                this.showStatus("👑 PRO attivato! Benvenuto, Coach.", "success");
+                                this.showStatus("✅ Tutte le funzioni sono attive.", "success");
                                 const overlay = document.getElementById('premiumOverlay');
                                 if (overlay) overlay.style.display = 'none';
                                 this.previousPremiumStatus = true;
@@ -1315,21 +1227,14 @@ const userRef = doc(db, "users", user.uid);
                                 this.previousPremiumStatus = isNowPremium;
                             }
 
-                                                        appState.isPremium = isNowPremium;
+                            appState.isPremium = true;
 
                             const sidebarBtn = document.getElementById('btnSidebarPro');
                             const premiumOverlay = document.getElementById('premiumOverlay');
 
-                            if (appState.isPremium) {
-                                // If user becomes PRO, close modal and hide CTA
-                                if (premiumOverlay) premiumOverlay.style.display = 'none';
-                                if (sidebarBtn) sidebarBtn.style.display = 'none';
-                            } else {
-                                // If user is FREE, show CTA but DO NOT auto-open modal
-                                if (sidebarBtn) sidebarBtn.style.display = 'flex';
-                                // (leave premiumOverlay as-is: it opens only via CTA or PRO feature clicks)
-                            }
-});
+                            if (premiumOverlay) premiumOverlay.style.display = 'none';
+                            if (sidebarBtn) sidebarBtn.style.display = 'none';
+                        });
 
                         await this.testFirebaseConnection();
                     } else {
@@ -1355,7 +1260,6 @@ const userRef = doc(db, "users", user.uid);
         }
     },
 
-    // Email/password login
     async login() {
         try {
             if (!auth) auth = getAuth(app);
@@ -1409,7 +1313,6 @@ const userRef = doc(db, "users", user.uid);
         try {
             if (!auth) auth = getAuth(app);
             await signOut(auth);
-            // onAuthStateChanged will flip UI
         } catch (err) {
             console.error(err);
         }
@@ -1429,7 +1332,6 @@ const userRef = doc(db, "users", user.uid);
         if (login) login.style.display = 'none';
         if (appEl) appEl.style.display = 'grid';
         document.body.classList.add('main-app-visible');
-        // show hamburger on mobile
         if (window.innerWidth <= 900 && dom.menuBtn) dom.menuBtn.style.display = 'grid';
     },
 
@@ -1446,61 +1348,59 @@ const userRef = doc(db, "users", user.uid);
         }
     },
 
-   showStatus(message, type) {
-    const statusText = document.getElementById('statusText');
-    const statusDot = document.getElementById('statusDot');
+    showStatus(message, type) {
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
 
-    if (statusText) statusText.textContent = message;
+        if (statusText) statusText.textContent = message;
 
-    if (statusDot) {
-        statusDot.classList.remove('offline', 'error');
-        if (type === 'danger') statusDot.classList.add('error');
-    }
-},
-
-setLoginMessage(msg, isError) {
-    const el = document.getElementById('loginMessage');
-    if (!el) return;
-    el.textContent = msg || '';
-    el.classList.toggle('login-error', Boolean(isError));
-    el.classList.toggle('login-success', Boolean(!isError && msg));
-},
-
-updateFirebaseStatus(connected, err) {
-    firebaseConnected = Boolean(connected);
-    const el = document.getElementById('firebaseStatus');
-    if (!el) return;
-    el.classList.toggle('connected', connected);
-    el.classList.toggle('disconnected', !connected);
-    if (connected) {
-        el.textContent = t('firebase.connected');
-    } else {
-        el.textContent = t('firebase.connection_issue');
-        if (err && err.code === 'permission-denied') {
-            el.textContent = t('firebase.security_rules');
+        if (statusDot) {
+            statusDot.classList.remove('offline', 'error');
+            if (type === 'danger') statusDot.classList.add('error');
         }
-    }
-},
+    },
 
-async testFirebaseConnection() {
-  try {
-    if (!currentUser) {
-      this.updateFirebaseStatus(false);
-      return false;
+    setLoginMessage(msg, isError) {
+        const el = document.getElementById('loginMessage');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.classList.toggle('login-error', Boolean(isError));
+        el.classList.toggle('login-success', Boolean(!isError && msg));
+    },
+
+    updateFirebaseStatus(connected, err) {
+        firebaseConnected = Boolean(connected);
+        const el = document.getElementById('firebaseStatus');
+        if (!el) return;
+        el.classList.toggle('connected', connected);
+        el.classList.toggle('disconnected', !connected);
+        if (connected) {
+            el.textContent = t('firebase.connected');
+        } else {
+            el.textContent = t('firebase.connection_issue');
+            if (err && err.code === 'permission-denied') {
+                el.textContent = t('firebase.security_rules');
+            }
+        }
+    },
+
+    async testFirebaseConnection() {
+      try {
+        if (!currentUser) {
+          this.updateFirebaseStatus(false);
+          return false;
+        }
+        await getDoc(doc(db, "users", currentUser.uid));
+        this.updateFirebaseStatus(true);
+        return true;
+      } catch (e) {
+        console.error("Firebase connection failed", e);
+        this.updateFirebaseStatus(false, e);
+        return false;
+      }
     }
-    // Lectura SOLO de tu propio documento (permitido por tus reglas)
-    await getDoc(doc(db, "users", currentUser.uid));
-    this.updateFirebaseStatus(true);
-    return true;
-  } catch (e) {
-    console.error("Firebase connection failed", e);
-    this.updateFirebaseStatus(false, e);
-    return false;
-  }
-}
 };
 
-    // 🔒 SANEAMOS INPUTS DE TEXTO
     function sanitizeInput(value) {
         if (typeof value !== 'string') return '';
         return value.replace(/[<>]/g, '').trim();
@@ -1615,13 +1515,8 @@ async testFirebaseConnection() {
                 }
             } catch {}
 
-            // 👑 PREMIUM: cambio de color A
             if (dom.teamAColor) {
                 dom.teamAColor.addEventListener('input', () => {
-                    if (!PremiumManager.checkAndShowModal()) {
-                        dom.teamAColor.value = appState.teamColors.blue;
-                        return;
-                    }
                     appState.teamColors.blue = dom.teamAColor.value;
                     this.persistColors();
                     this.updateLegendSwatches();
@@ -1629,13 +1524,8 @@ async testFirebaseConnection() {
                 });
             }
 
-            // 👑 PREMIUM: cambio de color B
             if (dom.teamBColor) {
                 dom.teamBColor.addEventListener('input', () => {
-                    if (!PremiumManager.checkAndShowModal()) {
-                        dom.teamBColor.value = appState.teamColors.red;
-                        return;
-                    }
                     appState.teamColors.red = dom.teamBColor.value;
                     this.persistColors();
                     this.updateLegendSwatches();
@@ -1643,19 +1533,8 @@ async testFirebaseConnection() {
                 });
             }
 
-            // 👑 PREMIUM: Logo bloqueado para free
             if (dom.teamLogoInput) {
-                dom.teamLogoInput.addEventListener('click', (e) => {
-                    if (!appState.isPremium) {
-                        e.preventDefault();
-                        PremiumManager.checkAndShowModal();
-                    }
-                });
                 dom.teamLogoInput.addEventListener('change', (e) => {
-                    if (!PremiumManager.checkAndShowModal()) {
-                        dom.teamLogoInput.value = '';
-                        return;
-                    }
                     const file = e.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
@@ -1726,7 +1605,6 @@ async testFirebaseConnection() {
             this.enableDragPlayer(el, () => {
                 StorageManager.savePositions();
                 if (dom.autoRecordChk.checked) {
-                    // autoRecord solo si está habilitado (que ya es premium gateado al marcar)
                     TimelineManager.recordFrame();
                 }
             });
@@ -1952,11 +1830,6 @@ async testFirebaseConnection() {
                 }
                 DrawManager.renderDraw();
                 if (dom.autoRecordChk.checked) {
-                    // autoRecord también pasa por premium check por si se fuerza desde fuera
-                    if (!PremiumManager.checkAndShowModal()) {
-                        dom.autoRecordChk.checked = false;
-                        return;
-                    }
                     TimelineManager.recordFrame();
                 }
             };
@@ -2113,327 +1986,4 @@ async testFirebaseConnection() {
                 UnitsManager.placeBall(data.ball.x, data.ball.y); DrawManager.renderDraw();
             } else DrawManager.renderDraw();
             dom.playNameInput.value = sanitizeInput(name || '');
-            this.saveTimeline(); this.saveArrows(); this.saveStrokes(); this.savePositions(); this.saveBall(); TeamVisualManager.applyColorsToPlayers(); LayoutManager.applyUprightTransforms(); PopupManager.showSuccess(`✅ Loaded!`);
-        },
-        async deletePlay() {
-            if (!isAuthorized || !currentUser) return; const name = dom.loadPlaySel.value; if (name && confirm(t('confirm.delete_play'))) {
-                try { if (db && firebaseConnected) await deleteDoc(doc(db, "users", currentUser.uid, "plays", name)); localStorage.removeItem(PLAY_PREFIX + name); this.updatePlaySelect(); dom.playNameInput.value = ''; PopupManager.showSuccess('✅ Deleted'); } 
-                catch (e) { localStorage.removeItem(PLAY_PREFIX + name); this.updatePlaySelect(); PopupManager.showSuccess('⚠️ Deleted locally'); }
-            }
-        },
-        async updatePlaySelect() {
-            dom.loadPlaySel.innerHTML = `<option value="">${t('plays.load_placeholder')}</option>`;
-            try {
-                let plays = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(PLAY_PREFIX)) plays.push(k.substring(PLAY_PREFIX.length)); }
-                if (db && currentUser && isAuthorized) { try { const q = query(collection(db, "users", currentUser.uid, "plays"), orderBy("updatedAt", "desc")); const snap = await getDocs(q); snap.forEach(d => { if (!plays.includes(d.id)) plays.push(d.id); }); } catch {} }
-                plays.sort().forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; dom.loadPlaySel.appendChild(o); });
-            } catch (e) { this.loadFromLocalStorageOnly(); }
-        },
-        loadFromLocalStorageOnly() {
-            dom.loadPlaySel.innerHTML = `<option value="">${t('plays.load_placeholder')}</option>`;
-            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(PLAY_PREFIX)) { const n = k.substring(PLAY_PREFIX.length); const o = document.createElement('option'); o.value = n; o.textContent = n; dom.loadPlaySel.appendChild(o); } }
-        },
-        savePositions() { const p = [...dom.playersLayer.children].map(el => ({ team: el.dataset.team, number: +el.dataset.number, x: parseFloat(el.style.left), y: parseFloat(el.style.top) })); localStorage.setItem(POS_KEY, JSON.stringify(p)); },
-        loadPositions() {
-            const s = localStorage.getItem(POS_KEY); if (!s) { UnitsManager.createPlayers(); return; }
-            const p = JSON.parse(s); UnitsManager.createPlayers(); const m = new Map(); [...dom.playersLayer.children].forEach(el => m.set(el.dataset.team + el.dataset.number, el));
-            p.forEach(pos => { const el = m.get(pos.team + pos.number); if (el) { el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; } });
-            UnitsManager.countPlayers(); LayoutManager.applyUprightTransforms(); TeamVisualManager.applyColorsToPlayers();
-        },
-        saveBall() { localStorage.setItem(BALL_KEY, JSON.stringify(centerOf(dom.ball))); },
-        loadBall() { const s = localStorage.getItem(BALL_KEY); if (s) { const p = JSON.parse(s); UnitsManager.placeBall(p.x, p.y); } },
-        saveArrows() { localStorage.setItem(ARROW_KEY, JSON.stringify(appState.arrows)); },
-        loadArrows() { const s = localStorage.getItem(ARROW_KEY); if (s) appState.arrows = JSON.parse(s); },
-        saveStrokes() { localStorage.setItem(STROKE_KEY, JSON.stringify(appState.strokes)); },
-        loadStrokes() { const s = localStorage.getItem(STROKE_KEY); if (s) appState.strokes = JSON.parse(s); },
-        saveTimeline() { localStorage.setItem(TL_KEY, JSON.stringify(appState.timeline)); },
-        loadTimeline() { const s = localStorage.getItem(TL_KEY); if (s) appState.timeline = (JSON.parse(s) || []).map(f => ({ ...f, note: f.note || '' })); TimelineManager.updateScrubber(); },
-        exportTimeline() { const b = new Blob([JSON.stringify(appState.timeline, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = (dom.playNameInput.value?.trim() || 'play') + '.json'; document.body.appendChild(a); a.click(); a.remove(); },
-        importTimeline() {
-            const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json';
-            i.onchange = e => {
-                const f = e.target.files[0]; if (!f) return; const r = new FileReader();
-                r.onload = e2 => { try { const tl = JSON.parse(e2.target.result); if (Array.isArray(tl)) { appState.timeline = tl.map(f => ({ ...f, note: f.note || '' })); this.saveTimeline(); TimelineManager.loadFrame(0); alert(`Imported ${tl.length} frames.`); } } catch (err) { alert('Error importing'); } };
-                r.readAsText(f);
-            }; i.click();
-        },
-        duplicatePlay() {
-            if (!isAuthorized) return;
-            const origRaw = dom.playNameInput.value ?? '';
-            const orig = sanitizeInput(origRaw);
-            if (!orig) return alert(t('alert.load_a_play'));
-            const nu = prompt(t('prompt.new_name'));
-            if (nu) {
-                const nuSan = sanitizeInput(nu);
-                if (!nuSan) { alert(t('alert.invalid_name')); return; }
-                const raw = localStorage.getItem(PLAY_PREFIX + orig);
-                if (raw) {
-                    localStorage.setItem(PLAY_PREFIX + nuSan, raw);
-                    dom.playNameInput.value = nuSan;
-                    this.savePlay();
-                    this.updatePlaySelect();
-                    dom.loadPlaySel.value = nuSan;
-                }
-            }
-        },
-        async createShareLink() {
-            // 👑 PREMIUM: Compartir bloqueado para free
-            if (!PremiumManager.checkAndShowModal()) return;
-
-            if (!isAuthorized || !currentUser) return alert(t('alert.login_required')); if (!appState.timeline.length) return alert(t('alert.no_animation')); if (!db) return alert(t('alert.firebase_off'));
-            const rawName = dom.playNameInput.value ?? '';
-            const safeName = sanitizeInput(rawName) || t('default.play_name');
-            const sid = crypto.randomUUID(); const url = new URL(window.location.href); url.searchParams.set('shared', sid); const sUrl = url.toString();
-            let ok = false; if (navigator.share) { try { await navigator.share({ title: 'RugbyBoard', text: safeName, url: sUrl }); ok = true; } catch {} }
-            if (!ok && navigator.clipboard) { try { await navigator.clipboard.writeText(sUrl); PopupManager.showSuccess(t('popup.link_copied')); ok = true; } catch {} }
-            if (!ok) alert('Link: ' + sUrl);
-            try { await setDoc(doc(db, "shared_plays", sid), { name: safeName, timeline: appState.timeline, arrows: appState.arrows, strokes: appState.strokes, teamColors: appState.teamColors, teamLogoDataUrl: appState.teamLogoDataUrl || null, createdAt: new Date().toISOString(), ownerUid: currentUser.uid }); } catch (e) { alert(t('alert.upload_error')); }
-        },
-        async loadSharedPlay(sid) {
-            try {
-                if (!db) return alert(t('alert.firebase_off')); const s = await getDoc(doc(db, "shared_plays", sid)); if (!s.exists()) return alert(t('alert.not_found'));
-                const d = s.data(); if (!d.timeline) return alert(t('alert.invalid_data'));
-                await StorageManager.processPlayData(d, d.name || 'Shared'); PopupManager.showSuccess(t('popup.loaded'));
-            } catch (e) { alert(t('alert.load_error')); }
-        }
-    };
-
-    const ExportManager = {
-        async drawPitch(ctx) {
-            ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.fillStyle = '#137a46'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            const svg = dom.board.querySelector('.lines').cloneNode(true), dr = dom.draw.cloneNode(true);
-            while (dr.firstChild) svg.appendChild(dr.firstChild);
-            const defs = dom.draw.querySelector('defs'); if (defs) svg.prepend(defs.cloneNode(true));
-            const ser = new XMLSerializer().serializeToString(svg), img = new Image();
-            await new Promise(r => { img.onload = () => { ctx.drawImage(img, 0, 0); r(); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ser); });
-            if (appState.teamLogoDataUrl) { const li = new Image(); await new Promise(r => { li.onload = () => { ctx.save(); ctx.globalAlpha = 0.22; ctx.drawImage(li, WIDTH/2-110, HEIGHT/2-110, 220, 220); ctx.restore(); r(); }; li.src = appState.teamLogoDataUrl; }); }
-        },
-        drawPlayer(ctx, p) {
-            ctx.save(); ctx.translate(p.x, p.y); ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2);
-            ctx.fillStyle = p.team === 'blue' ? (appState.teamColors.blue) : (appState.teamColors.red);
-            ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.number, 0, 1); ctx.restore();
-        },
-        drawBall(ctx, b) {
-            ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(-15 * Math.PI / 180); ctx.beginPath(); ctx.ellipse(0, 0, 25, 15, 0, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffd400'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.restore();
-        },
-        async renderFrameToCanvas(f) { if (!dom.ctx) return; await this.drawPitch(dom.ctx); f.players.forEach(p => this.drawPlayer(dom.ctx, p)); this.drawBall(dom.ctx, f.ball); },
-        setupExportUI() {
-            PremiumManager.initListeners();
-            // Open PRO modal only when user clicks CTA button
-            const btnSidebarPro = document.getElementById('btnSidebarPro');
-            btnSidebarPro?.addEventListener('click', (e) => {
-                e.preventDefault();
-                PremiumManager.open();
-            });
-
-            dom.exportJpgBtn.addEventListener('click', async () => {
-                if (!dom.exportCanvas) return; await this.renderFrameToCanvas({ players: ExportManager.getCurrentPlayers(), ball: ExportManager.getCurrentBall() });
-                const a = document.createElement('a'); a.href = dom.exportCanvas.toDataURL('image/jpeg', 0.95); a.download = 'board.jpg'; document.body.appendChild(a); a.click(); a.remove();
-            });
-        },
-        getCurrentPlayers() { return [...dom.playersLayer.children].map(el => ({ team: el.dataset.team, number: +el.dataset.number, x: parseFloat(el.style.left), y: parseFloat(el.style.top) })); },
-        getCurrentBall() { return { x: parseFloat(dom.ball.style.left) || WIDTH/2, y: parseFloat(dom.ball.style.top) || HEIGHT/2 }; }
-    };
-
-    const UIManager = {
-        initAccordion() {
-            document.querySelectorAll('.group-header').forEach(h => {
-                h.addEventListener('click', () => {
-                    const g = h.parentElement, c = g.querySelector('.group-content');
-                    g.classList.toggle('closed'); c.classList.toggle('collapsed');
-                });
-            });
-        },
-        refreshToggleLabelsText() {
-            if (!dom.toggleLabelsBtn) return;
-            const show = dom.toggleLabelsBtn.classList.contains('active');
-            dom.toggleLabelsBtn.textContent = show ? t('controls.hide_labels') : t('controls.show_labels');
-        },
-        setupEventListeners() {
-            this.initAccordion();
-            // Premium modal close handlers (X button + click outside)
-            PremiumManager.initListeners();
-            dom.btnLogin.addEventListener('click', () => AuthManager.login());
-            dom.btnRegister.addEventListener('click', () => AuthManager.registerWithEmail());
-            dom.btnGoogle.addEventListener('click', () => AuthManager.loginWithGoogle());
-            dom.loginPassword.addEventListener('keypress', (e) => { if (e.key === 'Enter') AuthManager.login(); });
-            dom.btnAuthAction.addEventListener('click', () => AuthManager.logout());
-            window.addEventListener('resize', () => { LayoutManager.fitBoard(); if (window.innerWidth <= 900 && dom.mainApp.style.display !== 'none') dom.menuBtn.style.display = 'grid'; else dom.menuBtn.style.display = 'none'; });
-            dom.verticalFieldChk.addEventListener('change', () => { appState.layout.forceVertical = dom.verticalFieldChk.checked; LayoutManager.fitBoard(); });
-            dom.menuBtn.addEventListener('click', () => { dom.sidebar.classList.add('open'); dom.scrim.classList.add('show'); });
-            const closeM = () => { dom.sidebar.classList.remove('open'); dom.scrim.classList.remove('show'); };
-            dom.closeMenuBtn.addEventListener('click', closeM); dom.scrim.addEventListener('click', closeM);
-            dom.addPlayerBtn.addEventListener('click', () => UnitsManager.addPlayer());
-            dom.resetBtn.addEventListener('click', () => { UnitsManager.createPlayers(); UnitsManager.placeBall(); DrawManager.clearDraw(); StorageManager.savePositions(); StorageManager.saveBall(); });
-            dom.snapToggle.addEventListener('change', () => LayoutManager.renderGrid());
-            // default: labels visible
-            dom.toggleLabelsBtn.classList.add('active');
-            UIManager.refreshToggleLabelsText();
-            dom.toggleLabelsBtn.addEventListener('click', (e) => {
-                e.target.classList.toggle('active');
-                const show = e.target.classList.contains('active');
-                [...dom.playersLayer.children].forEach(el => el.style.fontSize = show ? 'var(--player-font)' : '0');
-                UIManager.refreshToggleLabelsText();
-            });
-            dom.toolSelectBtn.addEventListener('click', () => ToolManager.setTool('select')); dom.toolArrowsBtn.addEventListener('click', () => ToolManager.setTool('arrows')); dom.toolPenBtn.addEventListener('click', () => ToolManager.setTool('pen'));
-            dom.undoGenericBtn.addEventListener('click', () => DrawManager.undoLast()); dom.clearArrowsBtn.addEventListener('click', () => DrawManager.clearArrows()); dom.clearAllBtn.addEventListener('click', () => { if (confirm('Clear?')) DrawManager.clearDraw(); });
-            dom.savePlayBtn.addEventListener('click', () => StorageManager.savePlay());
-            dom.btnLoadPlay.addEventListener('click', () => { if (dom.loadPlaySel.value) StorageManager.loadPlay(dom.loadPlaySel.value); });
-            dom.deletePlayBtn.addEventListener('click', () => StorageManager.deletePlay());
-            dom.duplicatePlayBtn.addEventListener('click', () => StorageManager.duplicatePlay());
-
-            // 👑 PREMIUM: botón de grabar frame manual
-            dom.recordStepBtn.addEventListener('click', () => {
-                if (!PremiumManager.checkAndShowModal()) return;
-                TimelineManager.recordFrame();
-            });
-
-            dom.scrubber.addEventListener('input', TimelineManager.handleScrubberChange);
-            dom.prevFrameBtn.addEventListener('click', () => TimelineManager.loadFrame(Math.max(0, appState.playIndex - 1)));
-            dom.nextFrameBtn.addEventListener('click', () => TimelineManager.loadFrame(Math.min(appState.timeline.length - 1, appState.playIndex + 1)));
-            dom.playBtn.addEventListener('click', () => TimelineManager.startPlay()); dom.pauseBtn.addEventListener('click', () => TimelineManager.pausePlay()); dom.stopBtn.addEventListener('click', () => TimelineManager.stopPlay());
-            dom.clearTimelineBtn.addEventListener('click', () => TimelineManager.clearTimeline()); dom.exportTimelineBtn.addEventListener('click', () => StorageManager.exportTimeline()); dom.importTimelineBtn.addEventListener('click', () => StorageManager.importTimeline()); dom.duplicateFrameBtn.addEventListener('click', () => TimelineManager.duplicateFrame());
-            dom.speedSlowBtn.addEventListener('click', () => { dom.speedInput.value = 1200; appState.segmentDuration = 1200; }); dom.speedMediumBtn.addEventListener('click', () => { dom.speedInput.value = 800; appState.segmentDuration = 800; }); dom.speedFastBtn.addEventListener('click', () => { dom.speedInput.value = 400; appState.segmentDuration = 400; });
-            if (dom.frameNote) dom.frameNote.addEventListener('input', () => {
-                const f = appState.timeline[appState.playIndex];
-                if (f) {
-                    const safeNote = sanitizeInput(dom.frameNote.value || '');
-                    f.note = safeNote;
-                    dom.frameNote.value = safeNote;
-                    StorageManager.saveTimeline();
-                }
-            });
-
-            dom.sharePlayBtn.addEventListener('click', () => StorageManager.createShareLink());
-            if (dom.presentationModeBtn) dom.presentationModeBtn.addEventListener('click', () => UIManager.togglePresentationMode());
-
-            // 👑 PREMIUM: AutoRecord solo se puede activar si eres premium
-            dom.autoRecordChk.addEventListener('change', () => {
-                if (dom.autoRecordChk.checked) {
-                    if (!PremiumManager.checkAndShowModal()) {
-                        dom.autoRecordChk.checked = false;
-                    }
-                }
-            });
-
-            if (window.innerWidth <= 900) { dom.verticalFieldChk.checked = true; appState.layout.forceVertical = true; }
-            ExportManager.setupExportUI(); UIManager.setupHotkeys();
-        },
-        applyReadOnlyMode() {
-            const els = [dom.recordStepBtn, dom.autoRecordChk, dom.clearTimelineBtn, dom.exportTimelineBtn, dom.importTimelineBtn, dom.clearAllBtn, dom.clearArrowsBtn, dom.undoGenericBtn, dom.savePlayBtn, dom.deletePlayBtn, dom.duplicatePlayBtn, dom.addPlayerBtn, dom.resetBtn, dom.sharePlayBtn];
-            els.forEach(el => { if (el) el.disabled = true; }); if (dom.frameNote) dom.frameNote.readOnly = true;
-        },
-        togglePresentationMode() { appState.presentationMode = !appState.presentationMode; document.body.classList.toggle('presentation-mode', appState.presentationMode); if (dom.presentationModeBtn) dom.presentationModeBtn.textContent = appState.presentationMode ? t('auth.logout') : 'Modalità Presentazione'; },
-        setupHotkeys() {
-            window.addEventListener('keydown', (e) => {
-                const tag = e.target.tagName.toLowerCase(); if (tag === 'input' || tag === 'textarea') return;
-                if (e.code === 'Space') { e.preventDefault(); !appState.playing ? TimelineManager.startPlay() : (!appState.paused ? TimelineManager.pausePlay() : (appState.paused = false, cancelAnimationFrame(appState.rafId), appState.rafId = requestAnimationFrame((t) => TimelineManager.play(t)))); }
-                if (e.key === 'ArrowLeft') { e.preventDefault(); TimelineManager.loadFrame(Math.max(0, appState.playIndex - 1)); }
-                if (e.key === 'ArrowRight') { e.preventDefault(); TimelineManager.loadFrame(Math.min(appState.timeline.length - 1, appState.playIndex + 1)); }
-                if (e.key === '1') ToolManager.setTool('select'); if (e.key === '2') ToolManager.setTool('arrows'); if (e.key === '3') ToolManager.setTool('pen');
-            });
-        }
-    };
-
-    function getSharedIdFromUrl() {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('shared');
-}
-
-async function initSharedView(sharedId) {
-  // Firebase app/db sin login
-  if (!app) app = initializeApp(firebaseConfig);
-  if (!db) db = getFirestore(app);
-
-  // Modo compartido (solo lectura)
-  appState.isSharedView = true;
-  appState.readOnly = true;
-
-  // Mostrar app y ocultar login
-  AuthManager.showApp();
-  AuthManager.showStatus("🔗 Shared play (read-only)", "success");
-  AuthManager.updateFirebaseStatus(true);
-
-  // Deshabilitar botones de edición
-  UIManager.applyReadOnlyMode();
-
-  // Cargar jugada desde /shared_plays/{sid}
-  await StorageManager.loadSharedPlay(sharedId);
-
-  // Layout
-  LayoutManager.renderGrid();
-  LayoutManager.fitBoard();
-}
-
-    // INIT
-    async function init() {
-  try {
-    const sharedId = getSharedIdFromUrl();
-
-    // ✅ Si viene link compartido, NO pedir login
-    if (sharedId) {
-      await initSharedView(sharedId);
-      UIManager.setupEventListeners(); // el UI sigue funcionando pero en readOnly
-      return;
-    }
-
-    // ✅ Caso normal (con login)
-    await AuthManager.init();
-
-    if (isAuthorized && currentUser) {
-      LayoutManager.renderGrid();
-      ToolManager.setTool('select');
-      TeamVisualManager.init();
-
-      UnitsManager.createPlayers();
-      StorageManager.loadPositions();
-      StorageManager.loadArrows();
-      StorageManager.loadStrokes();
-      DrawManager.renderDraw();
-
-      UnitsManager.placeBall(WIDTH / 2, HEIGHT / 2);
-      StorageManager.loadBall();
-      StorageManager.loadTimeline();
-
-      if (!appState.timeline.length) {
-        TimelineManager.recordFrame();
-        appState.playIndex = 0;
-        TimelineManager.updateScrubber();
-        StorageManager.saveTimeline();
-      }
-
-      DrawManager.enableDrawing();
-
-      UnitsManager.enableDragBall(() => {
-        StorageManager.saveBall();
-        if (dom.autoRecordChk.checked) {
-          if (!PremiumManager.checkAndShowModal()) {
-            dom.autoRecordChk.checked = false;
-            return;
-          }
-          TimelineManager.recordFrame();
-        }
-      });
-
-      StorageManager.updatePlaySelect();
-      LayoutManager.fitBoard();
-      InteractionManager.enableSelectionBox();
-    } else {
-      TeamVisualManager.init();
-    }
-
-    UIManager.setupEventListeners();
-  } catch (e) {
-    console.error('Init Error', e);
-  }
-}
-    init();
-
-    const ro = new ResizeObserver(e => { for (let en of e) if (en.contentRect.width > 0) LayoutManager.fitBoard(); });
-    ro.observe(document.getElementById('boardViewport'));
-
-</script>
-</body>
-</html>
+            this.saveTimeline(); this.saveArrows(); this.saveStrokes(); this.savePositions(); this.saveBall(); TeamVisualManager.applyColorsToPlayers(); LayoutManager.applyUprightTransforms(); PopupManager.showSuccess(`✅
