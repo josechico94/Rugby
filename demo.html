@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,900&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo - Tutoriales en Video | RugbyBoard Pro</title>
 
@@ -14,7 +15,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; width: 100%; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
       color: #f0f6fc;
       overflow-x: hidden;
@@ -24,8 +25,8 @@
     .landing-wrapper { width: 100%; min-height: 100%; position: relative; }
     .bg-gradient {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(ellipse at top, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
-                  radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.12) 0%, transparent 50%);
+      background: radial-gradient(ellipse at top, rgba(200, 255, 0, 0.12) 0%, transparent 50%),
+                  radial-gradient(ellipse at bottom right, rgba(200, 255, 0, 0.12) 0%, transparent 50%);
       pointer-events: none; z-index: 0;
     }
     .grid-overlay {
@@ -37,166 +38,133 @@
       pointer-events: none; z-index: 0;
     }
     .content-wrapper { position: relative; z-index: 1; }
-
-    /* ============= NAV (igual al home) ============= */
+    /* ── NAV ── */
     nav {
-      width: 100%;
-      padding: 1.5rem 3rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(1, 4, 9, 0.8);
+      width: 100%; padding: 1.25rem 3rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(1,4,9,0.85);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      border-bottom: 1px solid rgba(200,255,0,0.1);
+      position: sticky; top: 0; z-index: 100;
     }
-    .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; font-weight: 700; }
-    .logo-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: white;
-    }
-    .nav-menu { display: flex; gap: 2rem; align-items: center; }
+    .logo { max-width: 200px; display: flex; align-items: center; }
+    .logo img { height: 60px; width: 300px; display: block; }
+    .nav-menu { display: flex; gap: 1.75rem; align-items: center; }
     .nav-link {
-      color: rgba(240, 246, 252, 0.7);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s ease;
-      font-size: 0.95rem;
+      color: var(--ink-muted); text-decoration: none;
+      font-weight: 600; font-size: 0.88rem; letter-spacing: 0.03em; text-transform: uppercase;
+      transition: color 0.2s ease;
     }
-    .nav-link:hover { color: #10b981; }
+    .nav-link:hover { color: var(--fluor); }
     .nav-cta {
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      padding: 0.65rem 1.35rem;
+      background: var(--fluor); color: #000;
+      border: none; border-radius: 10px;
+      font-weight: 800; font-size: 0.88rem; letter-spacing: 0.04em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.25s ease;
+      box-shadow: 0 0 20px var(--fluor-glow);
     }
-    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 0 32px var(--fluor-glow); }
 
-    .lang-switch { display: flex; gap: .5rem; align-items: center; margin-left: 1rem; }
+    /* Lang */
+    .lang-switch { display: flex; gap: .4rem; align-items: center; margin-left: .5rem; }
     .lang-btn {
-      width: 40px; height: 40px; border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.05);
-      color: #f0f6fc;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s ease;
-      font-size: 18px; line-height: 1;
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg); color: var(--ink);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .2s ease; font-size: 17px; line-height: 1;
     }
-    .lang-btn:hover {
-      transform: translateY(-2px);
-      border-color: rgba(16, 185, 129, 0.45);
-      background: rgba(16, 185, 129, 0.10);
-    }
-    .lang-btn.is-active {
-      border-color: rgba(16, 185, 129, 0.7);
-      background: rgba(16, 185, 129, 0.18);
-      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.18);
-    }
+    .lang-btn:hover { border-color: var(--fluor); background: var(--fluor-dim); }
+    .lang-btn.is-active { border-color: var(--fluor); background: var(--fluor-dim); box-shadow: 0 0 14px var(--fluor-glow); }
 
-    /* ============= Mobile menu (igual al home) ============= */
+    /* ── Burger ── */
     .burger-btn {
-      display: none;
-      width: 44px; height: 44px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(14px);
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      transition: transform .15s ease, border-color .2s ease, background .2s ease;
+      display: none; width: 44px; height: 44px; border-radius: 12px;
+      border: 1px solid var(--fluor); background: var(--card-bg);
+      cursor: pointer; align-items: center; justify-content: center;
+      transition: border-color .2s, background .2s;
     }
-    .burger-btn:hover { transform: translateY(-1px); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.10); }
+    .burger-btn:hover { border-color: var(--fluor); background: var(--fluor-dim); }
     .burger-icon { position: relative; width: 18px; height: 14px; display: block; }
     .burger-line {
-      position: absolute; left: 0;
-      width: 100%; height: 2px;
-      background: rgba(240,246,252,0.90);
-      border-radius: 999px;
+      position: absolute; left: 0; width: 100%; height: 2px;
+      background: var(--ink); border-radius: 999px;
       transition: transform .22s ease, top .22s ease, opacity .18s ease;
     }
-    .burger-line.l1 { top: 0; }
-    .burger-line.l2 { top: 6px; }
-    .burger-line.l3 { top: 12px; }
+    .burger-line.l1 { top: 0; } .burger-line.l2 { top: 6px; } .burger-line.l3 { top: 12px; }
     .burger-btn.is-open .burger-line.l1 { top: 6px; transform: rotate(45deg); }
     .burger-btn.is-open .burger-line.l2 { opacity: 0; }
     .burger-btn.is-open .burger-line.l3 { top: 6px; transform: rotate(-45deg); }
 
     .menu-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(6px);
-      z-index: 90;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s ease;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px); z-index: 90;
+      opacity: 0; pointer-events: none; transition: opacity .22s ease;
     }
     .menu-overlay.is-open { opacity: 1; pointer-events: auto; }
-
     .mobile-drawer {
-      position: fixed;
-      left: 12px; right: 12px;
-      top: 76px;
-      z-index: 95;
-      background: rgba(15, 23, 42, 0.72);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 22px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+      position: fixed; left: 12px; right: 12px; top: 76px; z-index: 95;
+      background: rgba(8,14,26,0.9); border: 1px solid rgba(200,255,0,0.15);
+      border-radius: 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
       backdrop-filter: blur(26px);
-      transform: translateY(-14px);
-      opacity: 0;
-      pointer-events: none;
+      transform: translateY(-14px); opacity: 0; pointer-events: none;
       transition: transform .24s ease, opacity .24s ease;
     }
     .mobile-drawer.is-open { transform: translateY(0); opacity: 1; pointer-events: auto; }
-    .mobile-drawer-inner { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .mobile-drawer-inner { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
     .mobile-link {
       display: flex; align-items: center; justify-content: space-between;
-      text-decoration: none;
-      padding: 14px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.05);
-      color: rgba(240,246,252,0.92);
-      font-weight: 650;
-      letter-spacing: -0.01em;
-      transition: transform .16s ease, border-color .2s ease, background .2s ease;
+      text-decoration: none; padding: 13px 14px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--card-bg);
+      color: var(--ink); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.02em;
+      transition: border-color .2s, background .2s;
     }
-    .mobile-link:hover { transform: translateY(-1px); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.10); }
-    .chev { opacity: 0.65; font-size: 12px; }
+    .mobile-link:hover { border-color: var(--fluor); background: var(--fluor-dim); color: var(--fluor); }
+    .chev { opacity: 0.5; font-size: 12px; }
     .mobile-cta {
-      width: 100%;
-      padding: 14px 14px;
-      border-radius: 18px;
-      border: none;
-      cursor: pointer;
-      font-weight: 800;
-      color: white;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 10px 26px rgba(16,185,129,0.25);
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      cursor: pointer; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #000; background: var(--fluor);
+      box-shadow: 0 0 24px var(--fluor-glow);
       transition: transform .16s ease, box-shadow .2s ease;
     }
-    .mobile-cta:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(16,185,129,0.30); }
+    .mobile-cta:hover { transform: translateY(-1px); box-shadow: 0 0 36px var(--fluor-glow); }
     .mobile-lang {
-      margin-top: 6px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.10);
+      margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-    .mobile-lang .label { font-size: 0.95rem; color: rgba(240,246,252,0.70); font-weight: 650; letter-spacing: -0.01em; }
+    .mobile-lang .label { font-size: 0.88rem; color: var(--ink-muted); font-weight: 700; }
     .mobile-lang .lang-switch { margin-left: 0; }
+
+    /* ── Footer ── */
+    footer {
+      width: 100%; padding: 4rem 3rem 2rem;
+      background: rgba(1,4,9,0.9); border-top: 1px solid rgba(200,255,0,0.1);
+    }
+    .footer-content { max-width: 1300px; margin: 0 auto; }
+    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-brand { display: flex; flex-direction: column; gap: 1rem; }
+    .footer-logo-img { height: 55px; width: 300px; display: block; }
+    .footer-description { color: var(--ink-muted); line-height: 1.7; font-size: 0.9rem; }
+    .footer-column h4 { font-size: 0.8rem; font-weight: 900; margin-bottom: 1.5rem; color: var(--fluor); text-transform: uppercase; letter-spacing: 0.08em; }
+    .footer-links { display: flex; flex-direction: column; gap: 0.75rem; }
+    .footer-links a { color: var(--ink-muted); text-decoration: none; transition: color 0.2s; font-size: 0.9rem; font-weight: 500; }
+    .footer-links a:hover { color: var(--fluor); }
+    .footer-bottom {
+      padding-top: 2rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .copyright { color: rgba(240,246,252,0.4); font-size: 0.85rem; }
+    .social-links { display: flex; gap: 0.75rem; }
+    .social-icon {
+      width: 38px; height: 38px; background: var(--card-bg);
+      border: 1px solid var(--border); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-muted); text-decoration: none; transition: all 0.25s ease;
+    }
+    .social-icon:hover { background: var(--fluor-dim); border-color: var(--fluor); color: var(--fluor); transform: translateY(-3px); }
+
 
     /* ============= Demo page ============= */
     .demo-hero {
@@ -207,14 +175,14 @@
     .badge {
       display: inline-flex; align-items: center; gap: .5rem;
       padding: .5rem 1rem;
-      background: rgba(16,185,129,0.10);
-      border: 1px solid rgba(16,185,129,0.28);
+      background: rgba(200,255,0,0.10);
+      border: 1px solid rgba(200,255,0,0.28);
       border-radius: 999px;
-      color: #10b981;
+      color: #c8ff00;
       font-weight: 700;
       font-size: 0.9rem;
     }
-    .badge-dot { width: 8px; height: 8px; border-radius: 999px; background: #10b981; }
+    .badge-dot { width: 8px; height: 8px; border-radius: 999px; background: #c8ff00; }
     .demo-title {
       font-size: 3.2rem;
       font-weight: 900;
@@ -223,7 +191,7 @@
       line-height: 1.1;
     }
     .gradient-text {
-      background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+      background: linear-gradient(135deg, #c8ff00 0%, #c8ff00 50%, #8b5cf6 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .demo-subtitle {
@@ -299,15 +267,15 @@
     }
     .card:hover {
       transform: translateY(-6px);
-      border-color: rgba(16,185,129,0.25);
-      box-shadow: 0 22px 70px rgba(16,185,129,0.10);
+      border-color: rgba(200,255,0,0.25);
+      box-shadow: 0 22px 70px rgba(200,255,0,0.10);
       background: rgba(255,255,255,0.03);
     }
 
     .thumb {
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(59,130,246,0.18) 100%);
+      background: linear-gradient(135deg, rgba(200,255,0,0.18) 0%, rgba(200,255,0,0.18) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -389,9 +357,9 @@
       gap: .55rem;
       padding: .55rem .85rem;
       border-radius: 14px;
-      border: 1px solid rgba(16,185,129,0.25);
-      background: rgba(16,185,129,0.10);
-      color: #10b981;
+      border: 1px solid rgba(200,255,0,0.25);
+      background: rgba(200,255,0,0.10);
+      color: #c8ff00;
       font-weight: 900;
       cursor: pointer;
       transition: transform .16s ease, background .2s ease, border-color .2s ease;
@@ -399,8 +367,8 @@
     }
     .watch-btn:hover {
       transform: translateY(-1px);
-      border-color: rgba(16,185,129,0.45);
-      background: rgba(16,185,129,0.14);
+      border-color: rgba(200,255,0,0.45);
+      background: rgba(200,255,0,0.14);
     }
 
     /* ============= Modal video ============= */
@@ -455,7 +423,7 @@
       cursor: pointer;
       transition: transform .16s ease, border-color .2s ease, background .2s ease;
     }
-    .close-btn:hover { transform: translateY(-1px); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.10); }
+    .close-btn:hover { transform: translateY(-1px); border-color: rgba(200,255,0,0.35); background: rgba(200,255,0,0.10); }
 
     .modal-body { padding: 12px; }
     .modal-body video {
@@ -465,64 +433,32 @@
       background: rgba(0,0,0,0.45);
       border: 1px solid rgba(255,255,255,0.08);
     }
-
-    /* ============= Footer (igual al home) ============= */
-    footer {
-      width: 100%;
-      padding: 4rem 3rem 2rem;
-      background: rgba(1, 4, 9, 0.8);
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .footer-content { max-width: 1300px; margin: 0 auto; }
-    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-    .footer-brand { display: flex; flex-direction: column; gap: 1rem; }
-    .footer-logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .footer-description { color: rgba(240, 246, 252, 0.6); line-height: 1.7; font-size: 0.95rem; }
-    .footer-column h4 { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; color: #10b981; }
-    .footer-links { display: flex; flex-direction: column; gap: 0.75rem; }
-    .footer-links a { color: rgba(240, 246, 252, 0.6); text-decoration: none; transition: color 0.3s ease; font-size: 0.95rem; }
-    .footer-links a:hover { color: #10b981; }
-    .footer-bottom {
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 1rem;
-    }
-    .copyright { color: rgba(240, 246, 252, 0.5); font-size: 0.9rem; }
-    .social-links { display: flex; gap: 1rem; }
-    .social-icon {
-      width: 40px; height: 40px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: rgba(240, 246, 252, 0.6);
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-    .social-icon:hover {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: #10b981;
-      color: #10b981;
-      transform: translateY(-3px);
-    }
-
     /* Responsive */
     @media (max-width: 1024px) {
       .video-shell { grid-template-columns: repeat(2, 1fr); }
       .controls { grid-template-columns: 1fr; }
       .footer-top { grid-template-columns: 1fr 1fr; }
     }
+    /* ── Responsive ── */
+    @media (max-width: 1024px) { .footer-top { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 768px) {
       nav { padding: 1rem 1.25rem; }
       .nav-menu { display: none; }
       .burger-btn { display: inline-flex; }
-      .demo-hero { padding: 3.5rem 1.25rem 1.25rem; }
-      .controls { padding: 0 1.25rem 1.25rem; }
-      .video-shell { padding: 0 1.25rem 4rem; grid-template-columns: 1fr; }
-      .demo-title { font-size: 2.3rem; }
+      .hero { padding: 4rem 1.5rem 3rem; }
+      .hero h1 { font-size: 2.8rem; }
+      .stats-bar { grid-template-columns: 1fr; gap: 1.25rem; }
+      .section-title { font-size: 2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-card.featured { transform: scale(1); }
+      .demo-content { height: 280px; }
       .footer-top { grid-template-columns: 1fr; }
       .footer-bottom { flex-direction: column; text-align: center; }
+      .cta-content h2 { font-size: 2rem; }
+      .testimonial-container { padding: 2rem; }
+      .testimonial-quote { font-size: 1.1rem; }
+      .logo { max-width: 100px; display: flex; align-items: center; }
     }
   </style>
 </head>
@@ -533,65 +469,61 @@
     <div class="grid-overlay"></div>
 
     <div class="content-wrapper">
-
       <!-- NAV -->
       <nav id="mainNav">
         <div class="logo">
-          <div class="logo-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-          <span>RugbyBoard Pro</span>
+          <a href="https://rugbyboardpro.com">
+            <img src="rbp_Italic.png" alt="RugbyBoard Pro"/>
+          </a>
         </div>
 
         <div class="nav-menu">
-          <a href="index.html#features" class="nav-link" data-i18n="navFeatures">Características</a>
-          <a href="index.html#pricing" class="nav-link" data-i18n="navPricing">Precios</a>
-          <a href="document.html" class="nav-link" data-i18n="navDocs">Documentación</a>
-          <a href="demo.html" class="nav-link" data-i18n="navDemo">Demo</a>
-          <a href="contacto.html" class="nav-link" data-i18n="navContact">Contacto</a>
-
+          <!--<a href="#features" class="nav-link" data-i18n="navFeatures">Características</a>
+          <a href="#pricing" class="nav-link" data-i18n="navPricing">Precios</a>
+          <a href="#testimonials" class="nav-link" data-i18n="navTestimonials">Testimonios</a>
+          <a href="soporte.html" class="nav-link" data-i18n="footerUpdates">Actualizaciones</a>-->
+          <a href="acercade.html" class="nav-link" data-i18n="footerAbout">Acerca de</a>
+          <a href="demo.html" class="nav-link" data-i18n="footerDemo">Demo</a>                    
+          <a href="contacto.html" class="nav-link" data-i18n="footerContact">Contacto</a>
           <a href="https://rugbyboardpro.com/boardpro.html">
             <button class="nav-cta" data-i18n="navCta">Comenzar Gratis</button>
           </a>
-
-          <div class="lang-switch" aria-label="Language switcher">
-            <button class="lang-btn" type="button" data-lang="es" aria-label="Español" title="Español">🇪🇸</button>
-            <button class="lang-btn" type="button" data-lang="en" aria-label="English" title="English">🇺🇸</button>
-            <button class="lang-btn" type="button" data-lang="it" aria-label="Italiano" title="Italiano">🇮🇹</button>
+          <div class="lang-switch">
+            <button class="lang-btn" type="button" data-lang="es" title="Español">🇪🇸</button>
+            <button class="lang-btn" type="button" data-lang="en" title="English">🇺🇸</button>
+            <button class="lang-btn" type="button" data-lang="it" title="Italiano">🇮🇹</button>
           </div>
         </div>
 
-        <button class="burger-btn" type="button" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
-          <span class="burger-icon" aria-hidden="true">
-            <span class="burger-line l1"></span>
-            <span class="burger-line l2"></span>
-            <span class="burger-line l3"></span>
-          </span>
+        <button class="burger-btn" type="button" id="burgerBtn" aria-label="Menu" aria-expanded="false">
+          <span class="burger-icon"><span class="burger-line l1"></span><span class="burger-line l2"></span><span class="burger-line l3"></span></span>
         </button>
       </nav>
 
-      <div class="menu-overlay" id="menuOverlay" aria-hidden="true"></div>
-
-      <div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+      <div class="menu-overlay" id="menuOverlay"></div>
+      <div class="mobile-drawer" id="mobileDrawer">
         <div class="mobile-drawer-inner">
-          <a href="index.html#features" class="mobile-link" data-i18n="navFeatures">Características <span class="chev">›</span></a>
-          <a href="index.html#pricing" class="mobile-link" data-i18n="navPricing">Precios <span class="chev">›</span></a>
-          <a href="document.html" class="mobile-link" data-i18n="navDocs">Documentación <span class="chev">›</span></a>
-          <a href="demo.html" class="mobile-link" data-i18n="navDemo">Demo <span class="chev">›</span></a>
-          <a href="contacto.html" class="mobile-link" data-i18n="navContact">Contacto <span class="chev">›</span></a>
-
+          <a href="#features" class="mobile-link" data-i18n="navFeatures">Características <span class="chev">›</span></a>
+          <a href="#pricing" class="mobile-link" data-i18n="navPricing">Precios <span class="chev">›</span></a>
+          <a href="#testimonials" class="mobile-link" data-i18n="navTestimonials">Testimonios <span class="chev">›</span></a>
+          <a href="demo.html" class="mobile-link" data-i18n="footerDemo">Demo <span class="chev">›</span></a>
+          <a href="soporte.html" class="mobile-link" data-i18n="footerUpdates">Actualizaciones <span class="chev">›</span></a>
+          <a href="acercade.html" class="mobile-link" data-i18n="footerAbout">Acerca de <span class="chev">›</span></a>
+          <a href="contacto.html" class="mobile-link" data-i18n="footerContact">Contacto <span class="chev">›</span></a>
           <a href="https://rugbyboardpro.com/boardpro.html">
             <button class="mobile-cta" data-i18n="navCta">Comenzar Gratis</button>
           </a>
-
           <div class="mobile-lang">
-            <div class="label" data-i18n="navLangLabel">Language</div>
-            <div class="lang-switch" aria-label="Language switcher mobile">
-              <button class="lang-btn" type="button" data-lang="es" aria-label="Español" title="Español">🇪🇸</button>
-              <button class="lang-btn" type="button" data-lang="en" aria-label="English" title="English">🇺🇸</button>
-              <button class="lang-btn" type="button" data-lang="it" aria-label="Italiano" title="Italiano">🇮🇹</button>
+            <div class="label">Language</div>
+            <div class="lang-switch">
+              <button class="lang-btn" type="button" data-lang="es" title="Español">🇪🇸</button>
+              <button class="lang-btn" type="button" data-lang="en" title="English">🇺🇸</button>
+              <button class="lang-btn" type="button" data-lang="it" title="Italiano">🇮🇹</button>
             </div>
           </div>
         </div>
       </div>
+
 
       <!-- HERO -->
       <header class="demo-hero">
@@ -761,61 +693,49 @@
         </div>
       </div>
 
-      <!-- FOOTER -->
       <footer>
         <div class="footer-content">
           <div class="footer-top">
             <div class="footer-brand">
-              <div class="footer-logo">
-                <div class="logo-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                <span>RugbyBoard Pro</span>
-              </div>
-              <p class="footer-description" data-i18n="footerDesc">
-                La plataforma líder para diseño de estrategias y tácticas de rugby. Potencia tu entrenamiento con herramientas profesionales.
-              </p>
+              <a href="https://rugbyboardpro.com">
+                <img src="rbp_Italic.png" alt="RugbyBoard Pro" class="footer-logo-img"/>
+              </a>
+              <p class="footer-description" data-i18n="footerDesc">La plataforma líder para diseño de estrategias y tácticas de rugby. Potencia tu entrenamiento con herramientas profesionales.</p>
             </div>
-
             <div class="footer-column">
               <h4 data-i18n="footerProduct">Producto</h4>
               <div class="footer-links">
-                <a href="index.html#features" data-i18n="navFeatures">Características</a>
-                <a href="index.html#pricing" data-i18n="navPricing">Precios</a>
-                <a href="document.html" data-i18n="navDocs">Documentación</a>
-                <a href="demo.html" data-i18n="navDemo">Demo</a>
-                <a href="contacto.html" data-i18n="navContact">Contacto</a>
+                <a href="#features" data-i18n="navFeatures">Características</a>
+                <a href="#pricing" data-i18n="navPricing">Precios</a>
+                <a href="demo.html" data-i18n="footerDemo">Demo</a>
+                <a href="soporte.html" data-i18n="footerUpdates">Actualizaciones</a>
               </div>
             </div>
-
             <div class="footer-column">
               <h4 data-i18n="footerResources">Recursos</h4>
               <div class="footer-links">
-                <a href="document.html" data-i18n="footerDocs">Guía</a>
-                <a href="demo.html" data-i18n="footerTutorials">Video tutoriales</a>
-                <a href="contacto.html" data-i18n="footerSupport">Soporte</a>
+                <a href="document.html" data-i18n="footerDocs">Documentación</a>
+                <a href="demo.html" data-i18n="footerTutorials">Tutoriales</a>
+                <a href="soporte.html" data-i18n="footerSupport">Soporte</a>
               </div>
             </div>
-
             <div class="footer-column">
               <h4 data-i18n="footerCompany">Compañía</h4>
               <div class="footer-links">
-                <a href="index.html#about" data-i18n="footerAbout">Acerca de</a>
+                <a href="acercade.html" data-i18n="footerAbout">Acerca de</a>
                 <a href="contacto.html" data-i18n="footerContact">Contacto</a>
                 <a href="#" data-i18n="footerLegal">Legal</a>
               </div>
             </div>
           </div>
-
           <div class="footer-bottom">
-            <div class="copyright" data-i18n="footerText">
-              © 2024 RugbyBoard Pro by JJwebs Academy. Todos los derechos reservados.
-            </div>
-
+            <div class="copyright" data-i18n="footerText">© 2025 RugbyBoard Pro by JJwebs Academy. Todos los derechos reservados.</div>
             <div class="social-links">
-              <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
-              <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
-              <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
-              <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin"></i></a>
-              <a href="#" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+              <a href="#" class="social-icon" target="_blank"><i class="fab fa-twitter"></i></a>
+              <a href="#" class="social-icon" target="_blank"><i class="fab fa-facebook"></i></a>
+              <a href="#" class="social-icon" target="_blank"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="social-icon" target="_blank"><i class="fab fa-linkedin"></i></a>
+              <a href="#" class="social-icon" target="_blank"><i class="fab fa-youtube"></i></a>
             </div>
           </div>
         </div>
